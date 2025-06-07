@@ -86,10 +86,20 @@ contract KurukshetraNFT is ERC721, Ownable{
     event KurukshetraPromoted(uint256 indexed tokenId, Ranking newRanking);
     event KurukshetraDemoted(uint256 indexed tokenId, Ranking newRanking);
 
+    /**
+     * 
+     * @param _owner The address of the owner of the contract.
+     * @dev The owner is the arena contract that deploys the NFT conllection contract which will check if the total staked amount in a dao is what
+     */
     constructor(address _owner) ERC721("Kurukshetras", "KSTS") Ownable(_owner){
         s_tokenCounter = 0;
     }
 
+    /**
+     * 
+     * @param _tokenURI The token URI of the Arena NFT
+     * @notice it should contain the three players that will be in the arena at all time
+     */
     function mintNft(string memory _tokenURI) public {
         s_tokenIdToUri[s_tokenCounter] = _tokenURI;
         _safeMint(msg.sender, s_tokenCounter);
@@ -99,45 +109,55 @@ contract KurukshetraNFT is ERC721, Ownable{
         emit KurukshetraNFTMinted(msg.sender, s_tokenCounter - 1, _tokenURI);
     }
 
-    function promoteNFT(uint256 tokenId) public onlyOwner {
-        if(s_tokenIdToRanking[tokenId] == Ranking.PLATINUM) {
+    /**
+     * @dev This function is used to promote the rank of a NFT
+     * @param _tokenId The token ID of the NFT to be promoted.
+     */
+    function promoteNFT(uint256 _tokenId) public onlyOwner {
+        if(s_tokenIdToRanking[_tokenId] == Ranking.PLATINUM) {
             revert KurukshetraNFT__KurukshetraAlreadyAtTopRank();
         }
-        if(s_tokenIdToRanking[tokenId] == Ranking.UNRANKED) {
-            s_tokenIdToRanking[tokenId] = Ranking.BRONZE;
-        } else if(s_tokenIdToRanking[tokenId] == Ranking.BRONZE) {
-            s_tokenIdToRanking[tokenId] = Ranking.SILVER;
-        } else if(s_tokenIdToRanking[tokenId] == Ranking.SILVER) {
-            s_tokenIdToRanking[tokenId] = Ranking.GOLD;
-        } else if(s_tokenIdToRanking[tokenId] == Ranking.GOLD) {
-            s_tokenIdToRanking[tokenId] = Ranking.PLATINUM;
+        if(s_tokenIdToRanking[_tokenId] == Ranking.UNRANKED) {
+            s_tokenIdToRanking[_tokenId] = Ranking.BRONZE;
+        } else if(s_tokenIdToRanking[_tokenId] == Ranking.BRONZE) {
+            s_tokenIdToRanking[_tokenId] = Ranking.SILVER;
+        } else if(s_tokenIdToRanking[_tokenId] == Ranking.SILVER) {
+            s_tokenIdToRanking[_tokenId] = Ranking.GOLD;
+        } else if(s_tokenIdToRanking[_tokenId] == Ranking.GOLD) {
+            s_tokenIdToRanking[_tokenId] = Ranking.PLATINUM;
         }
 
-        emit KurukshetraPromoted(tokenId, s_tokenIdToRanking[tokenId]);
+        emit KurukshetraPromoted(_tokenId, s_tokenIdToRanking[_tokenId]);
     }
 
-    function demoteNFT(uint256 tokenId) public onlyOwner {
-        if(s_tokenIdToRanking[tokenId] == Ranking.UNRANKED) {
+    /**
+     * @dev this function demotes the rank of a NFT
+     * @param _tokenId The token ID of the NFT to demote
+     */
+    function demoteNFT(uint256 _tokenId) public onlyOwner {
+        if(s_tokenIdToRanking[_tokenId] == Ranking.UNRANKED) {
             revert KurukshetraNFT__KurukshetraAlreadyAtBottomRank();
         }
-        if(s_tokenIdToRanking[tokenId] == Ranking.PLATINUM) {
-            s_tokenIdToRanking[tokenId] = Ranking.GOLD;
-        } else if(s_tokenIdToRanking[tokenId] == Ranking.GOLD) {
-            s_tokenIdToRanking[tokenId] = Ranking.SILVER;
-        } else if(s_tokenIdToRanking[tokenId] == Ranking.SILVER) {
-            s_tokenIdToRanking[tokenId] = Ranking.BRONZE;
-        } else if(s_tokenIdToRanking[tokenId] == Ranking.BRONZE) {
-            s_tokenIdToRanking[tokenId] = Ranking.UNRANKED;
+        if(s_tokenIdToRanking[_tokenId] == Ranking.PLATINUM) {
+            s_tokenIdToRanking[_tokenId] = Ranking.GOLD;
+        } else if(s_tokenIdToRanking[_tokenId] == Ranking.GOLD) {
+            s_tokenIdToRanking[_tokenId] = Ranking.SILVER;
+        } else if(s_tokenIdToRanking[_tokenId] == Ranking.SILVER) {
+            s_tokenIdToRanking[_tokenId] = Ranking.BRONZE;
+        } else if(s_tokenIdToRanking[_tokenId] == Ranking.BRONZE) {
+            s_tokenIdToRanking[_tokenId] = Ranking.UNRANKED;
         }
 
-        emit KurukshetraDemoted(tokenId, s_tokenIdToRanking[tokenId]);
+        emit KurukshetraDemoted(_tokenId, s_tokenIdToRanking[_tokenId]);
     }
 
-    function getRanking(uint256 tokenId) public view returns (Ranking) {
-        return s_tokenIdToRanking[tokenId];
+    /* Helper Getter Functions */
+    
+    function getRanking(uint256 _tokenId) public view returns (Ranking) {
+        return s_tokenIdToRanking[_tokenId];
     }
 
-    function tokenURI(uint256 tokenId) public view override returns (string memory) {
-        return s_tokenIdToUri[tokenId];
+    function tokenURI(uint256 _tokenId) public view override returns (string memory) {
+        return s_tokenIdToUri[_tokenId];
     }
 }
