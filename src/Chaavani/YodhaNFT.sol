@@ -77,9 +77,31 @@ contract YodhaNFT is ERC721 {
         PLATINUM
     }
 
+    struct Traits{
+        // all these can have a maximum value of 100 and with decimal precision of 2
+        // so the maximum value of each trait can be 10000
+        uint16 strength;
+        uint16 wit;
+        uint16 charisma;
+        uint16 defence;
+        uint16 luck;
+    }
+
+    struct Moves{
+        string strike;  // strength
+        string taunt;   // charisma + wit
+        string dodge;   // defence
+        string special; // personality + strength
+        string recover; // defence + charisma
+        // everything it also influenced by the luck factor
+    }
+
+    uint16 private constant TRAITS_DECIMAL_PRECISION = 2;
     uint256 private s_tokenCounter;
     mapping(uint256 => string) private s_tokenIdToUri;
     mapping(uint256 => Ranking) private s_tokenIdToRanking;
+    mapping(uint256 => Traits) private s_tokenIdToTraits;
+    mapping(uint256 => Moves) private s_tokenIdToMoves;
     address private immutable i_dao;
     address private immutable i_gurukul;
 
@@ -185,5 +207,13 @@ contract YodhaNFT is ERC721 {
 
     function tokenURI(uint256 _tokenId) public view override returns (string memory) {
         return s_tokenIdToUri[_tokenId];
+    }
+
+    function getTraits(uint256 _tokenId) public view returns (Traits memory) {
+        return s_tokenIdToTraits[_tokenId];
+    }
+
+    function getMoves(uint256 _tokenId) public view returns (Moves memory) {
+        return s_tokenIdToMoves[_tokenId];
     }
 }
