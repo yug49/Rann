@@ -137,7 +137,7 @@ contract YodhaNFT is ERC721 {
      * @param _gurukul The address of the Gurukul.
      */
     constructor(address _dao, address _gurukul) ERC721("Yodhas", "YDA") {
-        s_tokenCounter = 0;
+        s_tokenCounter = 1; // Start token IDs from 1
         i_dao = _dao;
         i_gurukul = _gurukul;
     }
@@ -150,6 +150,33 @@ contract YodhaNFT is ERC721 {
         s_tokenIdToUri[s_tokenCounter] = _tokenURI;
         _safeMint(msg.sender, s_tokenCounter);
         s_tokenIdToRanking[s_tokenCounter] = Ranking.UNRANKED;
+        (
+            uint16 _strength,
+            uint16 _wit,
+            uint16 _charisma,
+            uint16 _defence,
+            uint16 _luck,
+            string memory _strike,
+            string memory _taunt,
+            string memory _dodge,
+            string memory _special,
+            string memory _recover
+        ) = _generateTraitsAndMovesUsingUri(_tokenURI);    // This function will be on the NEAR chain AI's contract and will be called using chainlink CCIP
+        s_tokenIdToTraits[s_tokenCounter] = Traits({
+            strength: _strength,
+            wit: _wit,
+            charisma: _charisma,
+            defence: _defence,
+            luck: _luck
+        });
+        s_tokenIdToMoves[s_tokenCounter] = Moves({
+            strike: _strike,
+            taunt: _taunt,
+            dodge: _dodge,
+            special: _special,
+            recover: _recover
+        });
+
         s_tokenCounter++;
 
         emit YodhaNFTMinted(msg.sender, s_tokenCounter - 1, _tokenURI);

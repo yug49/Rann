@@ -2,7 +2,6 @@
 
 pragma solidity ^0.8.24;
 
-import {ERC721} from "../../lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
 import {Ownable} from "../../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 
 /**
@@ -64,13 +63,11 @@ import {Ownable} from "../../lib/openzeppelin-contracts/contracts/access/Ownable
  *         -++-+####+++---..-.........
  *           .....
  */
-contract KurukshetraNFT is ERC721, Ownable{
-    error KurukshetraNFT__NotGurukulOrDao();
-    error KurukshetraNFT__NotDao();
-    error KurukshetraNFT__KurukshetraAlreadyAtTopRank();
-    error KurukshetraNFT__KurukshetraAlreadyAtBottomRank();
+contract Kurukshetra is Ownable{
+    error Kurukshetra__NotValidBridgeAddress();
+    error Kurukshetra__GameNotStartedYet();
 
-    enum Ranking{
+    enum RankCategory{
         UNRANKED,
         BRONZE,
         SILVER,
@@ -78,86 +75,83 @@ contract KurukshetraNFT is ERC721, Ownable{
         PLATINUM
     }
 
-    uint256 private s_tokenCounter;
-    mapping(uint256 => string) private s_tokenIdToUri;
-    mapping(uint256 => Ranking) private s_tokenIdToRanking;
-
-    event KurukshetraNFTMinted(address indexed owner, uint256 indexed tokenId, string tokenURI);
-    event KurukshetraPromoted(uint256 indexed tokenId, Ranking newRanking);
-    event KurukshetraDemoted(uint256 indexed tokenId, Ranking newRanking);
-
-    /**
-     * 
-     * @param _owner The address of the owner of the contract.
-     * @dev The owner is the arena contract that deploys the NFT conllection contract which will check if the total staked amount in a dao is what
-     */
-    constructor(address _owner) ERC721("Kurukshetras", "KSTS") Ownable(_owner){
-        s_tokenCounter = 0;
+    enum PlayerMoves{
+        STRIKE,  // strength
+        TAUNT,  // charisma + wit
+        DODGE,   // defence
+        SPECIAL, // personality + strength
+        RECOVER // defence + charisma
     }
 
-    /**
-     * 
-     * @param _tokenURI The token URI of the Arena NFT
-     * @notice it should contain the three players that will be in the arena at all time
-     */
-    function mintNft(string memory _tokenURI) public {
-        s_tokenIdToUri[s_tokenCounter] = _tokenURI;
-        _safeMint(msg.sender, s_tokenCounter);
-        s_tokenIdToRanking[s_tokenCounter] = Ranking.UNRANKED;
-        s_tokenCounter++;
+    RankCategory private immutable s_rankCategory;
+    uint256 private s_playerOneNFTId;
+    uint256 private s_playerTwoNFTId;
+    address private s_playersBridgeAddress;
+    uint8 private s_currentRound;
+    address[] private s_playerOneBetAddresses;
+    uint256[] private s_playerOneBetAmounts;
+    address[] private s_playerTwoBetAddresses;
+    uint256[] private s_playerTwoBetAmounts;
+    uint256 private s_playerOneInfluenceCost;
+    uint256 private s_playerTwoInfluenceCost;
+    uint256 private s_playerOneDefluenceCost;
+    uint256 private s_playerTwoDefluenceCost;
 
-        emit KurukshetraNFTMinted(msg.sender, s_tokenCounter - 1, _tokenURI);
+    modifier onlyPlayersBridge() {
+        if(msg.sender != s_playersBridgeAddress) {
+            revert Kurukshetra__NotValidBridgeAddress();
+        }
+        _;
     }
 
-    /**
-     * @dev This function is used to promote the rank of a NFT
-     * @param _tokenId The token ID of the NFT to be promoted.
-     */
-    function promoteNFT(uint256 _tokenId) public onlyOwner {
-        if(s_tokenIdToRanking[_tokenId] == Ranking.PLATINUM) {
-            revert KurukshetraNFT__KurukshetraAlreadyAtTopRank();
-        }
-        if(s_tokenIdToRanking[_tokenId] == Ranking.UNRANKED) {
-            s_tokenIdToRanking[_tokenId] = Ranking.BRONZE;
-        } else if(s_tokenIdToRanking[_tokenId] == Ranking.BRONZE) {
-            s_tokenIdToRanking[_tokenId] = Ranking.SILVER;
-        } else if(s_tokenIdToRanking[_tokenId] == Ranking.SILVER) {
-            s_tokenIdToRanking[_tokenId] = Ranking.GOLD;
-        } else if(s_tokenIdToRanking[_tokenId] == Ranking.GOLD) {
-            s_tokenIdToRanking[_tokenId] = Ranking.PLATINUM;
-        }
-
-        emit KurukshetraPromoted(_tokenId, s_tokenIdToRanking[_tokenId]);
+    constructor(RankCategory _rankCategory) Ownable(msg.sender) {
+        s_rankCategory = _rankCategory;
     }
 
-    /**
-     * @dev this function demotes the rank of a NFT
-     * @param _tokenId The token ID of the NFT to demote
-     */
-    function demoteNFT(uint256 _tokenId) public onlyOwner {
-        if(s_tokenIdToRanking[_tokenId] == Ranking.UNRANKED) {
-            revert KurukshetraNFT__KurukshetraAlreadyAtBottomRank();
-        }
-        if(s_tokenIdToRanking[_tokenId] == Ranking.PLATINUM) {
-            s_tokenIdToRanking[_tokenId] = Ranking.GOLD;
-        } else if(s_tokenIdToRanking[_tokenId] == Ranking.GOLD) {
-            s_tokenIdToRanking[_tokenId] = Ranking.SILVER;
-        } else if(s_tokenIdToRanking[_tokenId] == Ranking.SILVER) {
-            s_tokenIdToRanking[_tokenId] = Ranking.BRONZE;
-        } else if(s_tokenIdToRanking[_tokenId] == Ranking.BRONZE) {
-            s_tokenIdToRanking[_tokenId] = Ranking.UNRANKED;
-        }
+    function startGame(
+        uint256 _playerOneNFTId,
+        uint256 _playersTwoNFTId,
+        address _playersBridgeAddress,
+        address[] _playerOneBetAddresses,
+        uint256[] _playerOneBetAmounts,
+        address[] _playerTwoBetAddresses,
+        uint256[] _playerTwoBetAmounts,
 
-        emit KurukshetraDemoted(_tokenId, s_tokenIdToRanking[_tokenId]);
+    ) public {
+        s_playerOneNFTId = _playerOneNFTId;
+        s_playerTwoNFTId = _playersTwoNFTId;
+        s_playersBridgeAddress = _playersBridgeAddress;
+        s_currentRound = 1;
+        s_playerOneBetAddresses = _playerOneBetAddresses;
+        s_playerOneBetAmounts = _playerOneBetAmounts;
+        s_playerTwoBetAddresses = _playerTwoBetAddresses;
+        s_playerTwoBetAmounts = _playerTwoBetAmounts;
+    }
+
+    function startRound(
+        PlayerMoves[] memory _playerOneMoves,
+        PlayerMoves[] memory _playerTwoMoves,
+        address[] memory _playerOneInfluentialAddresses,
+        address[] memory _playerTwoInfluentialAddresses
+    ) {
+        if(currentRound == 0) {
+            revert Kurukshetra__GameNotStartedYet();
+        }
+        
+    }
+
+
+
+    function resetGame() onlyOwner external {
+        s_playerOneNFTId = 0;
+        s_playerTwoNFTId = 0;
+        s_playersBridgeAddress = address(0);
+        s_currentRount = 0;
     }
 
     /* Helper Getter Functions */
-    
-    function getRanking(uint256 _tokenId) public view returns (Ranking) {
-        return s_tokenIdToRanking[_tokenId];
-    }
 
-    function tokenURI(uint256 _tokenId) public view override returns (string memory) {
-        return s_tokenIdToUri[_tokenId];
+    function getRankCategory() external view returns (RankCategory) {
+        return s_rankCategory;
     }
 }
