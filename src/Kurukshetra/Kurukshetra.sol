@@ -220,7 +220,7 @@ contract Kurukshetra is Ownable{
 
     /**
      * @notice Starts the game.
-     * @dev This function checks if there are at least one better on both the sides to prevent unnecessary starting of the game
+     * @dev This function checks if there are at least better on both the sides to prevent unnecessary starting of the game
      */
     function startGame() external onlyPlayersBridge {
         if(!s_gameInitialized) {

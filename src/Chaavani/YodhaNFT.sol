@@ -3,6 +3,8 @@
 pragma solidity ^0.8.24;
 
 import {ERC721} from "../../lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
+import {ECDSA} from "../../lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
+import {MessageHashUtils} from "../../lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 
 /**
  * @title YodhaNFT
@@ -68,6 +70,10 @@ contract YodhaNFT is ERC721 {
     error YodhaNFT__NotDao();
     error YodhaNFT__YodhaAlreadyAtTopRank();
     error YodhaNFT__YodhaAlreadyAtBottomRank();
+    error YodhaNFT__TraitsAlreadyAssigned();
+    error YodhaNFT__InvalidTokenId();
+    error YodhaNFT__InvalidSignature();
+    error YodhaNFT__InvalidTraitsValue();
 
     enum Ranking {
         UNRANKED,
@@ -77,7 +83,7 @@ contract YodhaNFT is ERC721 {
         PLATINUM
     }
 
-    struct Traits{
+    struct Traits {
         // all these can have a maximum value of 100 and with decimal precision of 2
         // so the maximum value of each trait can be 10000
         uint16 strength;
@@ -87,13 +93,13 @@ contract YodhaNFT is ERC721 {
         uint16 luck;
     }
 
-    struct Moves{
-        string strike;  // strength
-        string taunt;   // charisma + wit
-        string dodge;   // defence
+    struct Moves {
+        string strike; // strength
+        string taunt; // charisma + wit
+        string dodge; // defence
         string special; // personality + strength
         string recover; // defence + charisma
-        // everything it also influenced by the luck factor
+            // everything it also influenced by the luck factor
     }
 
     uint16 private constant TRAITS_DECIMAL_PRECISION = 2;
@@ -102,12 +108,16 @@ contract YodhaNFT is ERC721 {
     mapping(uint256 => Ranking) private s_tokenIdToRanking;
     mapping(uint256 => Traits) private s_tokenIdToTraits;
     mapping(uint256 => Moves) private s_tokenIdToMoves;
+    mapping(uint256 => bool) private s_traitsAssigned;
     address private immutable i_dao;
     address private immutable i_gurukul;
+    address private immutable i_nearAiPublicKey; // NEAR AI Public Key for generating traits and moves
 
     event YodhaNFTMinted(address indexed owner, uint256 indexed tokenId, string tokenURI);
     event YodhaPromoted(uint256 indexed tokenId, Ranking newRanking);
     event YodhaDemoted(uint256 indexed tokenId, Ranking newRanking);
+    event YodhaTraitsAndMovesAssigned(uint256 indexed tokenId);
+    event YodhaTraitsUpdated(uint256 indexed tokenId);
 
     /**
      * @notice This modifier checks if the caller is either the Gurukul or the DAO.
@@ -115,6 +125,17 @@ contract YodhaNFT is ERC721 {
      */
     modifier onlyGurukulOrDao() {
         if (msg.sender != i_gurukul && msg.sender != i_dao) {
+            revert YodhaNFT__NotGurukulOrDao();
+        }
+        _;
+    }
+
+    /**
+     * @notice This modifier checks if the caller is the Gurukul.
+     * @dev It is used to restrict access to certain functions that can only be called by the Gurukul.
+     */
+    modifier onlyGurukul() {
+        if (msg.sender != i_gurukul) {
             revert YodhaNFT__NotGurukulOrDao();
         }
         _;
@@ -136,10 +157,11 @@ contract YodhaNFT is ERC721 {
      * @param _dao The address of the DAO.
      * @param _gurukul The address of the Gurukul.
      */
-    constructor(address _dao, address _gurukul) ERC721("Yodhas", "YDA") {
+    constructor(address _dao, address _gurukul, address _nearAiPublicKey) ERC721("Yodhas", "YDA") {
         s_tokenCounter = 1; // Start token IDs from 1
         i_dao = _dao;
         i_gurukul = _gurukul;
+        i_nearAiPublicKey = _nearAiPublicKey;
     }
 
     /**
@@ -150,36 +172,84 @@ contract YodhaNFT is ERC721 {
         s_tokenIdToUri[s_tokenCounter] = _tokenURI;
         _safeMint(msg.sender, s_tokenCounter);
         s_tokenIdToRanking[s_tokenCounter] = Ranking.UNRANKED;
-        (
-            uint16 _strength,
-            uint16 _wit,
-            uint16 _charisma,
-            uint16 _defence,
-            uint16 _luck,
-            string memory _strike,
-            string memory _taunt,
-            string memory _dodge,
-            string memory _special,
-            string memory _recover
-        ) = _generateTraitsAndMovesUsingUri(_tokenURI);    // This function will be on the NEAR chain AI's contract and will be called using chainlink CCIP
-        s_tokenIdToTraits[s_tokenCounter] = Traits({
-            strength: _strength,
-            wit: _wit,
-            charisma: _charisma,
-            defence: _defence,
-            luck: _luck
-        });
-        s_tokenIdToMoves[s_tokenCounter] = Moves({
-            strike: _strike,
-            taunt: _taunt,
-            dodge: _dodge,
-            special: _special,
-            recover: _recover
-        });
 
         s_tokenCounter++;
 
         emit YodhaNFTMinted(msg.sender, s_tokenCounter - 1, _tokenURI);
+    }
+
+    /**
+     * @param _tokenId The ID of the NFT for which traits and moves are being assigned.
+     * @param _strength The strength trait value (0-100).
+     * @param _wit The wit trait value (0-100).
+     * @param _charisma The charisma trait value (0-100).
+     * @param _defence The defence trait value (0-100).
+     * @param _luck The luck trait value (0-100).
+     * @param _strike The strike move name string.
+     * @param _taunt The taunt move name string.
+     * @param _dodge The dodge move name string.
+     * @param _special The special move name string.
+     * @param _recover The recover move name string.
+     * @param _signedData The signed data from the NEAR AI.
+     */
+    function assignTraitsAndMoves(
+        uint16 _tokenId,
+        uint16 _strength,
+        uint16 _wit,
+        uint16 _charisma,
+        uint16 _defence,
+        uint16 _luck,
+        string memory _strike,
+        string memory _taunt,
+        string memory _dodge,
+        string memory _special,
+        string memory _recover,
+        bytes memory _signedData
+    ) public {
+        if (s_traitsAssigned[_tokenId]) {
+            revert YodhaNFT__TraitsAlreadyAssigned();
+        }
+        if (_tokenId >= s_tokenCounter) {
+            revert YodhaNFT__InvalidTokenId();
+        }
+        bytes32 dataHash = keccak256(
+            abi.encodePacked(
+                _tokenId, _strength, _wit, _charisma, _defence, _luck, _strike, _taunt, _dodge, _special, _recover
+            )
+        );
+        bytes32 ethSignedMessage = MessageHashUtils.toEthSignedMessageHash(dataHash);
+        address recovered = ECDSA.recover(ethSignedMessage, _signedData);
+
+        if (recovered != i_nearAiPublicKey) {
+            revert YodhaNFT__InvalidSignature();
+        }
+
+        s_tokenIdToTraits[_tokenId] =
+            Traits({strength: _strength, wit: _wit, charisma: _charisma, defence: _defence, luck: _luck});
+        s_tokenIdToMoves[_tokenId] =
+            Moves({strike: _strike, taunt: _taunt, dodge: _dodge, special: _special, recover: _recover});
+        s_traitsAssigned[_tokenId] = true;
+        emit YodhaTraitsAndMovesAssigned(_tokenId);
+    }
+
+    function updateTraits(
+        uint256 _tokenId,
+        uint16 _strength,
+        uint16 _wit,
+        uint16 _charisma,
+        uint16 _defence,
+        uint16 _luck
+    ) external onlyGurukul {
+        if (_tokenId >= s_tokenCounter) {
+            revert YodhaNFT__InvalidTokenId();
+        }
+        if (_strength > 10000 || _wit > 10000 || _charisma > 10000 || _defence > 10000 || _luck > 10000) {
+            revert YodhaNFT__InvalidTraitsValue();
+        }
+        s_tokenIdToTraits[_tokenId] =
+            Traits({strength: _strength, wit: _wit, charisma: _charisma, defence: _defence, luck: _luck});
+
+        emit YodhaTraitsUpdated(_tokenId);
     }
 
     /**
