@@ -81,6 +81,7 @@ contract Gurukul {
     error Gurukul__NotValidIfpsAddress();
 
     IYodhaNFT private immutable i_yodhaNFT;
+    address private immutable i_nearAiPublicKey;
     address private immutable i_cadenceArch;
     address private immutable i_dao;
     string private s_ipfsAddress;
@@ -103,6 +104,7 @@ contract Gurukul {
         address _dao,
         address _yodhaNFT,
         uint256 _initialNumberOfQuestions,
+        address _nearAiPublicKey,
         uint256[] memory _initalQuestionsToOptions,
         string memory _ipfsAddress
     ) {
@@ -122,7 +124,9 @@ contract Gurukul {
             }
         }
         if (bytes(_ipfsAddress).length == 0) revert Gurukul__NotValidIfpsAddress();
+        if (_nearAiPublicKey == address(0)) revert Gurukul__NotValidAddress();
 
+        i_nearAiPublicKey = _nearAiPublicKey;
         i_cadenceArch = _cadenceArch;
         i_dao = _dao;
         i_yodhaNFT = IYodhaNFT(_yodhaNFT);
@@ -221,7 +225,7 @@ contract Gurukul {
         bytes32 ethSignedMessage = MessageHashUtils.toEthSignedMessageHash(messageHash);
         address recovered = ECDSA.recover(ethSignedMessage, _signedData);
 
-        if (recovered != i_dao) {
+        if (recovered != i_nearAiPublicKey) {
             revert Gurukul__NotValidSignature();
         }
 
