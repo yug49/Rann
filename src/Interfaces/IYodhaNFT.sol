@@ -6,7 +6,7 @@ import {IERC721} from "../../lib/openzeppelin-contracts/contracts/token/ERC721/I
 
 /**
  * @title IYodhaNFT
- * @author Yug Agarwal
+ * @author Yug Agarwal, Samkit Soni
  * @notice Interface for the YodhaNFT contract
  */
 interface IYodhaNFT is IERC721 {

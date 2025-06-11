@@ -8,7 +8,7 @@ import {MessageHashUtils} from "../../lib/openzeppelin-contracts/contracts/utils
 
 /**
  * @title Gurukul
- * @author Yug Agarwal
+ * @author Yug Agarwal, Samkit Soni
  * @dev User can interact with the Gurukul contract to train and upgrade the traits of their Yodhas.
  *
  *                          .            .                                   .#

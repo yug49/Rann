@@ -8,7 +8,7 @@ import {MessageHashUtils} from "../../lib/openzeppelin-contracts/contracts/utils
 
 /**
  * @title YodhaNFT
- * @author Yug Agarwal
+ * @author Yug Agarwal, Samkit Soni
  * @notice This is the core contract that mints the charecters' NFTs.
  * @dev A user (charecter maker) must pass the token uri with the charecters' 5 images (normal, attacked, deafened, poisoned and silenced).
  * @dev This user's passed uri should also contain charecters' personality attributes.
