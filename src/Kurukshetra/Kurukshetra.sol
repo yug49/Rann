@@ -112,7 +112,6 @@ contract Kurukshetra is Ownable {
     //     LOCKED
     // }
 
-    RankCategory private immutable i_rankCategory; // Rank category of the game
     // Rank categories can be UNRANKED, BRONZE, SILVER, GOLD, PLATINUM.
     IRannToken private immutable i_rannToken; // Contract inteface of Rann Token
     // LockStatus private s_lockStatus; // Retrency lock status of the game
@@ -169,7 +168,6 @@ contract Kurukshetra is Ownable {
 
     /**
      * @notice Constructor to initialize the Kurukshetra game.
-     * @param _rankCategory The rank category of the game.
      * @dev Rank categories can be UNRANKED, BRONZE, SILVER, GOLD, PLATINUM.
      * @param _costToInfluence The cost to influenfce a Yodha
      * @param _costToDefluence The cost to defluence a Yodha
@@ -177,7 +175,6 @@ contract Kurukshetra is Ownable {
      * @param _rannTokenAddress Contract address of Rann token.
      */
     constructor(
-        RankCategory _rankCategory,
         uint256 _costToInfluence,
         uint256 _costToDefluence,
         address _rannTokenAddress,
@@ -192,8 +189,6 @@ contract Kurukshetra is Ownable {
         if (_costToInfluence == 0 || _costToDefluence == 0) {
             revert Kurukshetra__CostCannotBeZero();
         }
-        if (uint8(_rankCategory) > 4) revert Kurukshetra__InvalidRankCategory();
-        i_rankCategory = _rankCategory;
         i_costToInfluence = _costToInfluence;
         i_costToDefluence = _costToDefluence;
         i_rannToken = IRannToken(_rannTokenAddress);
@@ -218,6 +213,14 @@ contract Kurukshetra is Ownable {
         }
         if (_yodhaOneNFTId == _yodhaTwoNFTId) {
             revert Kurukshetra__YodhaIdsCannotBeSame();
+        }
+        if (IYodhaNFT(i_yodhaNFTCollection).ownerOf(_yodhaOneNFTId) == address(0) ||
+            IYodhaNFT(i_yodhaNFTCollection).ownerOf(_yodhaTwoNFTId) == address(0)) {
+            revert Kurukshetra__InvalidTokenAddress();
+        }
+        if (IYodhaNFT(i_yodhaNFTCollection).getRanking(_yodhaOneNFTId) !=
+            IYodhaNFT(i_yodhaNFTCollection).getRanking(_yodhaTwoNFTId)) {
+            revert Kurukshetra__InvalidRankCategory();
         }
 
         s_yodhaOneNFTId = _yodhaOneNFTId;
@@ -546,10 +549,6 @@ contract Kurukshetra is Ownable {
     }
 
     /* Helper Getter Functions */
-
-    function getRankCategory() external view returns (RankCategory) {
-        return i_rankCategory;
-    }
 
     function getRannTokenAddress() external view returns (address) {
         return address(i_rannToken);
