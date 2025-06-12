@@ -9,60 +9,59 @@ import {IRannToken} from "../Interfaces/IRannToken.sol";
  * @title Bazaar - Yodha MarketPlace
  * @author Yug Agarwal
  * @dev This contract allows users to buy and sell Yodha NFTs in a decentralized marketplace
- *                                                                         
-                         .            .                                   .#                        
-                       +#####+---+###+#############+-                  -+###.                       
-                       +###+++####+##-+++++##+++##++####+-.         -+###+++                        
-                       +#########.-#+--+####++###- -########+---+++#####+++                         
-                       +#######+#+++--+####+-..-+-.###+++########+-++###++.                         
-                      +######.     +#-#####+-.-------+############+++####-                          
-                     +####++...     ########-++-        +##########++++++.                          
-                    -#######-+.    .########+++          -++######+++-                               
-                    #++########--+-+####++++-- . ..    .-#++--+##+####.                              
-                   -+++++++++#####---###---.----###+-+########..-+#++##-                            
-                   ++###+++++#####-..---.. .+##++++#++#++-+--.   .-++++#                             
-                  .###+.  .+#+-+###+ ..    +##+##+#++----...---.  .-+--+.                            
-                  ###+---------+####+   -####+-.......    ...--++.  .---.                           
-                 -#++++-----#######+-  .-+###+.... .....      .-+##-.  .                            
-                 ##+++###++######++-.   .--+---++---........  ...---.  .                            
-                -####+-+#++###++-.        .--.--...-----.......--..... .                            
-                +######+++###+--..---.....  ...---------------.. .. .  .                            
-               .-#########+#+++--++--------......----++--.--.  .--+---.                             
-                -+++########++--++++----------------------.--+++--+++--                             
-           .######-.-++++###+----------------------..---++--++-+++---..                             
-           -##########-------+-----------------------+-++-++----..----+----+#####++--..             
-           -#############+..  ..--..----------.....-+++++++++++++++++##################+.           
-           --+++++#########+-   . ....  ....... -+++++++++++++++++++############-.----+##-          
-           -----....-+#######+-             .. -+++++++++++++++++++++##+######+.       +++.         
-           --------.....---+#####+--......----.+++++++++++++++++++++##+-+++##+.        -++-         
-           -------...   .--++++++---.....-----.+++++++++++++++++++++++. -+++##-        .---         
-           #################+--.....-------.  .+++++++++++++++++++++-       -+-.       .---         
-           +#########++++-.. .......-+--..--++-++++++++++++++++++++-         .-... ....----         
-           -#####++---..   .--       -+++-.  ..+++++++++++++++++++--        .-+-......-+---         
-           +####+---...    -+#-   .  --++++-. .+++++++++++++++++++---        --        -+--         
-           ++++++++++--....-++.--++--.--+++++-.+++++++++++++++++++---. .......         ----         
-          .--++#########++-.--.+++++--++++###+-++++++++++++++++++++----   .-++-        ----         
-           .-+#############+-.++#+-+-++#######-++++++++++++++++++++----   -++++-      ..---         
-          .---+############+.+###++--++#####++-+++++++++++++++++++++-------++++-........-+-         
-           --+-+##########-+######+++++-++++++-++++++++++++++++++++++-----.----.......---+-         
-          .--+---#######..+#######+++++++--+++-+++++++++++++++++++++++-----------------+++-         
-          .++--..-+##-.-########+++++---++ .+-.+++++++++++++++++++++++++++++++++++---+++++-         
-          -+++. ..-..-+#########++-++--..--....+++++++++++++++++++++++++++++++++++++++++++-         
-          -++-......-+++############++++----- .+++++++++++++++++++++++++++++++++++++++++++-         
-          +##-.....---+#######+####+####+--++-.+++++++++++++++++++++++++++++++++++++++++++-         
-         .#+++-...-++######++-+-----..----++##-+++++++++++++++++++++++++++++++++++++++++++-         
-         .+++--------+##----+------+-..----+++-+++++++++++++++++++++++++++++++++++++++++++-         
-          ----.-----+++-+-...------++-----...--+++++++++++++++++++++++++++++++++++++++++++-         
-         .-..-.--.----..--.... ....++--.  ....-+++++++++++++++++++++++++++++++++++++++++++-         
-          -----------.---..--..   ..+.  . ... .+++++++++++++++++++++++++++++++++++++++++++-         
-        .+#+#+---####+-.    .....--...   .    .+++++++++++++++++++++++++++++++++++++++++++-         
-        -+++++#++++++++.    ..-...--.. ..     .+++++++++++++++++++++++++++++++++++++++++++-         
-        ++++++-------++--   . ....--.. . . .. .+++++++++++++++++++++++++-+----------...             
-        -++++--++++.------......-- ...  ..  . .---------------...                                   
-        -++-+####+++---..-.........                                                                  
-          .....                                                                                      
+ *
+ *                          .            .                                   .#                        
+ *                        +#####+---+###+#############+-                  -+###.                       
+ *                        +###+++####+##-+++++##+++##++####+-.         -+###+++                        
+ *                        +#########.-#+--+####++###- -########+---+++#####+++                         
+ *                        +#######+#+++--+####+-..-+-.###+++########+-++###++.                         
+ *                       +######.     +#-#####+-.-------+############+++####-                          
+ *                      +####++...     ########-++-        +##########++++++.                          
+ *                     -#######-+.    .########+++          -++######+++-                               
+ *                     #++########--+-+####++++-- . ..    .-#++--+##+####.                              
+ *                    -+++++++++#####---###---.----###+-+########..-+#++##-                            
+ *                    ++###+++++#####-..---.. .+##++++#++#++-+--.   .-++++#                             
+ *                   .###+.  .+#+-+###+ ..    +##+##+#++----...---.  .-+--+.                            
+ *                   ###+---------+####+   -####+-.......    ...--++.  .---.                           
+ *                  -#++++-----#######+-  .-+###+.... .....      .-+##-.  .                            
+ *                  ##+++###++######++-.   .--+---++---........  ...---.  .                            
+ *                 -####+-+#++###++-.        .--.--...-----.......--..... .                            
+ *                 +######+++###+--..---.....  ...---------------.. .. .  .                            
+ *                .-#########+#+++--++--------......----++--.--.  .--+---.                             
+ *                 -+++########++--++++----------------------.--+++--+++--                             
+ *            .######-.-++++###+----------------------..---++--++-+++---..                             
+ *            -##########-------+-----------------------+-++-++----..----+----+#####++--..             
+ *            -#############+..  ..--..----------.....-+++++++++++++++++##################+.           
+ *            --+++++#########+-   . ....  ....... -+++++++++++++++++++############-.----+##-          
+ *            -----....-+#######+-             .. -+++++++++++++++++++++##+######+.       +++.         
+ *            --------.....---+#####+--......----.+++++++++++++++++++++##+-+++##+.        -++-         
+ *            -------...   .--++++++---.....-----.+++++++++++++++++++++++. -+++##-        .---         
+ *            #################+--.....-------.  .+++++++++++++++++++++-       -+-.       .---         
+ *            +#########++++-.. .......-+--..--++-++++++++++++++++++++-         .-... ....----         
+ *            -#####++---..   .--       -+++-.  ..+++++++++++++++++++--        .-+-......-+---         
+ *            +####+---...    -+#-   .  --++++-. .+++++++++++++++++++---        --        -+--         
+ *            ++++++++++--....-++.--++--.--+++++-.+++++++++++++++++++---. .......         ----         
+ *           .--++#########++-.--.+++++--++++###+-++++++++++++++++++++----   .-++-        ----         
+ *            .-+#############+-.++#+-+-++#######-++++++++++++++++++++----   -++++-      ..---         
+ *           .---+############+.+###++--++#####++-+++++++++++++++++++++-------++++-........-+-         
+ *            --+-+##########-+######+++++-++++++-++++++++++++++++++++++-----.----.......---+-         
+ *           .--+---#######..+#######+++++++--+++-+++++++++++++++++++++++-----------------+++-         
+ *           .++--..-+##-.-########+++++---++ .+-.+++++++++++++++++++++++++++++++++++---+++++-         
+ *           -+++. ..-..-+#########++-++--..--....+++++++++++++++++++++++++++++++++++++++++++-         
+ *           -++-......-+++############++++----- .+++++++++++++++++++++++++++++++++++++++++++-         
+ *           +##-.....---+#######+####+####+--++-.+++++++++++++++++++++++++++++++++++++++++++-         
+ *          .#+++-...-++######++-+-----..----++##-+++++++++++++++++++++++++++++++++++++++++++-         
+ *          .+++--------+##----+------+-..----+++-+++++++++++++++++++++++++++++++++++++++++++-         
+ *           ----.-----+++-+-...------++-----...--+++++++++++++++++++++++++++++++++++++++++++-         
+ *          .-..-.--.----..--.... ....++--.  ....-+++++++++++++++++++++++++++++++++++++++++++-         
+ *           -----------.---..--..   ..+.  . ... .+++++++++++++++++++++++++++++++++++++++++++-         
+ *         .+#+#+---####+-.    .....--...   .    .+++++++++++++++++++++++++++++++++++++++++++-         
+ *         -+++++#++++++++.    ..-...--.. ..     .+++++++++++++++++++++++++++++++++++++++++++-         
+ *         ++++++-------++--   . ....--.. . . .. .+++++++++++++++++++++++++-+----------...             
+ *         -++++--++++.------......-- ...  ..  . .---------------...                                   
+ *         -++-+####+++---..-.........                                                                  
+ *           .....
  */
-
 contract Bazaar {
     error Bazaar__Locked();
     error Bazaar__NotOwnerOfYodha();
@@ -87,7 +86,7 @@ contract Bazaar {
      * @dev This prevents re-entrancy attacks by ensuring that certain functions cannot be called while the lock is active
      */
     modifier lock() {
-        if(s_lockStatus == LockStatus.LOCKED) {
+        if (s_lockStatus == LockStatus.LOCKED) {
             revert Bazaar__Locked();
         }
         s_lockStatus = LockStatus.LOCKED;
@@ -113,17 +112,14 @@ contract Bazaar {
      * @dev This function transfers the Yodha NFT from the owner to the Bazaar contract and marks it as on sale
      * @dev This function assumes that the owner has already approved the Bazaar contract to transfer the Yodha NFT
      */
-    function putYourYodhaForSale(
-        uint256 _tokenId,
-        uint256 _price
-    ) external lock {
-        if(i_yodhaNFT.ownerOf(_tokenId) != msg.sender) {
+    function putYourYodhaForSale(uint256 _tokenId, uint256 _price) external lock {
+        if (i_yodhaNFT.ownerOf(_tokenId) != msg.sender) {
             revert Bazaar__NotOwnerOfYodha();
         }
-        if(_price == 0) {
+        if (_price == 0) {
             revert Bazaar__InvalidPrice();
         }
-        if(s_tokenIdToOwner[_tokenId] != address(0)) {
+        if (s_tokenIdToOwner[_tokenId] != address(0)) {
             revert Bazaar__AlreadyOnSale();
         }
 
@@ -139,24 +135,18 @@ contract Bazaar {
      * @dev This function transfers the Rann tokens from the buyer to the seller and completes the sale
      * @dev This function assumes that the buyer has already approved the Bazaar contract to spend the required amount of Rann tokens
      */
-    function buyYodha(
-        uint256 _tokenId
-    ) external lock {
-        if(s_tokenIdToOwner[_tokenId] == address(0)) {
+    function buyYodha(uint256 _tokenId) external lock {
+        if (s_tokenIdToOwner[_tokenId] == address(0)) {
             revert Bazaar__NotOnSale();
         }
 
-        i_rannToken.transferFrom(
-            msg.sender,
-            s_tokenIdToOwner[_tokenId],
-            s_tokenIdToPrice[_tokenId]
-        );
+        i_rannToken.transferFrom(msg.sender, s_tokenIdToOwner[_tokenId], s_tokenIdToPrice[_tokenId]);
 
         s_tokenIdToOwner[_tokenId] = address(0);
         s_tokenIdToPrice[_tokenId] = 0;
 
-        for(uint256 i = 0; i < s_tokenIdsOnSale.length; i++) {
-            if(s_tokenIdsOnSale[i] == _tokenId) {
+        for (uint256 i = 0; i < s_tokenIdsOnSale.length; i++) {
+            if (s_tokenIdsOnSale[i] == _tokenId) {
                 // Remove the tokenId from the on-sale list
                 s_tokenIdsOnSale[i] = s_tokenIdsOnSale[s_tokenIdsOnSale.length - 1];
                 s_tokenIdsOnSale.pop();
@@ -172,20 +162,18 @@ contract Bazaar {
      * @param _tokenId The ID of the Yodha NFT to be retrieved
      * @dev This function checks if the caller is the owner and if the Yodha NFT is on sale before allowing retrieval
      */
-    function retrieveYodhaOnSale(
-        uint256 _tokenId
-    ) external lock {
-        if(s_tokenIdToOwner[_tokenId] != msg.sender) {
+    function retrieveYodhaOnSale(uint256 _tokenId) external lock {
+        if (s_tokenIdToOwner[_tokenId] != msg.sender) {
             revert Bazaar__NotOwnerOfYodha();
         }
-        if(s_tokenIdToPrice[_tokenId] == 0) {
+        if (s_tokenIdToPrice[_tokenId] == 0) {
             revert Bazaar__NotOnSale();
         }
 
         s_tokenIdToOwner[_tokenId] = address(0);
         s_tokenIdToPrice[_tokenId] = 0;
-        for(uint256 i = 0; i < s_tokenIdsOnSale.length; i++) {
-            if(s_tokenIdsOnSale[i] == _tokenId) {
+        for (uint256 i = 0; i < s_tokenIdsOnSale.length; i++) {
+            if (s_tokenIdsOnSale[i] == _tokenId) {
                 s_tokenIdsOnSale[i] = s_tokenIdsOnSale[s_tokenIdsOnSale.length - 1];
                 s_tokenIdsOnSale.pop();
                 break;
@@ -201,17 +189,14 @@ contract Bazaar {
      * @param _newPrice The new price to set for the Yodha NFT
      * @dev This function checks if the caller is the owner and if the Yodha NFT is on sale before allowing price change
      */
-    function changePriceOfTokenAlreadyOnSale(
-        uint256 _tokenId,
-        uint256 _newPrice
-    ) external lock {
-        if(s_tokenIdToOwner[_tokenId] != msg.sender) {
+    function changePriceOfYodhaAlreadyOnSale(uint256 _tokenId, uint256 _newPrice) external lock {
+        if (s_tokenIdToOwner[_tokenId] != msg.sender) {
             revert Bazaar__NotOwnerOfYodha();
         }
-        if(_newPrice == 0) {
+        if (_newPrice == 0) {
             revert Bazaar__InvalidPrice();
         }
-        if(s_tokenIdToPrice[_tokenId] == 0) {
+        if (s_tokenIdToPrice[_tokenId] == 0) {
             revert Bazaar__NotOnSale();
         }
 
@@ -220,20 +205,19 @@ contract Bazaar {
 
     /* Helper Getter Functions */
 
-    function getTokenIdsOnSale() external view returns (uint256[] memory) {
+    function getYodhaIdsOnSale() external view returns (uint256[] memory) {
         return s_tokenIdsOnSale;
     }
 
-    function getTokenOwner(uint256 _tokenId) external view returns (address) {
+    function getYodhaOwner(uint256 _tokenId) external view returns (address) {
         return s_tokenIdToOwner[_tokenId];
     }
 
-    function getTokenPrice(uint256 _tokenId) external view returns (uint256) {
+    function getYodhaPrice(uint256 _tokenId) external view returns (uint256) {
         return s_tokenIdToPrice[_tokenId];
     }
 
-    function isTokenOnSale(uint256 _tokenId) external view returns (bool) {
+    function isYodhaOnSale(uint256 _tokenId) external view returns (bool) {
         return s_tokenIdToOwner[_tokenId] != address(0);
     }
 }
-
