@@ -6,6 +6,7 @@ import {Ownable} from "../../lib/openzeppelin-contracts/contracts/access/Ownable
 import {IRannToken} from "../interfaces/IRannToken.sol";
 import {ECDSA} from "../../lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import {MessageHashUtils} from "../../lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
+import {IYodhaNFT} from "../Interfaces/IYodhaNFT.sol";
 
 /**
  * @title Kurukshetra
@@ -87,8 +88,7 @@ contract Kurukshetra is Ownable {
     error Kurukshetra__GameAlreadyInitialized();
     error Kurukshetra__YodhaIdsCannotBeSame();
     error Kurukshetra__InvalidSignature();
-
-
+    error Kurukshetra__Locked();
 
     enum RankCategory {
         UNRANKED,
@@ -107,12 +107,21 @@ contract Kurukshetra is Ownable {
 
     }
 
+    // enum LockStatus {
+    //     UNLOCKED,
+    //     LOCKED
+    // }
+
     RankCategory private immutable i_rankCategory; // Rank category of the game
     // Rank categories can be UNRANKED, BRONZE, SILVER, GOLD, PLATINUM.
     IRannToken private immutable i_rannToken; // Contract inteface of Rann Token
+    // LockStatus private s_lockStatus; // Retrency lock status of the game
+    address private immutable i_cadenceArch; // contract address of cadence arch to generate the random number using flow's vrf
     uint256 private immutable i_costToInfluence; // Cost to influence a Yodha
     uint256 private immutable i_costToDefluence; // Cost to defluence a Yodha
     address private immutable i_nearAiPublicKey; // Public key of the ai that selects the next moves of the yodhas
+    address private immutable i_yodhaNFTCollection; // Address of the Yodha NFT collection contract
+    uint256 private immutable i_betAmount; // Amount to be betted by the players on Yodha One and Yodha Two
     uint256 private s_totalInfluencePointsOfYodhaOneForNextRound;
     uint256 private s_totalDefluencePointsOfYodhaOneForNextRound;
     uint256 private s_totalInfluencePointsOfYodhaTwoForNextRound;
@@ -122,28 +131,40 @@ contract Kurukshetra is Ownable {
     // address private s_bridgeAddress; // Address of bridge contract the connects this Flow chain to NEAR chain(holding the AI agents)
     uint8 private s_currentRound; // Current Round of the game (0 when game is not started yet can be initialized, 1-5 when game is in progress)
     address[] private s_playerOneBetAddresses; // Players' addresses that have placed their bets on Yodha One
-    mapping(address => uint256) private s_playerOneBetAmounts; // Bet amounts of the betters siding with Yodha One
+    // mapping(address => uint256) private s_playerOneBetAmounts; // Bet amounts of the betters siding with Yodha One
     address[] private s_playerTwoBetAddresses; // Players' addresses that have places their bets on Yodha Two
-    mapping(address => uint256) private s_playerTwoBetAmounts; // Bet amount of the betters siding with Yodha Two
+    // mapping(address => uint256) private s_playerTwoBetAmounts; // Bet amount of the betters siding with Yodha Two
     // uint256 private s_playerOneInfluenceCost;
     // uint256 private s_playerTwoInfluenceCost;
     // uint256 private s_playerOneDefluenceCost;
     // uint256 private s_playerTwoDefluenceCost;
     mapping(address => bool) private s_playersAlreadyUsedDefluenceAddresses; // Track if a player has already defluenced a Yodha in the game since a player can only defluence a Yodha once per game
     bool private s_gameInitialized; // Flag to check if the game has been initialized (not started but initialized with Yodha NFT Ids and bridge address)
-    bool private s_isBattleOngoing;
+    bool private s_isBattleOngoing; // flog to check if the battle round is currently ongoing
+    // bool private s_isCalculatingWinner; // Flag to check if the winner is being calculated
     uint256 private s_gameInitializedAt;
     uint256 private s_lastRoundEndedAt;
+    uint256 private s_damageOnYodhaOne; // To keep track of damage of Yodha one during the game
+    uint256 private s_damageOnYodhaTwo; // To keep track of damage of yodha two during the game
 
     uint8 private constant MIN_YODHA_BETTING_PERIOD = 60;
     uint8 private constant MIN_BATTLE_ROUNDS_INTERVAL = 30;
-
+    uint8 private constant YODHA_ONE_CUT = 5; // 5 % of the total bet amounts
 
     // modifier onlyPlayersBridge() {
     //     if (msg.sender != s_bridgeAddress) {
     //         revert Kurukshetra__NotValidBridgeAddress();
     //     }
     //     _;
+    // }
+
+    // modifier lock() {
+    //     if (s_lockStatus == LockStatus.LOCKED) {
+    //         revert Kurukshetra__Locked();
+    //     }
+    //     s_lockStatus = LockStatus.LOCKED;
+    //     _;
+    //     s_lockStatus = LockStatus.UNLOCKED;
     // }
 
     /**
@@ -160,7 +181,10 @@ contract Kurukshetra is Ownable {
         uint256 _costToInfluence,
         uint256 _costToDefluence,
         address _rannTokenAddress,
-        address _nearAiPublicKey
+        address _nearAiPublicKey,
+        address _cadenceArch,
+        address _yodhaNFTCollection,
+        uint256 _betAmount
     ) Ownable(msg.sender) {
         if (_rannTokenAddress == address(0)) {
             revert Kurukshetra__InvalidTokenAddress();
@@ -174,6 +198,10 @@ contract Kurukshetra is Ownable {
         i_costToDefluence = _costToDefluence;
         i_rannToken = IRannToken(_rannTokenAddress);
         i_nearAiPublicKey = _nearAiPublicKey;
+        i_cadenceArch = _cadenceArch;
+        i_yodhaNFTCollection = _yodhaNFTCollection;
+        i_betAmount = _betAmount;
+        // s_lockStatus = LockStatus.UNLOCKED; // Initialize the lock status to unlocked
     }
 
     /**
@@ -200,36 +228,31 @@ contract Kurukshetra is Ownable {
 
     /**
      * @notice Places a bet on Yodha One.
-     * @param _amount amount to bet on yodha one
+     * @param _multiplier The multiplier for the bet amount.
      */
-    function betOnYodhaOne(uint256 _amount) external {
-        if (_amount == 0) {
-            revert Kurukshetra__InvalidBetAmount();
-        }
+    function betOnYodhaOne(uint256 _multiplier) external {
         if (!s_gameInitialized) {
             revert Kurukshetra__GameNotStartedYet();
         }
         if (s_currentRound != 0) {
             revert Kurukshetra__GameAlreadyStarted();
         }
-        if (s_playerOneBetAmounts[msg.sender] != 0) {
-            revert Kurukshetra__PlayerHasAlreadyBettedOnPlayerOne();
-        }
-        if (s_playerTwoBetAmounts[msg.sender] != 0) {
-            revert Kurukshetra__CanOnlyBetOnOnePlayer();
+        if (_multiplier == 0) {
+            revert Kurukshetra__InvalidBetAmount();
         }
 
-        s_playerOneBetAddresses.push(msg.sender);
-        s_playerOneBetAmounts[msg.sender] == _amount;
-        i_rannToken.transferFrom(msg.sender, address(this), _amount);
+        for (uint256 i = 0; i < _multiplier; i++) {
+            s_playerOneBetAddresses.push(msg.sender);
+        }
+        i_rannToken.transferFrom(msg.sender, address(this), i_betAmount * _multiplier);
     }
 
     /**
      * @notice Places a bet on Yodha Two.
-     * @param _amount amount to bet on yodha two
+     * @param _multiplier The multiplier for the bet amount.
      */
-    function betOnYodhaTwo(uint256 _amount) external {
-        if (_amount == 0) {
+    function betOnYodhaTwo(uint256 _multiplier) external {
+        if (_multiplier == 0) {
             revert Kurukshetra__InvalidBetAmount();
         }
         if (!s_gameInitialized) {
@@ -238,16 +261,11 @@ contract Kurukshetra is Ownable {
         if (s_currentRound != 0) {
             revert Kurukshetra__GameAlreadyStarted();
         }
-        if (s_playerTwoBetAmounts[msg.sender] != 0) {
-            revert Kurukshetra__PlayerHasAlreadyBettedOnPlayerOne();
-        }
-        if (s_playerOneBetAmounts[msg.sender] != 0) {
-            revert Kurukshetra__CanOnlyBetOnOnePlayer();
-        }
 
-        s_playerTwoBetAddresses.push(msg.sender);
-        s_playerTwoBetAmounts[msg.sender] = _amount;
-        i_rannToken.transferFrom(msg.sender, address(this), _amount);
+        for (uint256 i = 0; i < _multiplier; i++) {
+            s_playerTwoBetAddresses.push(msg.sender);
+        }
+        i_rannToken.transferFrom(msg.sender, address(this), i_betAmount * _multiplier);
     }
 
     /**
@@ -255,7 +273,9 @@ contract Kurukshetra is Ownable {
      * @dev This function checks if there are at least better on both the sides to prevent unnecessary starting of the game
      */
     function startGame() external {
-        if (block.timestamp < MIN_YODHA_BETTING_PERIOD + s_gameInitializedAt) revert Kurukshetra__BettingPeriodStillGoingOn();
+        if (block.timestamp < MIN_YODHA_BETTING_PERIOD + s_gameInitializedAt) {
+            revert Kurukshetra__BettingPeriodStillGoingOn();
+        }
         if (!s_gameInitialized) {
             revert Kurukshetra__GameNotInitializedYet();
         }
@@ -335,11 +355,14 @@ contract Kurukshetra is Ownable {
         s_totalDefluencePointsOfYodhaTwoForNextRound++;
     }
 
-    function battle(
-        PlayerMoves _playerOneMoves,
-        PlayerMoves _playerTwoMoves,
-        bytes memory _signedData
-    ) external {
+    /**
+     * @notice Function to execute the battle between two Yodhas.
+     * @param _yodhaOneMove The move of Yodha One.
+     * @param _yodhaTwoMove The move of Yodha Two.
+     * @param _signedData The signed data from the AI agent.
+     * @dev this function can only be called by the signed data of the AI agent
+     */
+    function battle(PlayerMoves _yodhaOneMove, PlayerMoves _yodhaTwoMove, bytes memory _signedData) external {
         if (block.timestamp < s_lastRoundEndedAt + MIN_BATTLE_ROUNDS_INTERVAL) {
             revert Kurukshetra__BattleRoundIntervalPeriodIsStillGoingOn();
         }
@@ -355,12 +378,11 @@ contract Kurukshetra is Ownable {
         if (s_playerTwoBetAddresses.length == 0 || s_playerOneBetAddresses.length == 0) {
             revert Kurukshetra__ThereShouldBeBettersOnBothSide();
         }
-        bytes32 dataHash = keccak256(
-            abi.encodePacked(
-                _playerOneMoves, _playerTwoMoves
-            )
-        );
-        if (s_currentRound >= 6) finishGame();
+        bytes32 dataHash = keccak256(abi.encodePacked(_yodhaOneMove, _yodhaTwoMove));
+        if (s_currentRound >= 6) {
+            finishGame();
+            return;
+        }
         bytes32 ethSignedMessage = MessageHashUtils.toEthSignedMessageHash(dataHash);
         address recovered = ECDSA.recover(ethSignedMessage, _signedData);
         if (recovered != i_nearAiPublicKey) {
@@ -370,19 +392,157 @@ contract Kurukshetra is Ownable {
         s_isBattleOngoing = true;
 
         //Logic to detemine the winner of the battle
+        (uint256 damageOnYodhaTwo, uint256 recoveryOfYodhaOne) = _executeYodhaMove(_yodhaOneMove);
+        (uint256 damageOnYodhaOne, uint256 recoveryOfYodhaTwo) = _executeYodhaMove(_yodhaTwoMove);
+
+        if (s_damageOnYodhaOne < recoveryOfYodhaOne) recoveryOfYodhaOne = s_damageOnYodhaOne;
+        if (s_damageOnYodhaTwo < recoveryOfYodhaTwo) recoveryOfYodhaTwo = s_damageOnYodhaTwo;
+
+        s_damageOnYodhaOne = s_damageOnYodhaOne + damageOnYodhaOne - recoveryOfYodhaOne;
+        s_damageOnYodhaTwo = s_damageOnYodhaTwo + damageOnYodhaTwo - recoveryOfYodhaTwo;
+
+        s_currentRound++;
+        s_lastRoundEndedAt = block.timestamp;
+
+        if (s_currentRound >= 6) {
+            finishGame();
+        }
+
+        s_isBattleOngoing = false;
     }
 
+    /**
+     * @param _yodhaMove The move of the Yodha.
+     * @return damageOnOpponent The damage inflicted on the opponent Yodha.
+     * @return recoveryOfSelf The recovery of the Yodha itself.
+     */
+    function _executeYodhaMove(PlayerMoves _yodhaMove)
+        private
+        returns (uint256 damageOnOpponent, uint256 recoveryOfSelf)
+    {
+        // formulae to find our the damage and recovery if success
+    }
+
+    /**
+     * @notice Function to finish the game and distribute rewards.
+     */
     function finishGame() public {
         if (s_currentRound < 6) {
             revert Kurukshetra__GameFinishConditionNotMet();
         }
-        // Logic to determine the winner and distribute rewards
+        if (s_isBattleOngoing) {
+            revert Kurukshetra__LastBattleIsStillGoingOn();
+        }
+        // Yodha One Winner
+        if (s_damageOnYodhaOne < s_damageOnYodhaTwo) {
+            uint256 cutOfYodhaOneMaker = (i_rannToken.balanceOf(address(this)) * YODHA_ONE_CUT) / 100;
+            i_rannToken.transfer(IYodhaNFT(i_yodhaNFTCollection).ownerOf(s_yodhaOneNFTId), cutOfYodhaOneMaker);
+            uint256 winnerPrice = i_rannToken.balanceOf(address(this)) / s_playerOneBetAddresses.length;
+            for (uint256 i = 0; i < s_playerOneBetAddresses.length; i++) {
+                if (i == s_playerOneBetAddresses.length - 1) {
+                    i_rannToken.transfer(s_playerOneBetAddresses[i], i_rannToken.balanceOf(address(this)));
+                    break;
+                }
+                i_rannToken.transfer(s_playerOneBetAddresses[i], winnerPrice);
+            }
+        }
+        // Yodha Two Winner
+        else if (s_damageOnYodhaTwo < s_damageOnYodhaOne) {
+            uint256 cutOfYodhaTwoMaker = (i_rannToken.balanceOf(address(this)) * YODHA_ONE_CUT) / 100;
+            i_rannToken.transfer(IYodhaNFT(i_yodhaNFTCollection).ownerOf(s_yodhaTwoNFTId), cutOfYodhaTwoMaker);
+            uint256 winnerPrice = i_rannToken.balanceOf(address(this)) / s_playerTwoBetAddresses.length;
+            for (uint256 i = 0; i < s_playerTwoBetAddresses.length; i++) {
+                if (i == s_playerTwoBetAddresses.length - 1) {
+                    i_rannToken.transfer(s_playerTwoBetAddresses[i], i_rannToken.balanceOf(address(this)));
+                    break;
+                }
+                i_rannToken.transfer(s_playerTwoBetAddresses[i], winnerPrice);
+            }
+        }
+        // Draw
+        else {
+            uint256 cutOfYodhaMaker = ((i_rannToken.balanceOf(address(this)) * YODHA_ONE_CUT) / 100) / 2;
+            i_rannToken.transfer(IYodhaNFT(i_yodhaNFTCollection).ownerOf(s_yodhaOneNFTId), cutOfYodhaMaker);
+            i_rannToken.transfer(IYodhaNFT(i_yodhaNFTCollection).ownerOf(s_yodhaTwoNFTId), cutOfYodhaMaker);
+            uint256 winnerPrice =
+                i_rannToken.balanceOf(address(this)) / (s_playerOneBetAddresses.length + s_playerTwoBetAddresses.length);
+            for (
+                uint256 i = 0;
+                i
+                    < (
+                        s_playerOneBetAddresses.length > s_playerTwoBetAddresses.length
+                            ? s_playerOneBetAddresses.length
+                            : s_playerTwoBetAddresses.length
+                    );
+                i++
+            ) {
+                if (i < s_playerOneBetAddresses.length) {
+                    i_rannToken.transfer(s_playerOneBetAddresses[i], winnerPrice);
+                }
+                if (i < s_playerTwoBetAddresses.length) {
+                    i_rannToken.transfer(s_playerTwoBetAddresses[i], winnerPrice);
+                }
+            }
+        }
+
+        _resetGame();
     }
 
-    function resetGame() external onlyOwner {
+    /**
+     * @dev Function to fetch a pseudo-random value
+     */
+    function _revertibleRandom() private view returns (uint64) {
+        // Static call to the Cadence Arch contract's revertibleRandom function
+        (bool ok, bytes memory data) = i_cadenceArch.staticcall(abi.encodeWithSignature("revertibleRandom()"));
+        require(ok, "Failed to fetch a random number through Cadence Arch");
+        uint64 output = abi.decode(data, (uint64));
+        // Return the random value
+        return output;
+    }
+
+    /**
+     * Reset the defluence mapping by implementing a new function to handle this
+     */
+    function _resetGame() private {
         s_yodhaOneNFTId = 0;
         s_yodhaTwoNFTId = 0;
         s_currentRound = 0;
+        s_totalInfluencePointsOfYodhaOneForNextRound = 0;
+        s_totalDefluencePointsOfYodhaOneForNextRound = 0;
+        s_totalInfluencePointsOfYodhaTwoForNextRound = 0;
+        s_totalDefluencePointsOfYodhaTwoForNextRound = 0;
+        s_playerOneBetAddresses = new address[](0);
+        s_playerTwoBetAddresses = new address[](0);
+        _clearDefluenceAddresses();
+        s_gameInitialized = false;
+        s_isBattleOngoing = false;
+        s_gameInitializedAt = 0;
+        s_lastRoundEndedAt = 0;
+        s_damageOnYodhaOne = 0;
+        s_damageOnYodhaTwo = 0;
+    }
+
+    /**
+     * @notice Helper function to clear defluence addresses mapping
+     */
+    function _clearDefluenceAddresses() private {
+        for (
+            uint256 i = 0;
+            i
+                < (
+                    s_playerOneBetAddresses.length > s_playerTwoBetAddresses.length
+                        ? s_playerOneBetAddresses.length
+                        : s_playerTwoBetAddresses.length
+                );
+            i++
+        ) {
+            if (i < s_playerOneBetAddresses.length) {
+                s_playersAlreadyUsedDefluenceAddresses[s_playerOneBetAddresses[i]] = false;
+            }
+            if (i < s_playerTwoBetAddresses.length) {
+                s_playersAlreadyUsedDefluenceAddresses[s_playerTwoBetAddresses[i]] = false;
+            }
+        }
     }
 
     /* Helper Getter Functions */
