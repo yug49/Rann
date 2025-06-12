@@ -550,4 +550,80 @@ contract Kurukshetra is Ownable {
     function getRankCategory() external view returns (RankCategory) {
         return i_rankCategory;
     }
+
+    function getRannTokenAddress() external view returns (address) {
+        return address(i_rannToken);
+    }
+
+    function getCadenceArchAddress() external view returns (address) {
+        return i_cadenceArch;
+    }
+
+    function getCostToInfluence() external view returns (uint256) {
+        return i_costToInfluence;
+    }
+
+    function getCostToDefluence() external view returns (uint256) {
+        return i_costToDefluence;
+    }
+
+    function getNearAiPublicKey() external view returns (address) {
+        return i_nearAiPublicKey;
+    }
+
+    function getBetAmount() external view returns (uint256) {
+        return i_betAmount;
+    }
+
+    function getYodhaOneNFTId() external view returns (uint256) {
+        return s_yodhaOneNFTId;
+    }
+
+    function getYodhaTwoNFTId() external view returns (uint256) {
+        return s_yodhaTwoNFTId;
+    }
+
+    function getCurrentRound() external view returns (uint8) {
+        return s_currentRound;
+    }
+
+    function getPlayerOneBetAddresses() external view returns (address[] memory) {
+        return s_playerOneBetAddresses;
+    }
+
+    function getPlayerTwoBetAddresses() external view returns (address[] memory) {
+        return s_playerTwoBetAddresses;
+    }
+
+    function getInitializationStatus() external view returns (bool) {
+        return s_gameInitialized;
+    }
+
+    function getBattleStatus() external view returns (bool) {
+        return s_isBattleOngoing;
+    }
+
+    function getGameInitializedAt() external view returns (uint256) {
+        return s_gameInitializedAt;
+    }
+
+    function getLastRoundEndedAt() external view returns (uint256) {
+        return s_lastRoundEndedAt;
+    }
+
+    function getDamageOnYodhaOne() external view returns (uint256) {
+        return s_damageOnYodhaOne;
+    }
+
+    function getDamageOnYodhaTwo() external view returns (uint256) {
+        return s_damageOnYodhaTwo;
+    }
+
+    function getMinYodhaBettingPeriod() external pure returns (uint8) {
+        return MIN_YODHA_BETTING_PERIOD;
+    }
+
+    function getMinBattleRoundsInterval() external pure returns (uint8) {
+        return MIN_BATTLE_ROUNDS_INTERVAL;
+    }
 }
