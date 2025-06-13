@@ -67,7 +67,7 @@ import {IYodhaNFT} from "../Interfaces/IYodhaNFT.sol";
  *         -++-+####+++---..-.........
  *           .....
  */
-contract Kurukshetra is Ownable {
+contract Kurukshetra {
     error Kurukshetra__NotValidBridgeAddress();
     error Kurukshetra__GameNotStartedYet();
     error Kurukshetra__GameFinishConditionNotMet();
@@ -112,6 +112,7 @@ contract Kurukshetra is Ownable {
     //     LOCKED
     // }
 
+    IYodhaNFT.Ranking immutable i_rankCategory;
     // Rank categories can be UNRANKED, BRONZE, SILVER, GOLD, PLATINUM.
     IRannToken private immutable i_rannToken; // Contract inteface of Rann Token
     // LockStatus private s_lockStatus; // Retrency lock status of the game
@@ -181,8 +182,9 @@ contract Kurukshetra is Ownable {
         address _nearAiPublicKey,
         address _cadenceArch,
         address _yodhaNFTCollection,
-        uint256 _betAmount
-    ) Ownable(msg.sender) {
+        uint256 _betAmount,
+        IYodhaNFT.Ranking _rankCategory
+    ) {
         if (_rannTokenAddress == address(0)) {
             revert Kurukshetra__InvalidTokenAddress();
         }
@@ -196,8 +198,54 @@ contract Kurukshetra is Ownable {
         i_cadenceArch = _cadenceArch;
         i_yodhaNFTCollection = _yodhaNFTCollection;
         i_betAmount = _betAmount;
+        i_rankCategory = _rankCategory;
         // s_lockStatus = LockStatus.UNLOCKED; // Initialize the lock status to unlocked
     }
+
+    event GameInitialized(
+        uint256 indexed yodhaOneNFTId, uint256 indexed yodhaTwoNFTId, uint256 indexed gameInitializedAt
+    );
+
+    event BetPlacedOnYodhaOne(address indexed player, uint256 indexed multiplier, uint256 indexed betAmount);
+
+    event BetPlacedOnYodhaTwo(address indexed player, uint256 indexed multiplier, uint256 indexed betAmount);
+
+    event GameStarted(uint256 indexed gameStartedAt);
+
+    event GameFinished(
+        uint256 indexed yodhaOneNFTId,
+        uint256 indexed yodhaTwoNFTId,
+        uint256 indexed damageOnYodhaOne,
+        uint256 damageOnYodhaTwo
+    );
+
+    event YodhaOneInfluenced(address indexed player, uint256 indexed yodhaNFTId, uint256 indexed currentRound);
+
+    event YodhaTwoInfluenced(address indexed player, uint256 indexed yodhaNFTId, uint256 indexed currentRound);
+
+    event YodhaOneDefluenced(address indexed player, uint256 indexed yodhaNFTId, uint256 indexed currentRound);
+
+    event YodhaTwoDefluenced(address indexed player, uint256 indexed yodhaNFTId, uint256 indexed currentRound);
+
+    event RoundOver(
+        uint256 indexed roundNumber,
+        uint256 indexed yodhaOneNFTId,
+        uint256 indexed yodhaTwoNFTId,
+        uint256 yodhaOneDamage,
+        uint256 yodhaOneRecovery,
+        uint256 yodhaTwoDamage,
+        uint256 yodhaTwoRecovery
+    );
+
+    event YodhaMoveExecuted(
+        address indexed player,
+        uint256 indexed currentRound,
+        PlayerMoves indexed move,
+        uint256 damageOnOpponentYodha,
+        uint256 recoveryOnSelfYodha
+    );
+
+    event GameResetted(uint256 indexed yodhaOneNFTId, uint256 indexed yodhaTwoNFTId);
 
     /**
      * @notice Initializes the game with the given parameters.
@@ -214,12 +262,18 @@ contract Kurukshetra is Ownable {
         if (_yodhaOneNFTId == _yodhaTwoNFTId) {
             revert Kurukshetra__YodhaIdsCannotBeSame();
         }
-        if (IYodhaNFT(i_yodhaNFTCollection).ownerOf(_yodhaOneNFTId) == address(0) ||
-            IYodhaNFT(i_yodhaNFTCollection).ownerOf(_yodhaTwoNFTId) == address(0)) {
+        if (
+            IYodhaNFT(i_yodhaNFTCollection).ownerOf(_yodhaOneNFTId) == address(0)
+                || IYodhaNFT(i_yodhaNFTCollection).ownerOf(_yodhaTwoNFTId) == address(0)
+        ) {
             revert Kurukshetra__InvalidTokenAddress();
         }
-        if (IYodhaNFT(i_yodhaNFTCollection).getRanking(_yodhaOneNFTId) !=
-            IYodhaNFT(i_yodhaNFTCollection).getRanking(_yodhaTwoNFTId)) {
+        if (
+            IYodhaNFT(i_yodhaNFTCollection).getRanking(_yodhaOneNFTId)
+                != IYodhaNFT(i_yodhaNFTCollection).getRanking(_yodhaTwoNFTId)
+                || IYodhaNFT(i_yodhaNFTCollection).getRanking(_yodhaOneNFTId) != i_rankCategory
+                || IYodhaNFT(i_yodhaNFTCollection).getRanking(_yodhaTwoNFTId) != i_rankCategory
+        ) {
             revert Kurukshetra__InvalidRankCategory();
         }
 
@@ -227,6 +281,8 @@ contract Kurukshetra is Ownable {
         s_yodhaTwoNFTId = _yodhaTwoNFTId;
         s_gameInitialized = true;
         s_gameInitializedAt = block.timestamp;
+
+        emit GameInitialized(_yodhaOneNFTId, _yodhaTwoNFTId, s_gameInitializedAt);
     }
 
     /**
@@ -248,6 +304,8 @@ contract Kurukshetra is Ownable {
             s_playerOneBetAddresses.push(msg.sender);
         }
         i_rannToken.transferFrom(msg.sender, address(this), i_betAmount * _multiplier);
+
+        emit BetPlacedOnYodhaOne(msg.sender, _multiplier, i_betAmount);
     }
 
     /**
@@ -269,6 +327,8 @@ contract Kurukshetra is Ownable {
             s_playerTwoBetAddresses.push(msg.sender);
         }
         i_rannToken.transferFrom(msg.sender, address(this), i_betAmount * _multiplier);
+
+        emit BetPlacedOnYodhaTwo(msg.sender, _multiplier, i_betAmount);
     }
 
     /**
@@ -290,6 +350,8 @@ contract Kurukshetra is Ownable {
         }
         s_currentRound = 1;
         s_lastRoundEndedAt = block.timestamp;
+
+        emit GameStarted(block.timestamp);
     }
 
     /**
@@ -306,6 +368,8 @@ contract Kurukshetra is Ownable {
 
         i_rannToken.transferFrom(msg.sender, address(this), i_costToInfluence);
         s_totalInfluencePointsOfYodhaOneForNextRound++;
+
+        emit YodhaOneInfluenced(msg.sender, s_yodhaOneNFTId, s_currentRound);
     }
 
     /**
@@ -323,6 +387,9 @@ contract Kurukshetra is Ownable {
 
         i_rannToken.transferFrom(msg.sender, address(this), i_costToDefluence);
         s_totalDefluencePointsOfYodhaOneForNextRound++;
+        s_playersAlreadyUsedDefluenceAddresses[msg.sender] = true;
+
+        emit YodhaOneDefluenced(msg.sender, s_yodhaOneNFTId, s_currentRound);
     }
 
     /**
@@ -339,6 +406,8 @@ contract Kurukshetra is Ownable {
 
         i_rannToken.transferFrom(msg.sender, address(this), i_costToInfluence);
         s_totalInfluencePointsOfYodhaTwoForNextRound++;
+
+        emit YodhaTwoInfluenced(msg.sender, s_yodhaTwoNFTId, s_currentRound);
     }
 
     /**
@@ -356,6 +425,9 @@ contract Kurukshetra is Ownable {
 
         i_rannToken.transferFrom(msg.sender, address(this), i_costToDefluence);
         s_totalDefluencePointsOfYodhaTwoForNextRound++;
+        s_playersAlreadyUsedDefluenceAddresses[msg.sender] = true;
+
+        emit YodhaTwoDefluenced(msg.sender, s_yodhaTwoNFTId, s_currentRound);
     }
 
     /**
@@ -412,6 +484,16 @@ contract Kurukshetra is Ownable {
         }
 
         s_isBattleOngoing = false;
+
+        emit RoundOver(
+            s_currentRound - 1,
+            s_yodhaOneNFTId,
+            s_yodhaTwoNFTId,
+            damageOnYodhaOne,
+            recoveryOfYodhaOne,
+            damageOnYodhaTwo,
+            recoveryOfYodhaTwo
+        );
     }
 
     /**
@@ -424,6 +506,8 @@ contract Kurukshetra is Ownable {
         returns (uint256 damageOnOpponent, uint256 recoveryOfSelf)
     {
         // formulae to find our the damage and recovery if success
+
+        emit YodhaMoveExecuted(msg.sender, s_currentRound, _yodhaMove, damageOnOpponent, recoveryOfSelf);
     }
 
     /**
@@ -489,6 +573,8 @@ contract Kurukshetra is Ownable {
         }
 
         _resetGame();
+
+        emit GameFinished(s_yodhaOneNFTId, s_yodhaTwoNFTId, s_damageOnYodhaOne, s_damageOnYodhaTwo);
     }
 
     /**
@@ -523,6 +609,8 @@ contract Kurukshetra is Ownable {
         s_lastRoundEndedAt = 0;
         s_damageOnYodhaOne = 0;
         s_damageOnYodhaTwo = 0;
+
+        emit GameResetted(s_yodhaOneNFTId, s_yodhaTwoNFTId);
     }
 
     /**

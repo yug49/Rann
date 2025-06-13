@@ -113,12 +113,6 @@ contract YodhaNFT is ERC721 {
     address private immutable i_gurukul;
     address private immutable i_nearAiPublicKey; // NEAR AI Public Key for generating traits and moves
 
-    event YodhaNFTMinted(address indexed owner, uint256 indexed tokenId, string tokenURI);
-    event YodhaPromoted(uint256 indexed tokenId, Ranking newRanking);
-    event YodhaDemoted(uint256 indexed tokenId, Ranking newRanking);
-    event YodhaTraitsAndMovesAssigned(uint256 indexed tokenId);
-    event YodhaTraitsUpdated(uint256 indexed tokenId);
-
     /**
      * @notice This modifier checks if the caller is either the Gurukul or the DAO.
      * @dev It is used to restrict access to certain functions that can only be called by the Gurukul or DAO.
@@ -163,6 +157,12 @@ contract YodhaNFT is ERC721 {
         i_gurukul = _gurukul;
         i_nearAiPublicKey = _nearAiPublicKey;
     }
+
+    event YodhaNFTMinted(address indexed owner, uint256 indexed tokenId, string tokenURI);
+    event YodhaPromoted(uint256 indexed tokenId, Ranking newRanking);
+    event YodhaDemoted(uint256 indexed tokenId, Ranking newRanking);
+    event YodhaTraitsAndMovesAssigned(uint256 indexed tokenId);
+    event YodhaTraitsUpdated(uint256 indexed tokenId);
 
     /**
      *
