@@ -84,7 +84,7 @@ contract Gurukul {
     address private immutable i_nearAiPublicKey;
     address private immutable i_cadenceArch;
     address private immutable i_dao;
-    string private s_ipfsAddress;
+    string private s_ipfsCID;
     uint256 private s_numberOfQuestions;
     uint256[] private s_questionToOptions;
     uint8 private constant NUMBER_OF_QUESTIONS_PER_SESSION = 5;
@@ -97,7 +97,7 @@ contract Gurukul {
      * @param _yodhaNFT The address of the Yodha NFT contract
      * @param _initialNumberOfQuestions The initial number of questions
      * @param _initalQuestionsToOptions The initial mapping of questions to options
-     * @param _ipfsAddress The IPFS address for storing question metadata
+     * @param _ipfsCID The IPFS address for storing question metadata
      */
     constructor(
         address _cadenceArch,
@@ -106,7 +106,7 @@ contract Gurukul {
         uint256 _initialNumberOfQuestions,
         address _nearAiPublicKey,
         uint256[] memory _initalQuestionsToOptions,
-        string memory _ipfsAddress
+        string memory _ipfsCID
     ) {
         // Set the address of the Cadence Arch contract
         if (_cadenceArch == address(0)) revert Gurukul__NotValidAddress();
@@ -123,7 +123,7 @@ contract Gurukul {
                 revert Gurukul__NotEnoughOptionsForQuestion();
             }
         }
-        if (bytes(_ipfsAddress).length == 0) revert Gurukul__NotValidIfpsAddress();
+        if (bytes(_ipfsCID).length == 0) revert Gurukul__NotValidIfpsAddress();
         if (_nearAiPublicKey == address(0)) revert Gurukul__NotValidAddress();
 
         i_nearAiPublicKey = _nearAiPublicKey;
@@ -132,7 +132,7 @@ contract Gurukul {
         i_yodhaNFT = IYodhaNFT(_yodhaNFT);
         s_numberOfQuestions = _initialNumberOfQuestions;
         s_questionToOptions = _initalQuestionsToOptions;
-        s_ipfsAddress = _ipfsAddress;
+        s_ipfsCID = _ipfsCID;
     }
 
     event YodhaEnteredGurukul(address indexed player, uint256 indexed tokenId, uint256[] selectedQuestions);
@@ -242,18 +242,25 @@ contract Gurukul {
      * @param _newNumberOfQuestions The new number of questions to be added
      * @param _newQuestionsToOptions The new mapping of questions to options
      */
-    function increaseQuestions(uint256 _newNumberOfQuestions, uint256[] memory _newQuestionsToOptions) public {
+    function increaseQuestions(
+        uint256 _newNumberOfQuestions,
+        uint256[] memory _newQuestionsToOptions,
+        string memory _newIpfsCID
+    ) public {
         if (msg.sender != i_dao) revert Gurukul__NotDAO();
         if (_newNumberOfQuestions <= s_numberOfQuestions) {
             revert Gurukul__NotValidInitialNumberOfQuestions();
         }
+        if (bytes(_newIpfsCID).length == 0) revert Gurukul__NotValidIfpsAddress();
         for (uint256 i = 0; i < _newQuestionsToOptions.length; i++) {
             if (_newQuestionsToOptions[i] < 2) {
                 revert Gurukul__NotEnoughOptionsForQuestion();
             }
             s_questionToOptions.push(_newQuestionsToOptions[i]);
         }
+
         s_numberOfQuestions += _newNumberOfQuestions;
+        s_ipfsCID = _newIpfsCID;
 
         emit QuestionAdded(_newNumberOfQuestions, _newQuestionsToOptions);
     }
@@ -262,11 +269,12 @@ contract Gurukul {
      *
      * @param _questionIndex The index of the question to be deleted
      */
-    function deleteQuestion(uint256 _questionIndex) public {
+    function deleteQuestion(uint256 _questionIndex, string memory _newIpfsCID) public {
         if (msg.sender != i_dao) revert Gurukul__NotDAO();
         if (_questionIndex >= s_questionToOptions.length) {
             revert Gurukul__NotValidInitialQuestionsToOptionsLength();
         }
+        if (bytes(_newIpfsCID).length == 0) revert Gurukul__NotValidIfpsAddress();
 
         for (uint256 i = _questionIndex; i < s_questionToOptions.length - 1; i++) {
             s_questionToOptions[i] = s_questionToOptions[i + 1];
@@ -274,6 +282,7 @@ contract Gurukul {
 
         s_questionToOptions.pop();
         s_numberOfQuestions -= 1;
+        s_ipfsCID = _newIpfsCID;
 
         emit QuestionRemoved(_questionIndex);
     }
@@ -306,6 +315,11 @@ contract Gurukul {
     function getTokenIdToAnswers(uint256 _tokenId) public view returns (uint256[] memory) {
         return s_tokenIdToAnswers[_tokenId];
     }
+
+    function getIpfsCID() public view returns (string memory) {
+        return s_ipfsCID;
+    }
+
     // Return arrays for questions and corresponding answers
 
     function getUsersAnswers(uint256 _tokenId)

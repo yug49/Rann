@@ -73,6 +73,8 @@ contract YodhaNFT is ERC721 {
     error YodhaNFT__TraitsAlreadyAssigned();
     error YodhaNFT__InvalidTokenId();
     error YodhaNFT__InvalidSignature();
+    error YodhaNFT__GurukulAlreadySet();
+    error YodhaNFT__InvalidGurukulAddress();
     error YodhaNFT__InvalidTraitsValue();
 
     enum Ranking {
@@ -104,13 +106,13 @@ contract YodhaNFT is ERC721 {
 
     uint16 private constant TRAITS_DECIMAL_PRECISION = 2;
     uint256 private s_tokenCounter;
+    address private s_gurukul;
     mapping(uint256 => string) private s_tokenIdToUri;
     mapping(uint256 => Ranking) private s_tokenIdToRanking;
     mapping(uint256 => Traits) private s_tokenIdToTraits;
     mapping(uint256 => Moves) private s_tokenIdToMoves;
     mapping(uint256 => bool) private s_traitsAssigned;
     address private immutable i_dao;
-    address private immutable i_gurukul;
     address private immutable i_nearAiPublicKey; // NEAR AI Public Key for generating traits and moves
 
     /**
@@ -118,7 +120,7 @@ contract YodhaNFT is ERC721 {
      * @dev It is used to restrict access to certain functions that can only be called by the Gurukul or DAO.
      */
     modifier onlyGurukulOrDao() {
-        if (msg.sender != i_gurukul && msg.sender != i_dao) {
+        if (msg.sender != s_gurukul && msg.sender != i_dao) {
             revert YodhaNFT__NotGurukulOrDao();
         }
         _;
@@ -129,7 +131,7 @@ contract YodhaNFT is ERC721 {
      * @dev It is used to restrict access to certain functions that can only be called by the Gurukul.
      */
     modifier onlyGurukul() {
-        if (msg.sender != i_gurukul) {
+        if (msg.sender != s_gurukul) {
             revert YodhaNFT__NotGurukulOrDao();
         }
         _;
@@ -149,12 +151,11 @@ contract YodhaNFT is ERC721 {
     /**
      * @notice This constructor initializes the YodhaNFT collection contract.
      * @param _dao The address of the DAO.
-     * @param _gurukul The address of the Gurukul.
+     * @param _nearAiPublicKey The public key of the NEAR Ai or the Game Master(backend) that will generate the traits or signing the data
      */
-    constructor(address _dao, address _gurukul, address _nearAiPublicKey) ERC721("Yodhas", "YDA") {
+    constructor(address _dao, address _nearAiPublicKey) ERC721("Yodhas", "YDA") {
         s_tokenCounter = 1; // Start token IDs from 1
         i_dao = _dao;
-        i_gurukul = _gurukul;
         i_nearAiPublicKey = _nearAiPublicKey;
     }
 
@@ -163,6 +164,24 @@ contract YodhaNFT is ERC721 {
     event YodhaDemoted(uint256 indexed tokenId, Ranking newRanking);
     event YodhaTraitsAndMovesAssigned(uint256 indexed tokenId);
     event YodhaTraitsUpdated(uint256 indexed tokenId);
+    event YodhaNFT__GurukulSet(address indexed gurukul);
+
+    /**
+     * @param _gurukul  The address of the Gurukul contract that will train the YodhaNFTs.
+     * @notice This function should be called only once and that too just after the deployment of the YodhaNFT contract before any other function
+     */
+    function setGurukul(address _gurukul) external {
+        if (s_gurukul != address(0)) {
+            revert YodhaNFT__GurukulAlreadySet();
+        }
+        if (_gurukul == address(0)) {
+            revert YodhaNFT__InvalidGurukulAddress();
+        }
+
+        s_gurukul = _gurukul;
+
+        emit YodhaNFT__GurukulSet(_gurukul);
+    }
 
     /**
      *
