@@ -76,6 +76,8 @@ contract YodhaNFT is ERC721 {
     error YodhaNFT__GurukulAlreadySet();
     error YodhaNFT__InvalidGurukulAddress();
     error YodhaNFT__InvalidTraitsValue();
+    error YodhaNFT__InvalidTokenURI();
+    error YodhaNFT__InvalidMovesNames();
 
     enum Ranking {
         UNRANKED,
@@ -188,6 +190,10 @@ contract YodhaNFT is ERC721 {
      * @param _tokenURI The URI of the NFT to be minted, which should contain the charecter's images and personality attributes.
      */
     function mintNft(string memory _tokenURI) public {
+        if (bytes(_tokenURI).length == 0) {
+            revert YodhaNFT__InvalidTokenURI();
+        }
+
         s_tokenIdToUri[s_tokenCounter] = _tokenURI;
         _safeMint(msg.sender, s_tokenCounter);
         s_tokenIdToRanking[s_tokenCounter] = Ranking.UNRANKED;
@@ -231,6 +237,34 @@ contract YodhaNFT is ERC721 {
         if (_tokenId >= s_tokenCounter) {
             revert YodhaNFT__InvalidTokenId();
         }
+        if (
+            _strength > 10000 ||
+            _wit > 10000 ||
+            _charisma > 10000 ||
+            _defence > 10000 ||
+            _luck > 10000
+        ) {
+            revert YodhaNFT__InvalidTraitsValue();
+        }
+        if(
+            bytes(_strike).length == 0 ||
+            bytes(_taunt).length == 0 ||
+            bytes(_dodge).length == 0 ||
+            bytes(_special).length == 0 ||
+            bytes(_recover).length == 0
+        ) {
+            revert YodhaNFT__InvalidMovesNames();
+        }
+        if(
+            _strength == 0 ||
+            _wit == 0 ||
+            _charisma == 0 ||
+            _defence == 0 ||
+            _luck == 0
+        ){
+            revert YodhaNFT__InvalidTraitsValue();
+        }
+
         bytes32 dataHash = keccak256(
             abi.encodePacked(
                 _tokenId, _strength, _wit, _charisma, _defence, _luck, _strike, _taunt, _dodge, _special, _recover
