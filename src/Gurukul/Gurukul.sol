@@ -70,7 +70,6 @@ contract Gurukul {
     error Gurukul__NotValidInitialQuestionsToOptionsLength();
     error Gurukul__NotEnoughQuestionsSelected();
     error Gurukul__NotEnoughOptionsForQuestion();
-    error Gurukul__PlayerAlreadyInGurukulKindlyProceedToAnswerTheAllotedQuestions();
     error Gurukul__PlayerHasNotBeenAllotedAnyQuestionsYetKindlyEnterGurukulFirst();
     error Gurukul__InvalidOption();
     error Gurukul__PlayerAlreadyAnsweredTheQuestionsInstructNearAiToUpdateRanking();
@@ -79,6 +78,8 @@ contract Gurukul {
     error Gurukul__InvalidTraits();
     error Gurukul__NotDAO();
     error Gurukul__NotValidIfpsAddress();
+    error Gurukul__NotValidNumberOfQuestions();
+    error Gurukul__NotValidQuestionsToOptionsArrayLength();
 
     IYodhaNFT private immutable i_yodhaNFT;
     address private immutable i_nearAiPublicKey;
@@ -90,6 +91,7 @@ contract Gurukul {
     uint8 private constant NUMBER_OF_QUESTIONS_PER_SESSION = 5;
     mapping(uint256 => uint256[]) private s_tokenIdToQuestions;
     mapping(uint256 => uint256[]) private s_tokenIdToAnswers;
+    mapping(uint256 => address) private s_tokenIdToOwner;
 
     /**
      * @param _cadenceArch The address of the Cadence Arch contract
@@ -148,25 +150,28 @@ contract Gurukul {
      */
     function enterGurukul(uint256 _tokenId) public {
         if (msg.sender != i_yodhaNFT.ownerOf(_tokenId)) revert Gurukul__NotOwner();
-        if (s_tokenIdToQuestions[_tokenId].length > 0) {
-            revert Gurukul__PlayerAlreadyInGurukulKindlyProceedToAnswerTheAllotedQuestions();
-        }
+
+        i_yodhaNFT.transferFrom(msg.sender, address(this), _tokenId);
+        s_tokenIdToOwner[_tokenId] = msg.sender;
         uint256[] memory alreadySelectedQuestions = new uint256[](NUMBER_OF_QUESTIONS_PER_SESSION);
         for (uint8 i = 0; i < NUMBER_OF_QUESTIONS_PER_SESSION; i++) {
-            uint256 randNumber = uint256(_revertibleRandom()) / s_numberOfQuestions;
-            for (uint8 j = 0; j < alreadySelectedQuestions.length; j++) {
-                // Check if the random number has already been selected
-                if (alreadySelectedQuestions[j] == randNumber) {
-                    // If it has, generate a new random number
-                    randNumber = (randNumber + 1) % s_numberOfQuestions;
-                    j = 0; // Reset the loop to check against all previously selected questions
+            uint256 randNumber = uint256(_revertibleRandom()) % s_numberOfQuestions;
+            if (i != 0) {
+                for (uint8 j = 0; j < alreadySelectedQuestions.length; j++) {
+                    // Check if the random number has already been selected
+                    if (alreadySelectedQuestions[j] == randNumber) {
+                        // If it has, generate a new random number
+                        randNumber = (randNumber + 1) % s_numberOfQuestions;
+                        j = 0; // Reset the loop to check against all previously selected questions
+                    }
                 }
             }
+
             alreadySelectedQuestions[i] = randNumber;
         }
         s_tokenIdToQuestions[_tokenId] = alreadySelectedQuestions;
 
-        emit YodhaEnteredGurukul(msg.sender, _tokenId, alreadySelectedQuestions);
+        emit YodhaEnteredGurukul(s_tokenIdToOwner[_tokenId], _tokenId, alreadySelectedQuestions);
     }
 
     /**
@@ -176,10 +181,10 @@ contract Gurukul {
      * @param _selectedOptions The options selected by the Yodha NFT owner for each question
      */
     function answerAllotedQuestions(uint256 _tokenId, uint256[] memory _selectedOptions) public {
-        if (msg.sender != i_yodhaNFT.ownerOf(_tokenId)) revert Gurukul__NotOwner();
         if (s_tokenIdToQuestions[_tokenId].length == 0) {
             revert Gurukul__PlayerHasNotBeenAllotedAnyQuestionsYetKindlyEnterGurukulFirst();
         }
+        if (msg.sender != s_tokenIdToOwner[_tokenId]) revert Gurukul__NotOwner();
         if (s_tokenIdToAnswers[_tokenId].length > 0) {
             revert Gurukul__PlayerAlreadyAnsweredTheQuestionsInstructNearAiToUpdateRanking();
         }
@@ -193,7 +198,7 @@ contract Gurukul {
         }
         s_tokenIdToAnswers[_tokenId] = _selectedOptions;
 
-        emit YodhaAnsweredQuestions(msg.sender, _tokenId, _selectedOptions);
+        emit YodhaAnsweredQuestions(s_tokenIdToOwner[_tokenId], _tokenId, _selectedOptions);
     }
 
     /**
@@ -234,6 +239,9 @@ contract Gurukul {
         s_tokenIdToAnswers[_tokenId] = new uint256[](0);
         s_tokenIdToQuestions[_tokenId] = new uint256[](0);
 
+        i_yodhaNFT.transferFrom(address(this), s_tokenIdToOwner[_tokenId], _tokenId);
+        s_tokenIdToOwner[_tokenId] = address(0);
+
         emit YodhaTraitsUpdated(_tokenId);
     }
 
@@ -248,6 +256,10 @@ contract Gurukul {
         string memory _newIpfsCID
     ) public {
         if (msg.sender != i_dao) revert Gurukul__NotDAO();
+        if (_newNumberOfQuestions == 0) revert Gurukul__NotValidNumberOfQuestions();
+        if (_newQuestionsToOptions.length != _newNumberOfQuestions) {
+            revert Gurukul__NotValidQuestionsToOptionsArrayLength();
+        }
         if (_newNumberOfQuestions <= s_numberOfQuestions) {
             revert Gurukul__NotValidInitialNumberOfQuestions();
         }
