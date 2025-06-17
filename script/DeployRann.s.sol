@@ -51,6 +51,7 @@ contract DeployRann is Script {
             address(s_yodhaNFT),
             config.betAmount
         );
+        s_yodhaNFT.setKurukshetraFactory(address(s_kurukshetraFactory));
 
         vm.stopBroadcast();
     }

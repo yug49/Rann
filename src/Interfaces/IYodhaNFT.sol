@@ -11,14 +11,22 @@ import {IERC721} from "../../lib/openzeppelin-contracts/contracts/token/ERC721/I
  */
 interface IYodhaNFT is IERC721 {
     // Custom errors
-    error YodhaNFT__NotGurukulOrDao();
+    error YodhaNFT__NotKurukshetraFactory();
     error YodhaNFT__NotDao();
     error YodhaNFT__YodhaAlreadyAtTopRank();
     error YodhaNFT__YodhaAlreadyAtBottomRank();
     error YodhaNFT__TraitsAlreadyAssigned();
     error YodhaNFT__InvalidTokenId();
     error YodhaNFT__InvalidSignature();
+    error YodhaNFT__GurukulAlreadySet();
+    error YodhaNFT__InvalidGurukulAddress();
     error YodhaNFT__InvalidTraitsValue();
+    error YodhaNFT__InvalidTokenURI();
+    error YodhaNFT__InvalidMovesNames();
+    error YodhaNFT__InsufficientWinningsForPromotion();
+    error YodhaNFT__NotGurukul();
+    error YodhaNFT__KurukshetraFactoryAlreadySet();
+    error YodhaNFT__InvalidKurukshetraFactoryAddress();
 
     // Enums
     enum Ranking {
@@ -52,8 +60,13 @@ interface IYodhaNFT is IERC721 {
     event YodhaDemoted(uint256 indexed tokenId, Ranking newRanking);
     event YodhaTraitsAndMovesAssigned(uint256 indexed tokenId);
     event YodhaTraitsUpdated(uint256 indexed tokenId);
+    event YodhaNFT__GurukulSet(address indexed gurukul);
 
     // Functions
+    function setGurukul(address _gurukul) external;
+
+    function setKurukshetraFactory(address _kurukshetraFactory) external;
+
     function mintNft(string memory _tokenURI) external;
 
     function assignTraitsAndMoves(
@@ -80,6 +93,8 @@ interface IYodhaNFT is IERC721 {
         uint16 _luck
     ) external;
 
+    function increaseWinnings(uint256 _tokenId, uint256 _amount) external;
+
     function promoteNFT(uint256 _tokenId) external;
 
     function demoteNFT(uint256 _tokenId) external;
@@ -92,4 +107,6 @@ interface IYodhaNFT is IERC721 {
     function getTraits(uint256 _tokenId) external view returns (Traits memory);
 
     function getMoves(uint256 _tokenId) external view returns (Moves memory);
+
+    function getWinnings(uint256 _tokenId) external view returns (uint256);
 }

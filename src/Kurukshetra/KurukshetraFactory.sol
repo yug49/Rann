@@ -69,6 +69,7 @@ contract KurukshetraFactory is Ownable {
     error KurukshetraFactory__InvalidBetAmount();
     error KurukshetraFactory__InvalidCostToInfluence();
     error KurukshetraFactory__InvalidCostToDefluence();
+    error KurukshetraFactory__NotArena();
 
     address[] private arenas;
     mapping(address => bool) private isArena;
@@ -81,6 +82,13 @@ contract KurukshetraFactory is Ownable {
     modifier onlyDAO() {
         if (msg.sender != owner()) {
             revert KurukshetraFactory__NotDAO();
+        }
+        _;
+    }
+
+    modifier onlyArenas() {
+        if (!isArena[msg.sender]) {
+            revert KurukshetraFactory__NotArena();
         }
         _;
     }
@@ -245,6 +253,10 @@ contract KurukshetraFactory is Ownable {
         emit NewArenaCreated(address(newArena), _ranking, _costToInfluence, _costToDefluence, _betAmount);
 
         return address(newArena);
+    }
+
+    function updateWinnings(uint256 _yodhaNFTId, uint256 _amount) external onlyArenas {
+        IYodhaNFT(i_yodhaNFTCollection).increaseWinnings(_yodhaNFTId, _amount);
     }
 
     /* Helper Getter Functions */

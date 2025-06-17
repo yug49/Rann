@@ -12,6 +12,7 @@ contract YodhaNFTTest is Test {
     // Test addresses
     address public dao = makeAddr("dao");
     address public gurukul = makeAddr("gurukul");
+    address public kurukshetraFactory = makeAddr("kurukshetraFactory");
     address public player1 = makeAddr("player1");
     address public player2 = makeAddr("player2");
     address public gameMaster = makeAddr("gameMaster");
@@ -42,9 +43,9 @@ contract YodhaNFTTest is Test {
         // Deploy YodhaNFT contract
         yodhaNFT = new YodhaNFT(dao, gameMaster);
 
-        // Set up gurukul
-        vm.prank(dao);
+        // Set up gurukul and kurukshetraFactory
         yodhaNFT.setGurukul(gurukul);
+        yodhaNFT.setKurukshetraFactory(kurukshetraFactory);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -80,6 +81,30 @@ contract YodhaNFTTest is Test {
 
         vm.expectRevert(YodhaNFT.YodhaNFT__InvalidGurukulAddress.selector);
         newYodhaNFT.setGurukul(address(0));
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                    KURUKSHETRA FACTORY SETUP TESTS
+    //////////////////////////////////////////////////////////////*/
+
+    function test_SetKurukshetraFactorySuccess() public {
+        // Deploy new contract to test factory setting
+        YodhaNFT newYodhaNFT = new YodhaNFT(dao, gameMaster);
+
+        newYodhaNFT.setKurukshetraFactory(kurukshetraFactory);
+        // No events emitted for setKurukshetraFactory, so we just verify it doesn't revert
+    }
+
+    function test_SetKurukshetraFactoryRevertsIfAlreadySet() public {
+        vm.expectRevert(YodhaNFT.YodhaNFT__KurukshetraFactoryAlreadySet.selector);
+        yodhaNFT.setKurukshetraFactory(makeAddr("newFactory"));
+    }
+
+    function test_SetKurukshetraFactoryRevertsIfZeroAddress() public {
+        YodhaNFT newYodhaNFT = new YodhaNFT(dao, gameMaster);
+
+        vm.expectRevert(YodhaNFT.YodhaNFT__InvalidKurukshetraFactoryAddress.selector);
+        newYodhaNFT.setKurukshetraFactory(address(0));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -224,6 +249,50 @@ contract YodhaNFTTest is Test {
         );
     }
 
+    function test_AssignTraitsAndMovesRevertsIfTraitsValueTooHigh() public {
+        // First mint an NFT
+        vm.prank(player1);
+        yodhaNFT.mintNft(TOKEN_URI);
+
+        bytes memory signedData = _createSignedTraitsData(
+            1, 10001, 70, 85, 75, 90, STRIKE_MOVE, TAUNT_MOVE, DODGE_MOVE, SPECIAL_MOVE, RECOVER_MOVE
+        );
+
+        vm.expectRevert(YodhaNFT.YodhaNFT__InvalidTraitsValue.selector);
+        yodhaNFT.assignTraitsAndMoves(
+            1, 10001, 70, 85, 75, 90, STRIKE_MOVE, TAUNT_MOVE, DODGE_MOVE, SPECIAL_MOVE, RECOVER_MOVE, signedData
+        );
+    }
+
+    function test_AssignTraitsAndMovesRevertsIfTraitsValueIsZero() public {
+        // First mint an NFT
+        vm.prank(player1);
+        yodhaNFT.mintNft(TOKEN_URI);
+
+        bytes memory signedData = _createSignedTraitsData(
+            1, 0, 70, 85, 75, 90, STRIKE_MOVE, TAUNT_MOVE, DODGE_MOVE, SPECIAL_MOVE, RECOVER_MOVE
+        );
+
+        vm.expectRevert(YodhaNFT.YodhaNFT__InvalidTraitsValue.selector);
+        yodhaNFT.assignTraitsAndMoves(
+            1, 0, 70, 85, 75, 90, STRIKE_MOVE, TAUNT_MOVE, DODGE_MOVE, SPECIAL_MOVE, RECOVER_MOVE, signedData
+        );
+    }
+
+    function test_AssignTraitsAndMovesRevertsIfMovesNameEmpty() public {
+        // First mint an NFT
+        vm.prank(player1);
+        yodhaNFT.mintNft(TOKEN_URI);
+
+        bytes memory signedData =
+            _createSignedTraitsData(1, 80, 70, 85, 75, 90, "", TAUNT_MOVE, DODGE_MOVE, SPECIAL_MOVE, RECOVER_MOVE);
+
+        vm.expectRevert(YodhaNFT.YodhaNFT__InvalidMovesNames.selector);
+        yodhaNFT.assignTraitsAndMoves(
+            1, 80, 70, 85, 75, 90, "", TAUNT_MOVE, DODGE_MOVE, SPECIAL_MOVE, RECOVER_MOVE, signedData
+        );
+    }
+
     /*//////////////////////////////////////////////////////////////
                         UPDATE TRAITS TESTS
     //////////////////////////////////////////////////////////////*/
@@ -254,7 +323,7 @@ contract YodhaNFTTest is Test {
         yodhaNFT.mintNft(TOKEN_URI);
 
         vm.prank(player1);
-        vm.expectRevert(YodhaNFT.YodhaNFT__NotGurukulOrDao.selector);
+        vm.expectRevert(YodhaNFT.YodhaNFT__NotGurukul.selector);
         yodhaNFT.updateTraits(1, 9000, 8500, 9500, 8000, 9200);
     }
 
@@ -283,6 +352,10 @@ contract YodhaNFTTest is Test {
         vm.prank(player1);
         yodhaNFT.mintNft(TOKEN_URI);
 
+        // Add sufficient winnings for promotion
+        vm.prank(kurukshetraFactory);
+        yodhaNFT.increaseWinnings(1, 1 ether);
+
         vm.prank(gurukul);
         vm.expectEmit(true, false, false, true);
         emit YodhaPromoted(1, YodhaNFT.Ranking.BRONZE);
@@ -297,6 +370,10 @@ contract YodhaNFTTest is Test {
         vm.prank(player1);
         yodhaNFT.mintNft(TOKEN_URI);
 
+        // Add sufficient winnings for promotion
+        vm.prank(kurukshetraFactory);
+        yodhaNFT.increaseWinnings(1, 1 ether);
+
         vm.prank(dao);
         vm.expectEmit(true, false, false, true);
         emit YodhaPromoted(1, YodhaNFT.Ranking.BRONZE);
@@ -310,6 +387,10 @@ contract YodhaNFTTest is Test {
         // First mint an NFT
         vm.prank(player1);
         yodhaNFT.mintNft(TOKEN_URI);
+
+        // Add sufficient winnings for promotion through all ranks
+        vm.prank(kurukshetraFactory);
+        yodhaNFT.increaseWinnings(1, 10 ether); // More than enough for all promotions
 
         // UNRANKED -> BRONZE
         vm.prank(gurukul);
@@ -337,6 +418,10 @@ contract YodhaNFTTest is Test {
         vm.prank(player1);
         yodhaNFT.mintNft(TOKEN_URI);
 
+        // Add sufficient winnings for promotion through all ranks
+        vm.prank(kurukshetraFactory);
+        yodhaNFT.increaseWinnings(1, 10 ether);
+
         // Promote to platinum
         vm.startPrank(gurukul);
         yodhaNFT.promoteNFT(1); // BRONZE
@@ -355,9 +440,63 @@ contract YodhaNFTTest is Test {
         vm.prank(player1);
         yodhaNFT.mintNft(TOKEN_URI);
 
+        // Note: promoteNFT is public function, but requires winnings for promotion from UNRANKED
+        // So we just test that it reverts due to insufficient winnings, not authorization
         vm.prank(player1);
-        vm.expectRevert(YodhaNFT.YodhaNFT__NotGurukulOrDao.selector);
+        vm.expectRevert(YodhaNFT.YodhaNFT__InsufficientWinningsForPromotion.selector);
         yodhaNFT.promoteNFT(1);
+    }
+
+    function test_PromoteNFTRevertsIfInsufficientWinningsForUnrankedToBronze() public {
+        // First mint an NFT
+        vm.prank(player1);
+        yodhaNFT.mintNft(TOKEN_URI);
+
+        // Don't add any winnings
+        vm.prank(gurukul);
+        vm.expectRevert(YodhaNFT.YodhaNFT__InsufficientWinningsForPromotion.selector);
+        yodhaNFT.promoteNFT(1);
+    }
+
+    function test_PromoteNFTRevertsIfInsufficientWinningsForBronzeToSilver() public {
+        // First mint an NFT
+        vm.prank(player1);
+        yodhaNFT.mintNft(TOKEN_URI);
+
+        // Add winnings for first promotion only
+        vm.prank(kurukshetraFactory);
+        yodhaNFT.increaseWinnings(1, 1 ether);
+
+        // Promote to bronze
+        vm.prank(gurukul);
+        yodhaNFT.promoteNFT(1);
+
+        // Try to promote to silver without additional winnings
+        vm.prank(gurukul);
+        vm.expectRevert(YodhaNFT.YodhaNFT__InsufficientWinningsForPromotion.selector);
+        yodhaNFT.promoteNFT(1);
+    }
+
+    function test_PromoteNFTWorksWithExactWinnings() public {
+        // First mint an NFT
+        vm.prank(player1);
+        yodhaNFT.mintNft(TOKEN_URI);
+
+        // Add exact winnings needed for each promotion
+        vm.prank(kurukshetraFactory);
+        yodhaNFT.increaseWinnings(1, 1 ether); // For UNRANKED -> BRONZE
+
+        vm.prank(gurukul);
+        yodhaNFT.promoteNFT(1);
+        assertEq(uint256(yodhaNFT.getRanking(1)), uint256(YodhaNFT.Ranking.BRONZE));
+
+        // Add additional winnings for next promotion
+        vm.prank(kurukshetraFactory);
+        yodhaNFT.increaseWinnings(1, 2 ether); // Total 3 ether (need 3 for BRONZE -> SILVER)
+
+        vm.prank(gurukul);
+        yodhaNFT.promoteNFT(1);
+        assertEq(uint256(yodhaNFT.getRanking(1)), uint256(YodhaNFT.Ranking.SILVER));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -368,6 +507,10 @@ contract YodhaNFTTest is Test {
         // First mint an NFT and promote it
         vm.prank(player1);
         yodhaNFT.mintNft(TOKEN_URI);
+
+        // Add sufficient winnings for promotion
+        vm.prank(kurukshetraFactory);
+        yodhaNFT.increaseWinnings(1, 1 ether);
 
         vm.prank(gurukul);
         yodhaNFT.promoteNFT(1); // BRONZE
@@ -385,6 +528,10 @@ contract YodhaNFTTest is Test {
         // First mint an NFT and promote to platinum
         vm.prank(player1);
         yodhaNFT.mintNft(TOKEN_URI);
+
+        // Add sufficient winnings for promotion through all ranks
+        vm.prank(kurukshetraFactory);
+        yodhaNFT.increaseWinnings(1, 10 ether);
 
         // Promote to platinum
         vm.startPrank(gurukul);
@@ -431,6 +578,10 @@ contract YodhaNFTTest is Test {
         vm.prank(player1);
         yodhaNFT.mintNft(TOKEN_URI);
 
+        // Add sufficient winnings for promotion
+        vm.prank(kurukshetraFactory);
+        yodhaNFT.increaseWinnings(1, 1 ether);
+
         vm.prank(gurukul);
         yodhaNFT.promoteNFT(1);
 
@@ -466,19 +617,24 @@ contract YodhaNFTTest is Test {
         vm.prank(gurukul);
         yodhaNFT.updateTraits(1, 8500, 7500, 9000, 8000, 9500);
 
-        // 4. Promote through ranks
+        // 4. Add winnings from battles
+        vm.prank(kurukshetraFactory);
+        yodhaNFT.increaseWinnings(1, 3 ether);
+
+        // 5. Promote through ranks
         vm.startPrank(gurukul);
         yodhaNFT.promoteNFT(1); // BRONZE
         yodhaNFT.promoteNFT(1); // SILVER
         vm.stopPrank();
 
-        // 5. Demote by DAO
+        // 6. Demote by DAO
         vm.prank(dao);
         yodhaNFT.demoteNFT(1); // BRONZE
 
         // Verify final state
         assertEq(yodhaNFT.ownerOf(1), player1);
         assertEq(uint256(yodhaNFT.getRanking(1)), uint256(YodhaNFT.Ranking.BRONZE));
+        assertEq(yodhaNFT.getWinnings(1), 3 ether);
 
         YodhaNFT.Traits memory finalTraits = yodhaNFT.getTraits(1);
         assertEq(finalTraits.strength, 8500);
@@ -491,12 +647,12 @@ contract YodhaNFTTest is Test {
     function test_FuzzMintAndAssignTraits(uint16 strength, uint16 wit, uint16 charisma, uint16 defence, uint16 luck)
         public
     {
-        // Bound the values to reasonable ranges (0-10000)
-        strength = uint16(bound(strength, 0, 10000));
-        wit = uint16(bound(wit, 0, 10000));
-        charisma = uint16(bound(charisma, 0, 10000));
-        defence = uint16(bound(defence, 0, 10000));
-        luck = uint16(bound(luck, 0, 10000));
+        // Bound the values to reasonable ranges (1-10000, can't be zero)
+        strength = uint16(bound(strength, 1, 10000));
+        wit = uint16(bound(wit, 1, 10000));
+        charisma = uint16(bound(charisma, 1, 10000));
+        defence = uint16(bound(defence, 1, 10000));
+        luck = uint16(bound(luck, 1, 10000));
 
         // Mint NFT
         vm.prank(player1);
@@ -574,6 +730,12 @@ contract YodhaNFTTest is Test {
         }
 
         // Promote players to different ranks
+        // Add winnings first
+        vm.startPrank(kurukshetraFactory);
+        yodhaNFT.increaseWinnings(1, 1 ether);
+        yodhaNFT.increaseWinnings(2, 3 ether);
+        vm.stopPrank();
+
         vm.startPrank(gurukul);
         yodhaNFT.promoteNFT(1); // Player 1 -> BRONZE
         yodhaNFT.promoteNFT(2); // Player 2 -> BRONZE
@@ -614,5 +776,61 @@ contract YodhaNFTTest is Test {
         bytes32 ethSignedMessage = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", dataHash));
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(gameMasterPrivateKey, ethSignedMessage);
         return abi.encodePacked(r, s, v);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                            WINNINGS TESTS
+    //////////////////////////////////////////////////////////////*/
+
+    function test_IncreaseWinningsSuccess() public {
+        // First mint an NFT
+        vm.prank(player1);
+        yodhaNFT.mintNft(TOKEN_URI);
+
+        // Increase winnings from KurukshetraFactory
+        vm.prank(kurukshetraFactory);
+        yodhaNFT.increaseWinnings(1, 0.5 ether);
+
+        assertEq(yodhaNFT.getWinnings(1), 0.5 ether);
+
+        // Increase again
+        vm.prank(kurukshetraFactory);
+        yodhaNFT.increaseWinnings(1, 0.3 ether);
+
+        assertEq(yodhaNFT.getWinnings(1), 0.8 ether);
+    }
+
+    function test_IncreaseWinningsRevertsIfNotKurukshetraFactory() public {
+        // First mint an NFT
+        vm.prank(player1);
+        yodhaNFT.mintNft(TOKEN_URI);
+
+        vm.prank(player1);
+        vm.expectRevert(YodhaNFT.YodhaNFT__NotKurukshetraFactory.selector);
+        yodhaNFT.increaseWinnings(1, 1 ether);
+    }
+
+    function test_IncreaseWinningsRevertsIfInvalidTokenId() public {
+        vm.prank(kurukshetraFactory);
+        vm.expectRevert(YodhaNFT.YodhaNFT__InvalidTokenId.selector);
+        yodhaNFT.increaseWinnings(999, 1 ether);
+    }
+
+    function test_IncreaseWinningsRevertsIfZeroAmount() public {
+        // First mint an NFT
+        vm.prank(player1);
+        yodhaNFT.mintNft(TOKEN_URI);
+
+        vm.prank(kurukshetraFactory);
+        vm.expectRevert(YodhaNFT.YodhaNFT__InvalidTraitsValue.selector);
+        yodhaNFT.increaseWinnings(1, 0);
+    }
+
+    function test_GetWinningsReturnsZeroInitially() public {
+        // First mint an NFT
+        vm.prank(player1);
+        yodhaNFT.mintNft(TOKEN_URI);
+
+        assertEq(yodhaNFT.getWinnings(1), 0);
     }
 }

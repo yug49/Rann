@@ -7,6 +7,7 @@ import {IRannToken} from "../interfaces/IRannToken.sol";
 import {ECDSA} from "../../lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import {MessageHashUtils} from "../../lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 import {IYodhaNFT} from "../Interfaces/IYodhaNFT.sol";
+import {IKurukshetraFactory} from "../Interfaces/IKurukshetraFactory.sol";
 
 /**
  * @title Kurukshetra
@@ -89,6 +90,7 @@ contract Kurukshetra {
     error Kurukshetra__YodhaIdsCannotBeSame();
     error Kurukshetra__InvalidSignature();
     error Kurukshetra__Locked();
+    error Kurukshetra__InvalidAddress();
 
     enum RankCategory {
         UNRANKED,
@@ -115,6 +117,7 @@ contract Kurukshetra {
     IYodhaNFT.Ranking immutable i_rankCategory;
     // Rank categories can be UNRANKED, BRONZE, SILVER, GOLD, PLATINUM.
     IRannToken private immutable i_rannToken; // Contract inteface of Rann Token
+    address private immutable i_kurukshetraFactory;
     // LockStatus private s_lockStatus; // Retrency lock status of the game
     address private immutable i_cadenceArch; // contract address of cadence arch to generate the random number using flow's vrf
     uint256 private immutable i_costToInfluence; // Cost to influence a Yodha
@@ -151,22 +154,6 @@ contract Kurukshetra {
     uint8 private constant MIN_BATTLE_ROUNDS_INTERVAL = 30;
     uint8 private constant YODHA_ONE_CUT = 5; // 5 % of the total bet amounts
 
-    // modifier onlyPlayersBridge() {
-    //     if (msg.sender != s_bridgeAddress) {
-    //         revert Kurukshetra__NotValidBridgeAddress();
-    //     }
-    //     _;
-    // }
-
-    // modifier lock() {
-    //     if (s_lockStatus == LockStatus.LOCKED) {
-    //         revert Kurukshetra__Locked();
-    //     }
-    //     s_lockStatus = LockStatus.LOCKED;
-    //     _;
-    //     s_lockStatus = LockStatus.UNLOCKED;
-    // }
-
     /**
      * @notice Constructor to initialize the Kurukshetra game.
      * @dev Rank categories can be UNRANKED, BRONZE, SILVER, GOLD, PLATINUM.
@@ -191,6 +178,19 @@ contract Kurukshetra {
         if (_costToInfluence == 0 || _costToDefluence == 0) {
             revert Kurukshetra__CostCannotBeZero();
         }
+        if (_nearAiPublicKey == address(0)) {
+            revert Kurukshetra__InvalidAddress();
+        }
+        if (_cadenceArch == address(0)) {
+            revert Kurukshetra__InvalidAddress();
+        }
+        if (_yodhaNFTCollection == address(0)) {
+            revert Kurukshetra__InvalidAddress();
+        }
+        if (_betAmount == 0) {
+            revert Kurukshetra__InvalidBetAmount();
+        }
+
         i_costToInfluence = _costToInfluence;
         i_costToDefluence = _costToDefluence;
         i_rannToken = IRannToken(_rannTokenAddress);
@@ -199,6 +199,8 @@ contract Kurukshetra {
         i_yodhaNFTCollection = _yodhaNFTCollection;
         i_betAmount = _betAmount;
         i_rankCategory = _rankCategory;
+        i_kurukshetraFactory = msg.sender;
+
         // s_lockStatus = LockStatus.UNLOCKED; // Initialize the lock status to unlocked
     }
 
@@ -525,6 +527,9 @@ contract Kurukshetra {
             uint256 cutOfYodhaOneMaker = (i_rannToken.balanceOf(address(this)) * YODHA_ONE_CUT) / 100;
             i_rannToken.transfer(IYodhaNFT(i_yodhaNFTCollection).ownerOf(s_yodhaOneNFTId), cutOfYodhaOneMaker);
             uint256 winnerPrice = i_rannToken.balanceOf(address(this)) / s_playerOneBetAddresses.length;
+            IKurukshetraFactory(i_kurukshetraFactory).updateWinnings(
+                s_yodhaOneNFTId, i_rannToken.balanceOf(address(this))
+            );
             for (uint256 i = 0; i < s_playerOneBetAddresses.length; i++) {
                 if (i == s_playerOneBetAddresses.length - 1) {
                     i_rannToken.transfer(s_playerOneBetAddresses[i], i_rannToken.balanceOf(address(this)));
@@ -538,6 +543,9 @@ contract Kurukshetra {
             uint256 cutOfYodhaTwoMaker = (i_rannToken.balanceOf(address(this)) * YODHA_ONE_CUT) / 100;
             i_rannToken.transfer(IYodhaNFT(i_yodhaNFTCollection).ownerOf(s_yodhaTwoNFTId), cutOfYodhaTwoMaker);
             uint256 winnerPrice = i_rannToken.balanceOf(address(this)) / s_playerTwoBetAddresses.length;
+            IKurukshetraFactory(i_kurukshetraFactory).updateWinnings(
+                s_yodhaTwoNFTId, i_rannToken.balanceOf(address(this))
+            );
             for (uint256 i = 0; i < s_playerTwoBetAddresses.length; i++) {
                 if (i == s_playerTwoBetAddresses.length - 1) {
                     i_rannToken.transfer(s_playerTwoBetAddresses[i], i_rannToken.balanceOf(address(this)));
@@ -553,6 +561,12 @@ contract Kurukshetra {
             i_rannToken.transfer(IYodhaNFT(i_yodhaNFTCollection).ownerOf(s_yodhaTwoNFTId), cutOfYodhaMaker);
             uint256 winnerPrice =
                 i_rannToken.balanceOf(address(this)) / (s_playerOneBetAddresses.length + s_playerTwoBetAddresses.length);
+            IKurukshetraFactory(i_kurukshetraFactory).updateWinnings(
+                s_yodhaOneNFTId, i_rannToken.balanceOf(address(this)) / 2
+            );
+            IKurukshetraFactory(i_kurukshetraFactory).updateWinnings(
+                s_yodhaTwoNFTId, i_rannToken.balanceOf(address(this)) / 2
+            );
             for (
                 uint256 i = 0;
                 i

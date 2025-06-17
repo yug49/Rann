@@ -66,7 +66,7 @@ import {MessageHashUtils} from "../../lib/openzeppelin-contracts/contracts/utils
  *           .....
  */
 contract YodhaNFT is ERC721 {
-    error YodhaNFT__NotGurukulOrDao();
+    error YodhaNFT__NotKurukshetraFactory();
     error YodhaNFT__NotDao();
     error YodhaNFT__YodhaAlreadyAtTopRank();
     error YodhaNFT__YodhaAlreadyAtBottomRank();
@@ -78,6 +78,10 @@ contract YodhaNFT is ERC721 {
     error YodhaNFT__InvalidTraitsValue();
     error YodhaNFT__InvalidTokenURI();
     error YodhaNFT__InvalidMovesNames();
+    error YodhaNFT__InsufficientWinningsForPromotion();
+    error YodhaNFT__NotGurukul();
+    error YodhaNFT__KurukshetraFactoryAlreadySet();
+    error YodhaNFT__InvalidKurukshetraFactoryAddress();
 
     enum Ranking {
         UNRANKED,
@@ -107,23 +111,27 @@ contract YodhaNFT is ERC721 {
     }
 
     uint16 private constant TRAITS_DECIMAL_PRECISION = 2;
+    uint256 private constant TOTAL_WINNINGS_NEEDED_FOR_PROMOTION = 1 ether;
     uint256 private s_tokenCounter;
     address private s_gurukul;
+    address private s_kurukshetraFactory;
     mapping(uint256 => string) private s_tokenIdToUri;
     mapping(uint256 => Ranking) private s_tokenIdToRanking;
     mapping(uint256 => Traits) private s_tokenIdToTraits;
     mapping(uint256 => Moves) private s_tokenIdToMoves;
     mapping(uint256 => bool) private s_traitsAssigned;
+    mapping(uint256 => uint256) private s_YodhaIdToWinAmounts;
     address private immutable i_dao;
     address private immutable i_nearAiPublicKey; // NEAR AI Public Key for generating traits and moves
+    
 
     /**
      * @notice This modifier checks if the caller is either the Gurukul or the DAO.
      * @dev It is used to restrict access to certain functions that can only be called by the Gurukul or DAO.
      */
-    modifier onlyGurukulOrDao() {
-        if (msg.sender != s_gurukul && msg.sender != i_dao) {
-            revert YodhaNFT__NotGurukulOrDao();
+    modifier onlyKurukshetraFactory() {
+        if (msg.sender != s_kurukshetraFactory) {
+            revert YodhaNFT__NotKurukshetraFactory();
         }
         _;
     }
@@ -134,7 +142,7 @@ contract YodhaNFT is ERC721 {
      */
     modifier onlyGurukul() {
         if (msg.sender != s_gurukul) {
-            revert YodhaNFT__NotGurukulOrDao();
+            revert YodhaNFT__NotGurukul();
         }
         _;
     }
@@ -183,6 +191,17 @@ contract YodhaNFT is ERC721 {
         s_gurukul = _gurukul;
 
         emit YodhaNFT__GurukulSet(_gurukul);
+    }
+
+    function setKurukshetraFactory(address _kurukshetraFactory) external {
+        if (s_kurukshetraFactory != address(0)) {
+            revert YodhaNFT__KurukshetraFactoryAlreadySet();
+        }
+        if (_kurukshetraFactory == address(0)) {
+            revert YodhaNFT__InvalidKurukshetraFactoryAddress();
+        }
+
+        s_kurukshetraFactory = _kurukshetraFactory;
     }
 
     /**
@@ -285,6 +304,15 @@ contract YodhaNFT is ERC721 {
         emit YodhaTraitsAndMovesAssigned(_tokenId);
     }
 
+    /**
+     * @notice This function updates the traits of an existing NFT.
+     * @param _tokenId The ID of the NFT whose traits are being updated.
+     * @param _strength The new strength trait value (0-10000).
+     * @param _wit The new wit trait value (0-10000).
+     * @param _charisma The new charisma trait value (0-10000).
+     * @param _defence The new defence trait value (0-10000).
+     * @param _luck The new luck trait value (0-10000).
+     */
     function updateTraits(
         uint256 _tokenId,
         uint16 _strength,
@@ -306,14 +334,47 @@ contract YodhaNFT is ERC721 {
     }
 
     /**
+     * @notice This function increases the winnings of a Yodha NFT.
+     * @param _tokenId The ID of the NFT whose winnings are being increased.
+     * @param _amount The amount by which to increase the winnings.
+     * @dev Only callable by the KurukshetraFactory.
+     */
+    function increaseWinnings(uint256 _tokenId, uint256 _amount) external onlyKurukshetraFactory {
+        if (_tokenId >= s_tokenCounter) {
+            revert YodhaNFT__InvalidTokenId();
+        }
+        if (_amount == 0) {
+            revert YodhaNFT__InvalidTraitsValue();
+        }
+
+        s_YodhaIdToWinAmounts[_tokenId] += _amount;
+    }
+
+    /**
      * @notice This function promotes the NFT to the next rank.
      * @param _tokenId The ID of the NFT to be promoted.
      * @dev Only callable by the Gurukul or DAO.
      */
-    function promoteNFT(uint256 _tokenId) public onlyGurukulOrDao {
+    function promoteNFT(uint256 _tokenId) public {
         if (s_tokenIdToRanking[_tokenId] == Ranking.PLATINUM) {
             revert YodhaNFT__YodhaAlreadyAtTopRank();
         }
+        if (s_tokenIdToRanking[_tokenId] == Ranking.UNRANKED && s_YodhaIdToWinAmounts[_tokenId] < TOTAL_WINNINGS_NEEDED_FOR_PROMOTION) {
+            revert YodhaNFT__InsufficientWinningsForPromotion();
+        }
+        if (s_tokenIdToRanking[_tokenId] == Ranking.BRONZE && s_YodhaIdToWinAmounts[_tokenId] - TOTAL_WINNINGS_NEEDED_FOR_PROMOTION < TOTAL_WINNINGS_NEEDED_FOR_PROMOTION * 2) {
+            revert YodhaNFT__InsufficientWinningsForPromotion();
+        }
+        if (s_tokenIdToRanking[_tokenId] == Ranking.SILVER && s_YodhaIdToWinAmounts[_tokenId] - TOTAL_WINNINGS_NEEDED_FOR_PROMOTION * 2 < TOTAL_WINNINGS_NEEDED_FOR_PROMOTION * 3) {
+            revert YodhaNFT__InsufficientWinningsForPromotion();
+        }
+        if (s_tokenIdToRanking[_tokenId] == Ranking.GOLD && s_YodhaIdToWinAmounts[_tokenId] - TOTAL_WINNINGS_NEEDED_FOR_PROMOTION * 3 < TOTAL_WINNINGS_NEEDED_FOR_PROMOTION * 4) {
+            revert YodhaNFT__InsufficientWinningsForPromotion();
+        }
+        if (_tokenId >= s_tokenCounter) {
+            revert YodhaNFT__InvalidTokenId();
+        }
+
         if (s_tokenIdToRanking[_tokenId] == Ranking.UNRANKED) {
             s_tokenIdToRanking[_tokenId] = Ranking.BRONZE;
         } else if (s_tokenIdToRanking[_tokenId] == Ranking.BRONZE) {
@@ -365,5 +426,9 @@ contract YodhaNFT is ERC721 {
 
     function getMoves(uint256 _tokenId) public view returns (Moves memory) {
         return s_tokenIdToMoves[_tokenId];
+    }
+
+    function getWinnings(uint256 _tokenId) public view returns (uint256) {
+        return s_YodhaIdToWinAmounts[_tokenId];
     }
 }
