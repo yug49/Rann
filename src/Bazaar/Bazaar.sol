@@ -119,9 +119,6 @@ contract Bazaar {
         if (_price == 0) {
             revert Bazaar__InvalidPrice();
         }
-        if (s_tokenIdToOwner[_tokenId] != address(0)) {
-            revert Bazaar__AlreadyOnSale();
-        }
 
         s_tokenIdsOnSale.push(_tokenId);
         s_tokenIdToOwner[_tokenId] = msg.sender;
