@@ -18,7 +18,7 @@ contract DeployRann is Script {
     KurukshetraFactory public s_kurukshetraFactory;
     RannToken public s_rannToken;
     HelperConfig public s_helperConfig;
-    address s_dao;
+    address s_dao = address(0x456); // Replace with the actual DAO address
 
     /**
      *  @notice Deploys the Rann game contracts including YodhaNFT, Bazaar, Gurukul, KurukshetraFactory, and RannToken.
@@ -42,7 +42,6 @@ contract DeployRann is Script {
         s_yodhaNFT.setGurukul(address(s_gurukul));
         s_bazaar = new Bazaar(address(s_yodhaNFT), address(s_rannToken));
         s_kurukshetraFactory = new KurukshetraFactory(
-            s_dao,
             config.costToInfluence,
             config.costToDefluence,
             address(s_rannToken),

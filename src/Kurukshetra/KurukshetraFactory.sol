@@ -63,7 +63,7 @@ import {IYodhaNFT} from "../Interfaces/IYodhaNFT.sol";
  *         -++-+####+++---..-.........
  *           .....
  */
-contract KurukshetraFactory is Ownable {
+contract KurukshetraFactory{
     error KurukshetraFactory__NotDAO();
     error KurukshetraFactory__InvalidAddress();
     error KurukshetraFactory__InvalidBetAmount();
@@ -79,13 +79,6 @@ contract KurukshetraFactory is Ownable {
     address private immutable i_cadenceArch;
     address private immutable i_yodhaNFTCollection;
 
-    modifier onlyDAO() {
-        if (msg.sender != owner()) {
-            revert KurukshetraFactory__NotDAO();
-        }
-        _;
-    }
-
     modifier onlyArenas() {
         if (!isArena[msg.sender]) {
             revert KurukshetraFactory__NotArena();
@@ -94,7 +87,6 @@ contract KurukshetraFactory is Ownable {
     }
 
     /**
-     * @param _dao The contract address of the DAO that owns this factory
      * @param _costToInfluence The cost to influence an arena
      * @param _costToDefluence The cost to defluence an arena
      * @param _rannTokenAddress The address of the Rann token contract
@@ -104,7 +96,6 @@ contract KurukshetraFactory is Ownable {
      * @param _betAmount The initial bet amount for the arenas
      */
     constructor(
-        address _dao,
         uint256 _costToInfluence,
         uint256 _costToDefluence,
         address _rannTokenAddress,
@@ -112,10 +103,7 @@ contract KurukshetraFactory is Ownable {
         address _cadenceArch,
         address _yodhaNFTCollection,
         uint256 _betAmount
-    ) Ownable(_dao) {
-        if (_dao == address(0)) {
-            revert KurukshetraFactory__InvalidAddress();
-        }
+    ){
         if (_rannTokenAddress == address(0)) {
             revert KurukshetraFactory__InvalidAddress();
         }
@@ -234,7 +222,7 @@ contract KurukshetraFactory is Ownable {
         uint256 _costToDefluence,
         uint256 _betAmount,
         IYodhaNFT.Ranking _ranking
-    ) external onlyDAO returns (address) {
+    ) external returns (address) {
         Kurukshetra newArena = new Kurukshetra(
             _costToInfluence,
             _costToDefluence,

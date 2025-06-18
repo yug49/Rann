@@ -17,14 +17,14 @@ contract HelperConfig is Script {
         string initialIpfsCid;
     }
 
-    address public constant GAME_MASTER_PUBLIC_KEY = address(0); // need to set this to the actual game master public key once the backend is ready
+    address public constant GAME_MASTER_PUBLIC_KEY = address(0x123); // need to set this to the actual game master public key once the backend is ready
     uint256 public constant INITIAL_NUMBER_OF_QUESTIONS = 5;
     address public constant CADENCE_ARCH = 0x0000000000000000000000010000000000000001;
     uint256[] public s_initialQuestionsToOptions;
     uint256 public constant COST_TO_INFLUENCE = 0.00001 ether;
     uint256 public constant COST_TO_DEFLUENCE = 0.0001 ether;
     uint256 public constant BET_AMOUNT = 0.001 ether;
-    string public constant INITIAL_IPFS_CID = ""; // need to set this to the actual IPFS CID once the backend is ready
+    string public constant INITIAL_IPFS_CID = "INITIAL_IPFS_CID"; // need to set this to the actual IPFS CID once the backend is ready
 
     NetworkConfig public activeNetworkConfig;
 
