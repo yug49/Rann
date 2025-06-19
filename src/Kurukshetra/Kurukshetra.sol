@@ -121,7 +121,11 @@ contract Kurukshetra {
     // LockStatus private s_lockStatus; // Retrency lock status of the game
     address private immutable i_cadenceArch; // contract address of cadence arch to generate the random number using flow's vrf
     uint256 private immutable i_costToInfluence; // Cost to influence a Yodha
+    uint256 private s_costToInfluenceYodhaOne;
+    uint256 private s_costToInfluenceYodhaTwo;
     uint256 private immutable i_costToDefluence; // Cost to defluence a Yodha
+    uint256 private s_costToDefluenceYodhaOne;
+    uint256 private s_costToDefluenceYodhaTwo;
     address private immutable i_nearAiPublicKey; // Public key of the ai that selects the next moves of the yodhas
     address private immutable i_yodhaNFTCollection; // Address of the Yodha NFT collection contract
     uint256 private immutable i_betAmount; // Amount to be betted by the players on Yodha One and Yodha Two
@@ -192,7 +196,11 @@ contract Kurukshetra {
         }
 
         i_costToInfluence = _costToInfluence;
+        s_costToInfluenceYodhaOne = _costToInfluence;
+        s_costToInfluenceYodhaTwo = _costToInfluence;
         i_costToDefluence = _costToDefluence;
+        s_costToDefluenceYodhaOne = _costToDefluence;
+        s_costToDefluenceYodhaTwo = _costToDefluence;
         i_rannToken = IRannToken(_rannTokenAddress);
         i_nearAiPublicKey = _nearAiPublicKey;
         i_cadenceArch = _cadenceArch;
@@ -244,7 +252,8 @@ contract Kurukshetra {
         uint256 indexed currentRound,
         PlayerMoves indexed move,
         uint256 damageOnOpponentYodha,
-        uint256 recoveryOnSelfYodha
+        uint256 recoveryOnSelfYodha,
+        bool dodged
     );
 
     event GameResetted(uint256 indexed yodhaOneNFTId, uint256 indexed yodhaTwoNFTId);
@@ -368,7 +377,7 @@ contract Kurukshetra {
         }
         if (s_isBattleOngoing) revert Kurukshetra__BattleIsCurrentlyOngoingCannotInfluenceOrDefluence();
 
-        i_rannToken.transferFrom(msg.sender, address(this), i_costToInfluence);
+        i_rannToken.transferFrom(msg.sender, address(this), s_costToInfluenceYodhaOne);
         s_totalInfluencePointsOfYodhaOneForNextRound++;
 
         emit YodhaOneInfluenced(msg.sender, s_yodhaOneNFTId, s_currentRound);
@@ -387,7 +396,7 @@ contract Kurukshetra {
         if (s_isBattleOngoing) revert Kurukshetra__BattleIsCurrentlyOngoingCannotInfluenceOrDefluence();
         if (s_playersAlreadyUsedDefluenceAddresses[msg.sender]) revert Kurukshetra__PlayerAlreadyUsedDefluence();
 
-        i_rannToken.transferFrom(msg.sender, address(this), i_costToDefluence);
+        i_rannToken.transferFrom(msg.sender, address(this), s_costToDefluenceYodhaOne);
         s_totalDefluencePointsOfYodhaOneForNextRound++;
         s_playersAlreadyUsedDefluenceAddresses[msg.sender] = true;
 
@@ -406,7 +415,7 @@ contract Kurukshetra {
         }
         if (s_isBattleOngoing) revert Kurukshetra__BattleIsCurrentlyOngoingCannotInfluenceOrDefluence();
 
-        i_rannToken.transferFrom(msg.sender, address(this), i_costToInfluence);
+        i_rannToken.transferFrom(msg.sender, address(this), s_costToInfluenceYodhaTwo);
         s_totalInfluencePointsOfYodhaTwoForNextRound++;
 
         emit YodhaTwoInfluenced(msg.sender, s_yodhaTwoNFTId, s_currentRound);
@@ -425,7 +434,7 @@ contract Kurukshetra {
         if (s_isBattleOngoing) revert Kurukshetra__BattleIsCurrentlyOngoingCannotInfluenceOrDefluence();
         if (s_playersAlreadyUsedDefluenceAddresses[msg.sender]) revert Kurukshetra__PlayerAlreadyUsedDefluence();
 
-        i_rannToken.transferFrom(msg.sender, address(this), i_costToDefluence);
+        i_rannToken.transferFrom(msg.sender, address(this), s_costToDefluenceYodhaTwo);
         s_totalDefluencePointsOfYodhaTwoForNextRound++;
         s_playersAlreadyUsedDefluenceAddresses[msg.sender] = true;
 
@@ -469,14 +478,21 @@ contract Kurukshetra {
         s_isBattleOngoing = true;
 
         //Logic to detemine the winner of the battle
-        (uint256 damageOnYodhaTwo, uint256 recoveryOfYodhaOne) = _executeYodhaMove(_yodhaOneMove);
-        (uint256 damageOnYodhaOne, uint256 recoveryOfYodhaTwo) = _executeYodhaMove(_yodhaTwoMove);
+        (uint256 damageOnYodhaTwo, uint256 recoveryOfYodhaOne, bool yodhaOneDodged) =
+            _executeYodhaMove(_yodhaOneMove, s_yodhaOneNFTId, s_yodhaTwoNFTId);
+        (uint256 damageOnYodhaOne, uint256 recoveryOfYodhaTwo, bool yodhaTwoDodged) =
+            _executeYodhaMove(_yodhaTwoMove, s_yodhaTwoNFTId, s_yodhaOneNFTId);
 
         if (s_damageOnYodhaOne < recoveryOfYodhaOne) recoveryOfYodhaOne = s_damageOnYodhaOne;
         if (s_damageOnYodhaTwo < recoveryOfYodhaTwo) recoveryOfYodhaTwo = s_damageOnYodhaTwo;
 
-        s_damageOnYodhaOne = s_damageOnYodhaOne + damageOnYodhaOne - recoveryOfYodhaOne;
-        s_damageOnYodhaTwo = s_damageOnYodhaTwo + damageOnYodhaTwo - recoveryOfYodhaTwo;
+        if (!yodhaOneDodged && !yodhaTwoDodged) {
+            s_damageOnYodhaOne = s_damageOnYodhaOne + damageOnYodhaOne;
+            s_damageOnYodhaTwo = s_damageOnYodhaTwo + damageOnYodhaTwo;
+        }
+
+        s_damageOnYodhaOne += recoveryOfYodhaOne;
+        s_damageOnYodhaTwo += recoveryOfYodhaTwo;
 
         s_currentRound++;
         s_lastRoundEndedAt = block.timestamp;
@@ -503,13 +519,192 @@ contract Kurukshetra {
      * @return damageOnOpponent The damage inflicted on the opponent Yodha.
      * @return recoveryOfSelf The recovery of the Yodha itself.
      */
-    function _executeYodhaMove(PlayerMoves _yodhaMove)
+    function _executeYodhaMove(PlayerMoves _yodhaMove, uint256 _yodhaNFTId, uint256 _yodhaOpponentNFTId)
         private
-        returns (uint256 damageOnOpponent, uint256 recoveryOfSelf)
+        returns (uint256 damageOnOpponent, uint256 recoveryOfSelf, bool dodged)
     {
         // formulae to find our the damage and recovery if success
+        IYodhaNFT.Traits memory traitsOfYodha = IYodhaNFT(i_yodhaNFTCollection).getTraits(_yodhaNFTId);
+        IYodhaNFT.Traits memory traitsOfOpponentYodha = IYodhaNFT(i_yodhaNFTCollection).getTraits(_yodhaOpponentNFTId);
 
-        emit YodhaMoveExecuted(msg.sender, s_currentRound, _yodhaMove, damageOnOpponent, recoveryOfSelf);
+        // Strike
+        if (_yodhaMove == PlayerMoves.STRIKE) {
+            uint256 successRate = _calculateSuccessRate(traitsOfYodha.luck, traitsOfOpponentYodha.luck);
+            uint256 randomNumber = uint256(_revertibleRandom()) % 10000;
+            if (randomNumber <= successRate) {
+                uint256 influencePoints;
+                uint256 defluencePoints;
+                if (_yodhaNFTId == s_yodhaOneNFTId) {
+                    influencePoints = s_totalInfluencePointsOfYodhaOneForNextRound;
+                    defluencePoints = s_totalDefluencePointsOfYodhaOneForNextRound;
+                } else {
+                    influencePoints = s_totalInfluencePointsOfYodhaTwoForNextRound;
+                    defluencePoints = s_totalDefluencePointsOfYodhaTwoForNextRound;
+                }
+                damageOnOpponent = _calculateDamage(
+                    traitsOfYodha.strength, traitsOfOpponentYodha.defence, influencePoints, defluencePoints
+                );
+                recoveryOfSelf = 0;
+                dodged = false;
+            } else {
+                damageOnOpponent = 0;
+                recoveryOfSelf = 0;
+                dodged = false;
+            }
+        } else if (_yodhaMove == PlayerMoves.DODGE) {
+            uint256 successRate = _calculateSuccessRate(traitsOfYodha.luck, traitsOfOpponentYodha.luck);
+            uint256 randomNumber = uint256(_revertibleRandom()) % 10000;
+            if (randomNumber <= successRate) {
+                damageOnOpponent = 0;
+                recoveryOfSelf = 0;
+                dodged = true;
+            } else {
+                damageOnOpponent = 0;
+                recoveryOfSelf = 0;
+                dodged = false;
+            }
+        } else if (_yodhaMove == PlayerMoves.TAUNT) {
+            uint256 successRate = _calculateSuccessRate(traitsOfYodha.luck, traitsOfOpponentYodha.luck);
+            uint256 randomNumber = uint256(_revertibleRandom()) % 10000;
+            if (randomNumber <= successRate) {
+                uint16 damagePoints = (traitsOfYodha.charisma + traitsOfYodha.wit) / 2;
+                uint16 defencePoints = traitsOfOpponentYodha.defence;
+                damageOnOpponent = 0;
+                recoveryOfSelf = 0;
+                dodged = false;
+
+                uint256 influencePoints;
+                uint256 defluencePoints;
+                if (_yodhaNFTId == s_yodhaOneNFTId) {
+                    influencePoints = s_totalInfluencePointsOfYodhaOneForNextRound;
+                    defluencePoints = s_totalDefluencePointsOfYodhaOneForNextRound;
+                } else {
+                    influencePoints = s_totalInfluencePointsOfYodhaTwoForNextRound;
+                    defluencePoints = s_totalDefluencePointsOfYodhaTwoForNextRound;
+                }
+
+                uint256 discountOnCostOfInfluenceAndDefluence =
+                    _calculateDamage(damagePoints, defencePoints, influencePoints, defluencePoints);
+
+                if (_yodhaNFTId == s_yodhaOneNFTId) {
+                    s_costToInfluenceYodhaOne = s_costToInfluenceYodhaOne
+                        - (discountOnCostOfInfluenceAndDefluence * s_costToInfluenceYodhaOne) / 10000;
+                    s_costToDefluenceYodhaTwo = s_costToDefluenceYodhaTwo
+                        - (discountOnCostOfInfluenceAndDefluence * s_costToDefluenceYodhaTwo) / 10000;
+                } else {
+                    s_costToInfluenceYodhaTwo = s_costToInfluenceYodhaTwo
+                        - (discountOnCostOfInfluenceAndDefluence * s_costToInfluenceYodhaTwo) / 10000;
+                    s_costToDefluenceYodhaOne = s_costToDefluenceYodhaOne
+                        - (discountOnCostOfInfluenceAndDefluence * s_costToDefluenceYodhaOne) / 10000;
+                }
+            } else {
+                damageOnOpponent = 0;
+                recoveryOfSelf = 0;
+                dodged = false;
+            }
+        } else if (_yodhaMove == PlayerMoves.SPECIAL) {
+            uint256 successRate = _calculateSuccessRate(traitsOfYodha.luck, traitsOfOpponentYodha.luck);
+            uint256 randomNumber = uint256(_revertibleRandom()) % 10000;
+            if (randomNumber <= successRate) {
+                uint256 influencePoints;
+                uint256 defluencePoints;
+                if (_yodhaNFTId == s_yodhaOneNFTId) {
+                    influencePoints = s_totalInfluencePointsOfYodhaOneForNextRound;
+                    defluencePoints = s_totalDefluencePointsOfYodhaOneForNextRound;
+                } else {
+                    influencePoints = s_totalInfluencePointsOfYodhaTwoForNextRound;
+                    defluencePoints = s_totalDefluencePointsOfYodhaTwoForNextRound;
+                }
+                uint16 damagePoints = (traitsOfYodha.strength + traitsOfYodha.charisma + traitsOfYodha.wit) / 3;
+                uint16 defencePoints = traitsOfOpponentYodha.defence;
+                damageOnOpponent = _calculateDamage(damagePoints, defencePoints, influencePoints, defluencePoints);
+                recoveryOfSelf = 0;
+                dodged = false;
+            } else {
+                damageOnOpponent = 0;
+                recoveryOfSelf = 0;
+                dodged = false;
+            }
+        } else {
+            uint256 successRate = _calculateSuccessRate(traitsOfYodha.luck, traitsOfOpponentYodha.luck);
+            uint256 randomNumber = uint256(_revertibleRandom()) % 10000;
+            if (randomNumber <= successRate) {
+                uint256 influencePoints;
+                uint256 defluencePoints;
+                if (_yodhaNFTId == s_yodhaOneNFTId) {
+                    influencePoints = s_totalInfluencePointsOfYodhaOneForNextRound;
+                    defluencePoints = s_totalDefluencePointsOfYodhaOneForNextRound;
+                } else {
+                    influencePoints = s_totalInfluencePointsOfYodhaTwoForNextRound;
+                    defluencePoints = s_totalDefluencePointsOfYodhaTwoForNextRound;
+                }
+                uint16 damagePoints = (traitsOfYodha.defence + traitsOfYodha.charisma) / 2;
+                damageOnOpponent = 0;
+                recoveryOfSelf = _calculateDamage(damagePoints, 0, influencePoints, defluencePoints);
+                dodged = false;
+            } else {
+                damageOnOpponent = 0;
+                recoveryOfSelf = 0;
+                dodged = false;
+            }
+        }
+
+        emit YodhaMoveExecuted(msg.sender, s_currentRound, _yodhaMove, damageOnOpponent, recoveryOfSelf, dodged);
+    }
+
+    function _calculateSuccessRate(uint16 _attackerLuck, uint16 _defenderLuck)
+        private
+        pure
+        returns (uint256 successRate)
+    {
+        // Convert to uint256 (safe: max 10000)
+        uint256 attackerLuckScaled = uint256(_attackerLuck);
+        uint256 defenderLuckScaled = uint256(_defenderLuck);
+
+        // Safe calculations (max values shown in comments)
+        uint256 luckDifference = attackerLuckScaled + 5000; // Max: 15000
+        uint256 totalLuck = attackerLuckScaled + defenderLuckScaled + 10000; // Max: 30000
+
+        // Safe multiplication and division
+        successRate = (luckDifference * 10000) / totalLuck; // Max intermediate: 150M
+
+        // Bounds enforcement (prevents any edge case issues)
+        successRate = successRate < 1000 ? 1000 : successRate;
+        successRate = successRate > 9000 ? 9000 : successRate;
+    }
+
+    function _calculateDamage(
+        uint16 _attackerStrength,
+        uint16 _defenderDefence,
+        uint256 _influencePoints,
+        uint256 _defluencePoints
+    ) private pure returns (uint256 _damage) {
+        // Base damage calculation - Safe: max value is 5000
+        uint256 baseDamage = (uint256(_attackerStrength) * 5000) / 10000;
+
+        // Defence reduction - SAFE: explicitly capped at 80
+        uint256 defenceReduction = (uint256(_defenderDefence) * 80) / 10000;
+        // defenceReduction is guaranteed ≤ 80, so (100 - defenceReduction) ≥ 20
+        uint256 damageAfterDefence = baseDamage * (100 - defenceReduction) / 100;
+
+        // Influence multiplier - SAFE: explicitly capped at 200
+        uint256 influenceBonus = _influencePoints > 200 ? 200 : _influencePoints;
+        // Max multiplication: damageAfterDefence * 300 (safe for reasonable values)
+        uint256 damageAfterInfluence = damageAfterDefence * (100 + influenceBonus) / 100;
+
+        // Defluence reduction - SAFE: explicitly capped at 90
+        uint256 defluenceReduction = (_defluencePoints * 50) / 100;
+        defluenceReduction = defluenceReduction > 90 ? 90 : defluenceReduction;
+        // defluenceReduction is guaranteed ≤ 90, so (100 - defluenceReduction) ≥ 10
+        uint256 finalDamage = damageAfterInfluence * (100 - defluenceReduction) / 100;
+
+        // Final scaling - Check for overflow
+        _damage = finalDamage * 2;
+        // Max possible: 5000 * 0.2 * 3 * 0.1 * 2 = 600, well within uint256
+
+        // Ensure bounds
+        _damage = _damage < 1 ? 1 : _damage;
+        _damage = _damage > 10000 ? 10000 : _damage;
     }
 
     /**
@@ -591,6 +786,16 @@ contract Kurukshetra {
         emit GameFinished(s_yodhaOneNFTId, s_yodhaTwoNFTId, s_damageOnYodhaOne, s_damageOnYodhaTwo);
     }
 
+    function _sqrt(uint256 x) private pure returns (uint256 y) {
+        if (x == 0) return 0;
+        uint256 z = (x + 1) / 2;
+        y = x;
+        while (z < y) {
+            y = z;
+            z = (x / z + z) / 2;
+        }
+    }
+
     /**
      * @dev Function to fetch a pseudo-random value
      */
@@ -623,6 +828,10 @@ contract Kurukshetra {
         s_lastRoundEndedAt = 0;
         s_damageOnYodhaOne = 0;
         s_damageOnYodhaTwo = 0;
+        s_costToDefluenceYodhaOne = i_costToDefluence;
+        s_costToDefluenceYodhaTwo = i_costToDefluence;
+        s_costToInfluenceYodhaOne = i_costToInfluence;
+        s_costToInfluenceYodhaTwo = i_costToInfluence;
 
         emit GameResetted(s_yodhaOneNFTId, s_yodhaTwoNFTId);
     }
@@ -664,8 +873,24 @@ contract Kurukshetra {
         return i_costToInfluence;
     }
 
+    function getCostToInfluenceYodhaOne() external view returns (uint256) {
+        return s_costToInfluenceYodhaOne;
+    }
+
+    function getCostToInfluenceYodhaTwo() external view returns (uint256) {
+        return s_costToInfluenceYodhaTwo;
+    }
+
     function getCostToDefluence() external view returns (uint256) {
         return i_costToDefluence;
+    }
+
+    function getCostToDefluenceYodhaOne() external view returns (uint256) {
+        return s_costToDefluenceYodhaOne;
+    }
+
+    function getCostToDefluenceYodhaTwo() external view returns (uint256) {
+        return s_costToDefluenceYodhaTwo;
     }
 
     function getNearAiPublicKey() external view returns (address) {
