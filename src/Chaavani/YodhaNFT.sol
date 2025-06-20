@@ -193,6 +193,10 @@ contract YodhaNFT is ERC721 {
         emit YodhaNFT__GurukulSet(_gurukul);
     }
 
+    /**
+     * 
+     * @param _kurukshetraFactory The address of the KurukshetraFactory contract that will manage the battles and promotions of the YodhaNFTs.
+     */
     function setKurukshetraFactory(address _kurukshetraFactory) external {
         if (s_kurukshetraFactory != address(0)) {
             revert YodhaNFT__KurukshetraFactoryAlreadySet();

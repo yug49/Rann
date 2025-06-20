@@ -141,10 +141,6 @@ contract Kurukshetra {
     // mapping(address => uint256) private s_playerOneBetAmounts; // Bet amounts of the betters siding with Yodha One
     address[] private s_playerTwoBetAddresses; // Players' addresses that have places their bets on Yodha Two
     // mapping(address => uint256) private s_playerTwoBetAmounts; // Bet amount of the betters siding with Yodha Two
-    // uint256 private s_playerOneInfluenceCost;
-    // uint256 private s_playerTwoInfluenceCost;
-    // uint256 private s_playerOneDefluenceCost;
-    // uint256 private s_playerTwoDefluenceCost;
     mapping(address => bool) private s_playersAlreadyUsedDefluenceAddresses; // Track if a player has already defluenced a Yodha in the game since a player can only defluence a Yodha once per game
     bool private s_gameInitialized; // Flag to check if the game has been initialized (not started but initialized with Yodha NFT Ids and bridge address)
     bool private s_isBattleOngoing; // flog to check if the battle round is currently ongoing
@@ -652,6 +648,11 @@ contract Kurukshetra {
         emit YodhaMoveExecuted(msg.sender, s_currentRound, _yodhaMove, damageOnOpponent, recoveryOfSelf, dodged);
     }
 
+    /**
+     * @notice Calculate the success rate of a Yodha's move.
+     * @param _attackerLuck The luck of the attacking Yodha.
+     * @param _defenderLuck The luck of the defending Yodha.
+     */
     function _calculateSuccessRate(uint16 _attackerLuck, uint16 _defenderLuck)
         private
         pure
@@ -673,6 +674,13 @@ contract Kurukshetra {
         successRate = successRate > 9000 ? 9000 : successRate;
     }
 
+    /**
+     * @notice Calculate the damage/discount/recovery dealt by a Yodha's move. This is named to calculate damage but it can also be used to calculate discount on cost of influence and defluence and recovery.
+     * @param _attackerStrength The strength of the attacking Yodha.
+     * @param _defenderDefence The defence of the defending Yodha.
+     * @param _influencePoints The influence points applied to the attack.
+     * @param _defluencePoints The defluence points applied to the attack.
+     */
     function _calculateDamage(
         uint16 _attackerStrength,
         uint16 _defenderDefence,
@@ -786,6 +794,10 @@ contract Kurukshetra {
         emit GameFinished(s_yodhaOneNFTId, s_yodhaTwoNFTId, s_damageOnYodhaOne, s_damageOnYodhaTwo);
     }
 
+    /**
+     * @dev Function to calculate the square root of a number using the Babylonian method.
+     * @param x The number to calculate the square root of.
+     */
     function _sqrt(uint256 x) private pure returns (uint256 y) {
         if (x == 0) return 0;
         uint256 z = (x + 1) / 2;
@@ -809,7 +821,7 @@ contract Kurukshetra {
     }
 
     /**
-     * Reset the defluence mapping by implementing a new function to handle this
+     * @notice Reset the defluence mapping by implementing a new function to handle this
      */
     function _resetGame() private {
         s_yodhaOneNFTId = 0;

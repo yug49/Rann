@@ -243,6 +243,12 @@ contract KurukshetraFactory{
         return address(newArena);
     }
 
+    /**
+     * 
+     * @param _yodhaNFTId The ID of the Yodha NFT to update winnings for
+     * @param _amount The amount to add to the winnings of the Yodha NFT
+     * @dev This function can only be called by arenas to update the winnings of a Yodha NFT that will further help in promotions and leaderboard management.
+     */
     function updateWinnings(uint256 _yodhaNFTId, uint256 _amount) external onlyArenas {
         IYodhaNFT(i_yodhaNFTCollection).increaseWinnings(_yodhaNFTId, _amount);
     }
