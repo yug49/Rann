@@ -749,7 +749,7 @@ contract GurukulTest is Test {
 
         uint256 tokenId = 1;
         vm.prank(user1);
-        yodhaNFT.approve(address(minGurukul), tokenId);        
+        yodhaNFT.approve(address(minGurukul), tokenId);
         vm.prank(user1);
         minGurukul.enterGurukul(tokenId);
 

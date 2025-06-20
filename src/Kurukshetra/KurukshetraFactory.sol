@@ -63,7 +63,7 @@ import {IYodhaNFT} from "../Interfaces/IYodhaNFT.sol";
  *         -++-+####+++---..-.........
  *           .....
  */
-contract KurukshetraFactory{
+contract KurukshetraFactory {
     error KurukshetraFactory__NotDAO();
     error KurukshetraFactory__InvalidAddress();
     error KurukshetraFactory__InvalidBetAmount();
@@ -103,7 +103,7 @@ contract KurukshetraFactory{
         address _cadenceArch,
         address _yodhaNFTCollection,
         uint256 _betAmount
-    ){
+    ) {
         if (_rannTokenAddress == address(0)) {
             revert KurukshetraFactory__InvalidAddress();
         }
@@ -244,7 +244,7 @@ contract KurukshetraFactory{
     }
 
     /**
-     * 
+     *
      * @param _yodhaNFTId The ID of the Yodha NFT to update winnings for
      * @param _amount The amount to add to the winnings of the Yodha NFT
      * @dev This function can only be called by arenas to update the winnings of a Yodha NFT that will further help in promotions and leaderboard management.

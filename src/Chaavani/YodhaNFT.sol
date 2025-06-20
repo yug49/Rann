@@ -123,7 +123,6 @@ contract YodhaNFT is ERC721 {
     mapping(uint256 => uint256) private s_YodhaIdToWinAmounts;
     address private immutable i_dao;
     address private immutable i_nearAiPublicKey; // NEAR AI Public Key for generating traits and moves
-    
 
     /**
      * @notice This modifier checks if the caller is either the Gurukul or the DAO.
@@ -194,7 +193,7 @@ contract YodhaNFT is ERC721 {
     }
 
     /**
-     * 
+     *
      * @param _kurukshetraFactory The address of the KurukshetraFactory contract that will manage the battles and promotions of the YodhaNFTs.
      */
     function setKurukshetraFactory(address _kurukshetraFactory) external {
@@ -260,31 +259,16 @@ contract YodhaNFT is ERC721 {
         if (_tokenId >= s_tokenCounter) {
             revert YodhaNFT__InvalidTokenId();
         }
-        if (
-            _strength > 10000 ||
-            _wit > 10000 ||
-            _charisma > 10000 ||
-            _defence > 10000 ||
-            _luck > 10000
-        ) {
+        if (_strength > 10000 || _wit > 10000 || _charisma > 10000 || _defence > 10000 || _luck > 10000) {
             revert YodhaNFT__InvalidTraitsValue();
         }
-        if(
-            bytes(_strike).length == 0 ||
-            bytes(_taunt).length == 0 ||
-            bytes(_dodge).length == 0 ||
-            bytes(_special).length == 0 ||
-            bytes(_recover).length == 0
+        if (
+            bytes(_strike).length == 0 || bytes(_taunt).length == 0 || bytes(_dodge).length == 0
+                || bytes(_special).length == 0 || bytes(_recover).length == 0
         ) {
             revert YodhaNFT__InvalidMovesNames();
         }
-        if(
-            _strength == 0 ||
-            _wit == 0 ||
-            _charisma == 0 ||
-            _defence == 0 ||
-            _luck == 0
-        ){
+        if (_strength == 0 || _wit == 0 || _charisma == 0 || _defence == 0 || _luck == 0) {
             revert YodhaNFT__InvalidTraitsValue();
         }
 
@@ -363,16 +347,31 @@ contract YodhaNFT is ERC721 {
         if (s_tokenIdToRanking[_tokenId] == Ranking.PLATINUM) {
             revert YodhaNFT__YodhaAlreadyAtTopRank();
         }
-        if (s_tokenIdToRanking[_tokenId] == Ranking.UNRANKED && s_YodhaIdToWinAmounts[_tokenId] < TOTAL_WINNINGS_NEEDED_FOR_PROMOTION) {
+        if (
+            s_tokenIdToRanking[_tokenId] == Ranking.UNRANKED
+                && s_YodhaIdToWinAmounts[_tokenId] < TOTAL_WINNINGS_NEEDED_FOR_PROMOTION
+        ) {
             revert YodhaNFT__InsufficientWinningsForPromotion();
         }
-        if (s_tokenIdToRanking[_tokenId] == Ranking.BRONZE && s_YodhaIdToWinAmounts[_tokenId] - TOTAL_WINNINGS_NEEDED_FOR_PROMOTION < TOTAL_WINNINGS_NEEDED_FOR_PROMOTION * 2) {
+        if (
+            s_tokenIdToRanking[_tokenId] == Ranking.BRONZE
+                && s_YodhaIdToWinAmounts[_tokenId] - TOTAL_WINNINGS_NEEDED_FOR_PROMOTION
+                    < TOTAL_WINNINGS_NEEDED_FOR_PROMOTION * 2
+        ) {
             revert YodhaNFT__InsufficientWinningsForPromotion();
         }
-        if (s_tokenIdToRanking[_tokenId] == Ranking.SILVER && s_YodhaIdToWinAmounts[_tokenId] - TOTAL_WINNINGS_NEEDED_FOR_PROMOTION * 2 < TOTAL_WINNINGS_NEEDED_FOR_PROMOTION * 3) {
+        if (
+            s_tokenIdToRanking[_tokenId] == Ranking.SILVER
+                && s_YodhaIdToWinAmounts[_tokenId] - TOTAL_WINNINGS_NEEDED_FOR_PROMOTION * 2
+                    < TOTAL_WINNINGS_NEEDED_FOR_PROMOTION * 3
+        ) {
             revert YodhaNFT__InsufficientWinningsForPromotion();
         }
-        if (s_tokenIdToRanking[_tokenId] == Ranking.GOLD && s_YodhaIdToWinAmounts[_tokenId] - TOTAL_WINNINGS_NEEDED_FOR_PROMOTION * 3 < TOTAL_WINNINGS_NEEDED_FOR_PROMOTION * 4) {
+        if (
+            s_tokenIdToRanking[_tokenId] == Ranking.GOLD
+                && s_YodhaIdToWinAmounts[_tokenId] - TOTAL_WINNINGS_NEEDED_FOR_PROMOTION * 3
+                    < TOTAL_WINNINGS_NEEDED_FOR_PROMOTION * 4
+        ) {
             revert YodhaNFT__InsufficientWinningsForPromotion();
         }
         if (_tokenId >= s_tokenCounter) {
