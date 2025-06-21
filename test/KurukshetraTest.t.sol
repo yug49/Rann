@@ -172,10 +172,11 @@ contract KurukshetraTest is Test {
                         HELPER FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function _createBattleSignature(
-        Kurukshetra.PlayerMoves moveOne,
-        Kurukshetra.PlayerMoves moveTwo
-    ) internal view returns (bytes memory) {
+    function _createBattleSignature(Kurukshetra.PlayerMoves moveOne, Kurukshetra.PlayerMoves moveTwo)
+        internal
+        view
+        returns (bytes memory)
+    {
         bytes32 dataHash = keccak256(abi.encodePacked(moveOne, moveTwo));
         bytes32 ethSignedMessage = MessageHashUtils.toEthSignedMessageHash(dataHash);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(nearAiPrivateKey, ethSignedMessage);
@@ -1123,12 +1124,9 @@ contract KurukshetraTest is Test {
 
         // Start a battle to set isBattleOngoing = true
         vm.warp(block.timestamp + 31);
-        
-        bytes memory signature = _createBattleSignature(
-            Kurukshetra.PlayerMoves.STRIKE,
-            Kurukshetra.PlayerMoves.DODGE
-        );
-        
+
+        bytes memory signature = _createBattleSignature(Kurukshetra.PlayerMoves.STRIKE, Kurukshetra.PlayerMoves.DODGE);
+
         // Execute battle which sets s_isBattleOngoing = true temporarily
         kurukshetra.battle(Kurukshetra.PlayerMoves.STRIKE, Kurukshetra.PlayerMoves.DODGE, signature);
         vm.stopPrank();
@@ -1186,10 +1184,7 @@ contract KurukshetraTest is Test {
 
         vm.warp(block.timestamp + 31);
 
-        bytes memory signature = _createBattleSignature(
-            Kurukshetra.PlayerMoves.DODGE,
-            Kurukshetra.PlayerMoves.DODGE
-        );
+        bytes memory signature = _createBattleSignature(Kurukshetra.PlayerMoves.DODGE, Kurukshetra.PlayerMoves.DODGE);
 
         kurukshetra.battle(Kurukshetra.PlayerMoves.DODGE, Kurukshetra.PlayerMoves.DODGE, signature);
 
@@ -1203,10 +1198,7 @@ contract KurukshetraTest is Test {
 
         vm.warp(block.timestamp + 31);
 
-        bytes memory signature = _createBattleSignature(
-            Kurukshetra.PlayerMoves.STRIKE,
-            Kurukshetra.PlayerMoves.DODGE
-        );
+        bytes memory signature = _createBattleSignature(Kurukshetra.PlayerMoves.STRIKE, Kurukshetra.PlayerMoves.DODGE);
 
         kurukshetra.battle(Kurukshetra.PlayerMoves.STRIKE, Kurukshetra.PlayerMoves.DODGE, signature);
 
@@ -1224,10 +1216,7 @@ contract KurukshetraTest is Test {
 
         vm.warp(block.timestamp + 31);
 
-        bytes memory signature = _createBattleSignature(
-            Kurukshetra.PlayerMoves.TAUNT,
-            Kurukshetra.PlayerMoves.STRIKE
-        );
+        bytes memory signature = _createBattleSignature(Kurukshetra.PlayerMoves.TAUNT, Kurukshetra.PlayerMoves.STRIKE);
 
         kurukshetra.battle(Kurukshetra.PlayerMoves.TAUNT, Kurukshetra.PlayerMoves.STRIKE, signature);
 
@@ -1245,10 +1234,7 @@ contract KurukshetraTest is Test {
 
         // First do some damage
         vm.warp(block.timestamp + 31);
-        bytes memory signature1 = _createBattleSignature(
-            Kurukshetra.PlayerMoves.STRIKE,
-            Kurukshetra.PlayerMoves.STRIKE
-        );
+        bytes memory signature1 = _createBattleSignature(Kurukshetra.PlayerMoves.STRIKE, Kurukshetra.PlayerMoves.STRIKE);
         kurukshetra.battle(Kurukshetra.PlayerMoves.STRIKE, Kurukshetra.PlayerMoves.STRIKE, signature1);
 
         uint256 damageAfterRound1 = kurukshetra.getDamageOnYodhaOne();
@@ -1256,10 +1242,8 @@ contract KurukshetraTest is Test {
         // Now try to recover in round 2 - use lastRoundEndedAt for proper timing
         uint256 lastRoundEndedAt = kurukshetra.getLastRoundEndedAt();
         vm.warp(lastRoundEndedAt + 31);
-        bytes memory signature2 = _createBattleSignature(
-            Kurukshetra.PlayerMoves.RECOVER,
-            Kurukshetra.PlayerMoves.STRIKE
-        );
+        bytes memory signature2 =
+            _createBattleSignature(Kurukshetra.PlayerMoves.RECOVER, Kurukshetra.PlayerMoves.STRIKE);
         kurukshetra.battle(Kurukshetra.PlayerMoves.RECOVER, Kurukshetra.PlayerMoves.STRIKE, signature2);
 
         // Should have less damage after recovery
@@ -1272,10 +1256,7 @@ contract KurukshetraTest is Test {
 
         vm.warp(block.timestamp + 31);
 
-        bytes memory signature = _createBattleSignature(
-            Kurukshetra.PlayerMoves.SPECIAL,
-            Kurukshetra.PlayerMoves.DODGE
-        );
+        bytes memory signature = _createBattleSignature(Kurukshetra.PlayerMoves.SPECIAL, Kurukshetra.PlayerMoves.DODGE);
 
         kurukshetra.battle(Kurukshetra.PlayerMoves.SPECIAL, Kurukshetra.PlayerMoves.DODGE, signature);
 
@@ -1287,7 +1268,7 @@ contract KurukshetraTest is Test {
         _initializeAndStartGame();
 
         // Run 4 rounds with minimal damage moves, using proper timing
-        for (uint i = 1; i <= 4; i++) {
+        for (uint256 i = 1; i <= 4; i++) {
             if (i == 1) {
                 vm.warp(block.timestamp + 31);
             } else {
@@ -1304,10 +1285,8 @@ contract KurukshetraTest is Test {
         // Complete the 5th round
         uint256 lastRoundEndedAt = kurukshetra.getLastRoundEndedAt();
         vm.warp(lastRoundEndedAt + 31);
-        bytes memory finalSignature = _createBattleSignature(
-            Kurukshetra.PlayerMoves.RECOVER,
-            Kurukshetra.PlayerMoves.RECOVER
-        );
+        bytes memory finalSignature =
+            _createBattleSignature(Kurukshetra.PlayerMoves.RECOVER, Kurukshetra.PlayerMoves.RECOVER);
         kurukshetra.battle(Kurukshetra.PlayerMoves.RECOVER, Kurukshetra.PlayerMoves.RECOVER, finalSignature);
 
         // Game should auto-finish after 5 rounds
@@ -1361,21 +1340,18 @@ contract KurukshetraTest is Test {
 
         vm.warp(block.timestamp + 31);
 
-        bytes memory signature = _createBattleSignature(
-            Kurukshetra.PlayerMoves.STRIKE,
-            Kurukshetra.PlayerMoves.STRIKE
-        );
+        bytes memory signature = _createBattleSignature(Kurukshetra.PlayerMoves.STRIKE, Kurukshetra.PlayerMoves.STRIKE);
 
         // Execute battle - even if moves fail, the battle should complete
         kurukshetra.battle(Kurukshetra.PlayerMoves.STRIKE, Kurukshetra.PlayerMoves.STRIKE, signature);
-        
+
         assertTrue(kurukshetra.getCurrentRound() == 2);
     }
 
     function test_InitializeGame_WithOwnerOfCall() public {
         // This test ensures the ownerOf calls in initializeGame are covered
         kurukshetra.initializeGame(YODHA_ONE_ID, YODHA_TWO_ID);
-        
+
         assertTrue(kurukshetra.getInitializationStatus());
         assertEq(kurukshetra.getYodhaOneNFTId(), YODHA_ONE_ID);
         assertEq(kurukshetra.getYodhaTwoNFTId(), YODHA_TWO_ID);
@@ -1385,17 +1361,15 @@ contract KurukshetraTest is Test {
         _initializeAndStartGame();
 
         // Complete 4 rounds first, using proper timing
-        for (uint i = 1; i <= 4; i++) {
+        for (uint256 i = 1; i <= 4; i++) {
             if (i == 1) {
                 vm.warp(block.timestamp + 31);
             } else {
                 uint256 lastRoundTime = kurukshetra.getLastRoundEndedAt();
                 vm.warp(lastRoundTime + 31);
             }
-            bytes memory signature = _createBattleSignature(
-                Kurukshetra.PlayerMoves.STRIKE,
-                Kurukshetra.PlayerMoves.DODGE
-            );
+            bytes memory signature =
+                _createBattleSignature(Kurukshetra.PlayerMoves.STRIKE, Kurukshetra.PlayerMoves.DODGE);
             kurukshetra.battle(Kurukshetra.PlayerMoves.STRIKE, Kurukshetra.PlayerMoves.DODGE, signature);
         }
 
@@ -1405,10 +1379,8 @@ contract KurukshetraTest is Test {
         // Complete round 5 - this should auto-finish the game
         uint256 lastRoundEndedAt = kurukshetra.getLastRoundEndedAt();
         vm.warp(lastRoundEndedAt + 31);
-        bytes memory finalSignature = _createBattleSignature(
-            Kurukshetra.PlayerMoves.STRIKE,
-            Kurukshetra.PlayerMoves.DODGE
-        );
+        bytes memory finalSignature =
+            _createBattleSignature(Kurukshetra.PlayerMoves.STRIKE, Kurukshetra.PlayerMoves.DODGE);
         kurukshetra.battle(Kurukshetra.PlayerMoves.STRIKE, Kurukshetra.PlayerMoves.DODGE, finalSignature);
 
         // Game should be auto-finished and reset
@@ -1429,7 +1401,7 @@ contract KurukshetraTest is Test {
 
         address[] memory betters = kurukshetra.getPlayerOneBetAddresses();
         assertEq(betters.length, 5); // Should have 5 entries for the same player
-        for (uint i = 0; i < 5; i++) {
+        for (uint256 i = 0; i < 5; i++) {
             assertEq(betters[i], player1);
         }
         vm.stopPrank();
@@ -1448,7 +1420,7 @@ contract KurukshetraTest is Test {
 
         address[] memory betters = kurukshetra.getPlayerTwoBetAddresses();
         assertEq(betters.length, 7); // Should have 7 entries for the same player
-        for (uint i = 0; i < 7; i++) {
+        for (uint256 i = 0; i < 7; i++) {
             assertEq(betters[i], player2);
         }
         vm.stopPrank();
@@ -1517,31 +1489,27 @@ contract KurukshetraTest is Test {
 
     function test_Battle_HighRoundsWithResets() public {
         // Test that game resets properly after completion
-        for (uint gameRound = 0; gameRound < 3; gameRound++) {
+        for (uint256 gameRound = 0; gameRound < 3; gameRound++) {
             _initializeAndStartGame();
 
             // Complete 4 rounds first, using proper timing
-            for (uint i = 1; i <= 4; i++) {
+            for (uint256 i = 1; i <= 4; i++) {
                 if (i == 1) {
                     vm.warp(block.timestamp + 31);
                 } else {
                     uint256 lastRoundTime = kurukshetra.getLastRoundEndedAt();
                     vm.warp(lastRoundTime + 31);
                 }
-                bytes memory signature = _createBattleSignature(
-                    Kurukshetra.PlayerMoves.STRIKE,
-                    Kurukshetra.PlayerMoves.RECOVER
-                );
+                bytes memory signature =
+                    _createBattleSignature(Kurukshetra.PlayerMoves.STRIKE, Kurukshetra.PlayerMoves.RECOVER);
                 kurukshetra.battle(Kurukshetra.PlayerMoves.STRIKE, Kurukshetra.PlayerMoves.RECOVER, signature);
             }
 
             // Complete the 5th round - this auto-finishes the game
             uint256 lastRoundEndedAt = kurukshetra.getLastRoundEndedAt();
             vm.warp(lastRoundEndedAt + 31);
-            bytes memory finalSignature = _createBattleSignature(
-                Kurukshetra.PlayerMoves.STRIKE,
-                Kurukshetra.PlayerMoves.RECOVER
-            );
+            bytes memory finalSignature =
+                _createBattleSignature(Kurukshetra.PlayerMoves.STRIKE, Kurukshetra.PlayerMoves.RECOVER);
             kurukshetra.battle(Kurukshetra.PlayerMoves.STRIKE, Kurukshetra.PlayerMoves.RECOVER, finalSignature);
 
             // Game should be reset
