@@ -487,17 +487,19 @@ contract Kurukshetra {
             s_damageOnYodhaTwo = s_damageOnYodhaTwo + damageOnYodhaTwo;
         }
 
-        s_damageOnYodhaOne += recoveryOfYodhaOne;
-        s_damageOnYodhaTwo += recoveryOfYodhaTwo;
+        if (s_damageOnYodhaOne < recoveryOfYodhaOne) {
+            s_damageOnYodhaOne = 0;
+        } else {
+            s_damageOnYodhaOne -= recoveryOfYodhaOne;
+        }
+        if (s_damageOnYodhaTwo < recoveryOfYodhaTwo) {
+            s_damageOnYodhaTwo = 0;
+        } else {
+            s_damageOnYodhaTwo -= recoveryOfYodhaTwo;
+        }
 
         s_currentRound++;
         s_lastRoundEndedAt = block.timestamp;
-
-        if (s_currentRound >= 6) {
-            finishGame();
-        }
-
-        s_isBattleOngoing = false;
 
         emit RoundOver(
             s_currentRound - 1,
@@ -508,6 +510,12 @@ contract Kurukshetra {
             damageOnYodhaTwo,
             recoveryOfYodhaTwo
         );
+
+        if (s_currentRound >= 6) {
+            finishGame();
+        }
+
+        s_isBattleOngoing = false;
     }
 
     /**
@@ -722,9 +730,6 @@ contract Kurukshetra {
         if (s_currentRound < 6) {
             revert Kurukshetra__GameFinishConditionNotMet();
         }
-        if (s_isBattleOngoing) {
-            revert Kurukshetra__LastBattleIsStillGoingOn();
-        }
         // Yodha One Winner
         if (s_damageOnYodhaOne < s_damageOnYodhaTwo) {
             uint256 cutOfYodhaOneMaker = (i_rannToken.balanceOf(address(this)) * YODHA_ONE_CUT) / 100;
@@ -770,28 +775,39 @@ contract Kurukshetra {
             IKurukshetraFactory(i_kurukshetraFactory).updateWinnings(
                 s_yodhaTwoNFTId, i_rannToken.balanceOf(address(this)) / 2
             );
-            for (
-                uint256 i = 0;
-                i
-                    < (
-                        s_playerOneBetAddresses.length > s_playerTwoBetAddresses.length
-                            ? s_playerOneBetAddresses.length
-                            : s_playerTwoBetAddresses.length
-                    );
-                i++
-            ) {
-                if (i < s_playerOneBetAddresses.length) {
-                    i_rannToken.transfer(s_playerOneBetAddresses[i], winnerPrice);
+            // for (
+            //     uint256 i = 0;
+            //     i
+            //         < (
+            //             s_playerOneBetAddresses.length > s_playerTwoBetAddresses.length
+            //                 ? s_playerOneBetAddresses.length
+            //                 : s_playerTwoBetAddresses.length
+            //         );
+            //     i++
+            // ) {
+            //     if (i >= s_playerOneBetAddresses.length && i == s_playerTwoBetAddresses.length - 1) {}
+            //     if (i < s_playerOneBetAddresses.length) {
+            //         i_rannToken.transfer(s_playerOneBetAddresses[i], winnerPrice);
+            //     }
+            //     if (i < s_playerTwoBetAddresses.length) {
+            //         i_rannToken.transfer(s_playerTwoBetAddresses[i], winnerPrice);
+            //     }
+            // }
+            for (uint256 i = 0; i < s_playerOneBetAddresses.length; i++) {
+                i_rannToken.transfer(s_playerOneBetAddresses[i], winnerPrice);
+            }
+            for (uint256 i = 0; i < s_playerTwoBetAddresses.length; i++) {
+                if (i == s_playerTwoBetAddresses.length - 1) {
+                    i_rannToken.transfer(s_playerTwoBetAddresses[i], i_rannToken.balanceOf(address(this)));
+                    break;
                 }
-                if (i < s_playerTwoBetAddresses.length) {
-                    i_rannToken.transfer(s_playerTwoBetAddresses[i], winnerPrice);
-                }
+                i_rannToken.transfer(s_playerTwoBetAddresses[i], winnerPrice);
             }
         }
 
-        _resetGame();
-
         emit GameFinished(s_yodhaOneNFTId, s_yodhaTwoNFTId, s_damageOnYodhaOne, s_damageOnYodhaTwo);
+
+        _resetGame();
     }
 
     /**
@@ -824,6 +840,7 @@ contract Kurukshetra {
      * @notice Reset the defluence mapping by implementing a new function to handle this
      */
     function _resetGame() private {
+        _clearDefluenceAddresses();
         s_yodhaOneNFTId = 0;
         s_yodhaTwoNFTId = 0;
         s_currentRound = 0;
@@ -833,7 +850,6 @@ contract Kurukshetra {
         s_totalDefluencePointsOfYodhaTwoForNextRound = 0;
         s_playerOneBetAddresses = new address[](0);
         s_playerTwoBetAddresses = new address[](0);
-        _clearDefluenceAddresses();
         s_gameInitialized = false;
         s_isBattleOngoing = false;
         s_gameInitializedAt = 0;
