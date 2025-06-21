@@ -3,7 +3,7 @@
 pragma solidity ^0.8.24;
 
 import {Ownable} from "../../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
-import {IRannToken} from "../interfaces/IRannToken.sol";
+import {IRannToken} from "../Interfaces/IRannToken.sol";
 import {ECDSA} from "../../lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import {MessageHashUtils} from "../../lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
 import {IYodhaNFT} from "../Interfaces/IYodhaNFT.sol";
