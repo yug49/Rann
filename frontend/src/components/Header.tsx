@@ -8,6 +8,12 @@ import { useState, useEffect } from "react"
 const Header: React.FC = () => {
   const { address, isConnected } = useAccount();
   const [rannBalance, setRannBalance] = useState<string>("0");
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Prevent hydration mismatch by waiting for client-side mount
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Mock RANN token balance - in production, this would use useBalance with token address
   useEffect(() => {
@@ -40,7 +46,7 @@ const Header: React.FC = () => {
           
           <div className="flex items-center gap-6">
             {/* RANN Token Balance */}
-            {isConnected && (
+            {isMounted && isConnected && (
               <div className="arcade-card px-4 py-2 bg-yellow-900/20 border-yellow-500">
                 <div className="flex items-center gap-2">
                   <span className="text-yellow-400 text-lg">🪙</span>

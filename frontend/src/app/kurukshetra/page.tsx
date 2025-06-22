@@ -398,6 +398,12 @@ export default function KurukshetraPage() {
   const [selectedYodha, setSelectedYodha] = useState<'ONE' | 'TWO' | null>(null);
   const [yodhaOneNFTId, setYodhaOneNFTId] = useState('');
   const [yodhaTwoNFTId, setYodhaTwoNFTId] = useState('');
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Prevent hydration mismatch by waiting for client-side mount
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Filter arenas by rank
   const filteredArenas = arenas.filter(arena => arena.rank === activeRank);
@@ -472,6 +478,27 @@ export default function KurukshetraPage() {
       // Handle error - show notification to user
     }
   };
+
+  // Show loading state until component mounts to prevent hydration mismatch
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen battlefield-bg flex items-center justify-center">
+        <div className="text-center">
+          <div className="arcade-card p-8 max-w-md">
+            <h1 className="text-2xl text-yellow-400 mb-4 arcade-glow" style={{fontFamily: 'Press Start 2P, monospace'}}>
+              KURUKSHETRA
+            </h1>
+            <p className="text-gray-300 mb-6">
+              Loading the legendary battlefield...
+            </p>
+            <div className="text-yellow-400 text-sm">
+              ⚡ Initializing...
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!isConnected) {
     return (

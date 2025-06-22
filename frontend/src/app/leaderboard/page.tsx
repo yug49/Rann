@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { Badge } from '../../components/ui/badge';
 import { Modal } from '../../components/ui/modal';
@@ -165,6 +165,12 @@ export default function LeaderboardPage() {
   const [activeRank, setActiveRank] = useState<RankCategory>('PLATINUM');
   const [selectedYodha, setSelectedYodha] = useState<Yodha | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Prevent hydration mismatch by waiting for client-side mount
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Filter and sort yodhas by rank and winnings
   const getYodhasByRank = (rank: RankCategory) => {
@@ -177,6 +183,27 @@ export default function LeaderboardPage() {
     setSelectedYodha(yodha);
     setIsModalOpen(true);
   };
+
+  // Show loading state until component mounts to prevent hydration mismatch
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen battlefield-bg flex items-center justify-center">
+        <div className="text-center">
+          <div className="arcade-card p-8 max-w-md">
+            <h1 className="text-2xl text-yellow-400 mb-4 arcade-glow" style={{fontFamily: 'Press Start 2P, monospace'}}>
+              LEADERBOARD
+            </h1>
+            <p className="text-gray-300 mb-6">
+              Loading Hall of Legends...
+            </p>
+            <div className="text-yellow-400 text-sm">
+              ⚡ Initializing...
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!isConnected) {
     return (

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useAccount } from 'wagmi';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // Token Exchange Card Component
 const TokenExchangeCard = ({ 
@@ -123,6 +123,12 @@ const TokenExchangeCard = ({
 
 export default function HomePage() {
   const { isConnected } = useAccount();
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Prevent hydration mismatch by waiting for client-side mount
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   return (
     <div className="min-h-screen battlefield-bg relative overflow-hidden">
@@ -166,7 +172,7 @@ export default function HomePage() {
         </div>
 
         {/* Wallet Connection Warning */}
-        {!isConnected && (
+        {isMounted && !isConnected && (
           <div className="max-w-4xl mx-auto mb-12">
             <div className="arcade-card p-8 border-red-600 bg-red-900/20">
               <div className="text-center">
@@ -228,7 +234,7 @@ export default function HomePage() {
                   IN THE ANCIENT SMITHY
                 </p>
               </div>
-              {isConnected ? (
+              {isMounted && isConnected ? (
                 <Link href="/chaavani">
                   <button 
                     className="arcade-button px-8 py-4 text-xs tracking-wide"
@@ -278,7 +284,7 @@ export default function HomePage() {
                   IN THE HALLS OF WISDOM
                 </p>
               </div>
-              {isConnected ? (
+              {isMounted && isConnected ? (
                 <Link href="/gurukul">
                   <button 
                     className="arcade-button px-8 py-4 text-xs tracking-wide"
@@ -328,7 +334,7 @@ export default function HomePage() {
                   IN THE MERCHANT DISTRICT
                 </p>
               </div>
-              {isConnected ? (
+              {isMounted && isConnected ? (
                 <Link href="/bazaar">
                   <button 
                     className="arcade-button px-8 py-4 text-xs tracking-wide"
@@ -378,7 +384,7 @@ export default function HomePage() {
                   ON THE LEGENDARY BATTLEFIELD
                 </p>
               </div>
-              {isConnected ? (
+              {isMounted && isConnected ? (
                 <a href="/kurukshetra">
                   <button 
                     className="arcade-button px-8 py-4 text-xs tracking-wide"
@@ -402,7 +408,7 @@ export default function HomePage() {
         </div>
 
         {/* Token Exchange Section */}
-        {isConnected && (
+        {isMounted && isConnected && (
           <div className="mt-20 max-w-4xl mx-auto">
             <div className="text-center mb-8">
               <h2 
@@ -446,7 +452,7 @@ export default function HomePage() {
         )}
 
         {/* Leaderboard Section */}
-        {isConnected && (
+        {isMounted && isConnected && (
           <div className="mt-20 max-w-4xl mx-auto">
             <div className="arcade-card p-8 group cursor-pointer">
               <Link href="/leaderboard">
