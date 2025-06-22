@@ -126,7 +126,7 @@ export default function HomePage() {
           </div>
 
           {/* Bazaar - The Market */}
-          <div className="arcade-card p-8 group cursor-pointer">
+          <div className="arcade-card p-8 group">
             <div className="text-center">
               <div className="mb-6">
                 <div className="weapon-container w-20 h-20 mx-auto rounded-full flex items-center justify-center relative">
@@ -154,12 +154,14 @@ export default function HomePage() {
                   IN THE MERCHANT DISTRICT
                 </p>
               </div>
-              <button 
-                className="arcade-button px-8 py-4 text-xs tracking-wide"
-                style={{fontFamily: 'Press Start 2P, monospace'}}
-              >
-                ENTER MARKET
-              </button>
+              <Link href="/bazaar">
+                <button 
+                  className="arcade-button px-8 py-4 text-xs tracking-wide"
+                  style={{fontFamily: 'Press Start 2P, monospace'}}
+                >
+                  ENTER MARKET
+                </button>
+              </Link>
             </div>
           </div>
 

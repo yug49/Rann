@@ -8,7 +8,7 @@ const Header: React.FC = () => {
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-8">
             <a 
-              href="https://github.com/yug49/ts-tsender-ui" 
+              href="https://github.com/yug49/Rann" 
               target="_blank" 
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-yellow-400 hover:text-yellow-300 transition-colors hover:scale-110 transform"

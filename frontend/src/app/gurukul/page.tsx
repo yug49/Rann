@@ -527,7 +527,7 @@ export default function GurukulPage() {
                 className="bg-gray-800 border-2 border-gray-600 text-gray-400 px-6 py-3 text-xs tracking-wide hover:border-yellow-600 hover:text-yellow-400 transition-all duration-300"
                 style={{fontFamily: 'Press Start 2P, monospace'}}
               >
-                BACK TO ARENA
+                GO BACK
               </button>
             </Link>
           </div>

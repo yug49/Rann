@@ -74,7 +74,7 @@ contract RannToken is ERC20Burnable {
      * @dev Constructor that initializes the token with a name and symbol.
      * The name is "RannToken" and the symbol is "RANN".
      */
-    constructor() ERC20("RannToken", "RANN") {}
+    constructor() ERC20("Rann Token", "RANN") {}
 
     event Minted(address indexed to, uint256 amount);
     event Burned(address indexed from, uint256 amount);
