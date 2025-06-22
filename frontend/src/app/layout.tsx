@@ -3,6 +3,7 @@ import "./globals.css";
 import {Providers} from "./providers";
 import {ReactNode} from "react";
 import Header from "../components/Header";
+import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "Rann",
@@ -24,6 +25,7 @@ export default function RootLayout(props: {children: ReactNode}) {
         <Providers>
           <Header />
           {props.children}
+          <Footer />
         </Providers>
       </body>
     </html>
