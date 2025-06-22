@@ -1,6 +1,29 @@
 "use client";
 
 import { useState } from 'react';
+import Image from 'next/image';
+
+interface YodhaTraits {
+  strength: number;
+  wit: number;
+  charisma: number;
+  defence: number;
+  luck: number;
+}
+
+interface UserYodha {
+  id: number;
+  tokenId: number;
+  name: string;
+  bio: string;
+  life_history: string;
+  adjectives: string;
+  knowledge_areas: string;
+  traits: YodhaTraits;
+  image: string;
+  rank: 'unranked' | 'bronze' | 'silver' | 'gold' | 'platinum';
+  totalWinnings: number;
+}
 
 export default function ChaavaniPage() {
   const [aiEnabled, setAiEnabled] = useState(false);
@@ -15,6 +38,51 @@ export default function ChaavaniPage() {
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedYodha, setSelectedYodha] = useState<UserYodha | null>(null);
+  const [activeSection, setActiveSection] = useState<'create' | 'manage'>('create');
+
+  // Mock data for user's Yodhas
+  const userYodhas: UserYodha[] = [
+    {
+      id: 1,
+      tokenId: 101,
+      name: "Arjuna the Strategist",
+      bio: "A legendary warrior with unmatched archery skills and strategic mind",
+      life_history: "Born in the ancient kingdom of Hastinapura, trained by the greatest masters of warfare and divine knowledge",
+      adjectives: "Visionary, Ambitious, Perfectionistic, Risk-taking, Intellectually curious",
+      knowledge_areas: "Military strategy, Archery mastery, Divine weapons, Leadership, Ancient wisdom",
+      traits: { strength: 85.67, wit: 92.34, charisma: 78.12, defence: 88.45, luck: 76.89 },
+      image: "/lazered.png",
+      rank: 'gold',
+      totalWinnings: 15.7
+    },
+    {
+      id: 2,
+      tokenId: 102,
+      name: "Bhima the Destroyer",
+      bio: "A mighty warrior with incredible physical strength and fierce determination",
+      life_history: "Second of the Pandava brothers, known for his immense strength and loyalty to his family",
+      adjectives: "Powerful, Determined, Loyal, Aggressive, Protective",
+      knowledge_areas: "Physical combat, Mace warfare, Endurance training, Battle tactics, Brotherhood",
+      traits: { strength: 98.23, wit: 65.78, charisma: 82.45, defence: 94.12, luck: 71.56 },
+      image: "/lazered.png",
+      rank: 'silver',
+      totalWinnings: 8.5
+    },
+    {
+      id: 3,
+      tokenId: 103,
+      name: "Nakula the Swift",
+      bio: "A skilled swordsman known for his speed and expertise with horses",
+      life_history: "Twin brother of Sahadeva, master of sword fighting and horse management",
+      adjectives: "Swift, Elegant, Skilled, Graceful, Knowledgeable",
+      knowledge_areas: "Swordsmanship, Horse training, Speed combat, Veterinary science, Twin coordination",
+      traits: { strength: 78.91, wit: 84.33, charisma: 89.67, defence: 81.24, luck: 87.45 },
+      image: "/lazered.png",
+      rank: 'bronze',
+      totalWinnings: 2.1
+    }
+  ];
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -52,6 +120,141 @@ export default function ChaavaniPage() {
   const isFormComplete = formData.name && formData.bio && formData.life_history && 
                         formData.adjectives && formData.knowledge_areas && formData.image;
 
+  const getPromotionRequirement = (rank: string): number => {
+    switch (rank) {
+      case 'unranked': return 1; // 1 ETH for Bronze
+      case 'bronze': return 3; // 3 ETH total for Silver (1 + 2)
+      case 'silver': return 6; // 6 ETH total for Gold (1 + 2 + 3)
+      case 'gold': return 10; // 10 ETH total for Platinum (1 + 2 + 3 + 4)
+      default: return 0;
+    }
+  };
+
+  const canPromote = (yodha: UserYodha): boolean => {
+    if (yodha.rank === 'platinum') return false;
+    const requirement = getPromotionRequirement(yodha.rank);
+    return yodha.totalWinnings >= requirement;
+  };
+
+  const getNextRank = (currentRank: string): string => {
+    switch (currentRank) {
+      case 'unranked': return 'bronze';
+      case 'bronze': return 'silver';
+      case 'silver': return 'gold';
+      case 'gold': return 'platinum';
+      default: return currentRank;
+    }
+  };
+
+  const handlePromoteYodha = async (yodha: UserYodha) => {
+    // TODO: Implement actual promotion logic with smart contract
+    console.log(`Promoting ${yodha.name} from ${yodha.rank} to ${getNextRank(yodha.rank)}`);
+    setSelectedYodha(null);
+  };
+
+  const getRankColor = (rank: string) => {
+    switch (rank) {
+      case 'unranked': return 'text-gray-500';
+      case 'bronze': return 'text-orange-600';
+      case 'silver': return 'text-gray-300';
+      case 'gold': return 'text-yellow-400';
+      case 'platinum': return 'text-blue-300';
+      default: return 'text-gray-500';
+    }
+  };
+
+  const getRankBgColor = (rank: string) => {
+    switch (rank) {
+      case 'unranked': return 'bg-gray-700';
+      case 'bronze': return 'bg-orange-900';
+      case 'silver': return 'bg-gray-600';
+      case 'gold': return 'bg-yellow-900';
+      case 'platinum': return 'bg-blue-900';
+      default: return 'bg-gray-700';
+    }
+  };
+
+  const TraitBar = ({ label, value }: { label: string; value: number }) => (
+    <div className="mb-3">
+      <div className="flex justify-between mb-1">
+        <span 
+          className="text-xs text-orange-400"
+          style={{fontFamily: 'Press Start 2P, monospace'}}
+        >
+          {label}
+        </span>
+        <span 
+          className="text-xs text-orange-300"
+          style={{fontFamily: 'Press Start 2P, monospace'}}
+        >
+          {value.toFixed(1)}
+        </span>
+      </div>
+      <div className="w-full bg-gray-800 h-2 border border-orange-600">
+        <div 
+          className="h-full bg-orange-500 transition-all duration-500"
+          style={{ width: `${value}%` }}
+        ></div>
+      </div>
+    </div>
+  );
+
+  const YodhaCard = ({ yodha, onClick }: { yodha: UserYodha; onClick: () => void }) => (
+    <div 
+      className="arcade-card p-6 cursor-pointer transform hover:scale-105 transition-all duration-300"
+      onClick={onClick}
+    >
+      <div className="w-full h-64 mb-4 border-2 border-orange-600 rounded-lg overflow-hidden relative">
+        <Image 
+          src={yodha.image} 
+          alt={yodha.name}
+          width={300}
+          height={256}
+          className="w-full h-full object-cover"
+        />
+        <div className={`absolute top-2 right-2 px-2 py-1 rounded text-xs ${getRankBgColor(yodha.rank)} ${getRankColor(yodha.rank)} border border-current`}>
+          <span style={{fontFamily: 'Press Start 2P, monospace'}}>
+            {yodha.rank.toUpperCase()}
+          </span>
+        </div>
+      </div>
+      
+      <div className="text-center mb-4">
+        <h3 
+          className="text-lg text-orange-400 mb-4 arcade-glow"
+          style={{fontFamily: 'Press Start 2P, monospace'}}
+        >
+          {yodha.name}
+        </h3>
+      </div>
+
+      <div className="space-y-2 mb-4">
+        <TraitBar label="STR" value={yodha.traits.strength} />
+        <TraitBar label="WIT" value={yodha.traits.wit} />
+        <TraitBar label="CHA" value={yodha.traits.charisma} />
+        <TraitBar label="DEF" value={yodha.traits.defence} />
+        <TraitBar label="LCK" value={yodha.traits.luck} />
+      </div>
+
+      <div className="border-t border-orange-600 pt-4">
+        <div className="flex justify-between items-center">
+          <span 
+            className="text-sm text-green-400"
+            style={{fontFamily: 'Press Start 2P, monospace'}}
+          >
+            {yodha.totalWinnings} RANN
+          </span>
+          <span 
+            className="text-xs text-gray-400"
+            style={{fontFamily: 'Press Start 2P, monospace'}}
+          >
+            #{yodha.tokenId}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen battlefield-bg">
       <div className="container mx-auto px-6 py-12">
@@ -73,8 +276,38 @@ export default function ChaavaniPage() {
           </div>
         </div>
 
-        {/* AI Toggle Switch */}
-        <div className="flex justify-center mb-12">
+        {/* Section Navigation */}
+        <div className="flex justify-center mb-8">
+          <div className="battle-frame p-2 flex gap-2">
+            <button
+              onClick={() => setActiveSection('create')}
+              className={`px-6 py-3 text-xs tracking-wide transition-all duration-300 ${
+                activeSection === 'create' 
+                  ? 'arcade-button' 
+                  : 'bg-gray-800 border-2 border-gray-600 text-gray-400 hover:border-yellow-600 hover:text-yellow-400'
+              }`}
+              style={{fontFamily: 'Press Start 2P, monospace'}}
+            >
+              CREATE YODHA
+            </button>
+            <button
+              onClick={() => setActiveSection('manage')}
+              className={`px-6 py-3 text-xs tracking-wide transition-all duration-300 ${
+                activeSection === 'manage' 
+                  ? 'arcade-button' 
+                  : 'bg-gray-800 border-2 border-gray-600 text-gray-400 hover:border-yellow-600 hover:text-yellow-400'
+              }`}
+              style={{fontFamily: 'Press Start 2P, monospace'}}
+            >
+              MANAGE YODHAS
+            </button>
+          </div>
+        </div>
+
+        {activeSection === 'create' && (
+          <>
+            {/* AI Toggle Switch */}
+            <div className="flex justify-center mb-12">
           <div className="battle-frame p-4 flex items-center gap-4">
             <span 
               className="text-yellow-400 text-sm tracking-wide"
@@ -356,6 +589,226 @@ export default function ChaavaniPage() {
             </div>
           </div>
         </div>
+        </>
+        )}
+
+        {activeSection === 'manage' && (
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 
+                className="text-2xl text-orange-400 mb-4 tracking-wider arcade-glow"
+                style={{fontFamily: 'Press Start 2P, monospace'}}
+              >
+                YOUR YODHA WARRIORS
+              </h2>
+              <p 
+                className="text-gray-300 text-sm"
+                style={{fontFamily: 'Press Start 2P, monospace'}}
+              >
+                MANAGE AND PROMOTE YOUR LEGENDARY FIGHTERS
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {userYodhas.length > 0 ? (
+                userYodhas.map((yodha) => (
+                  <YodhaCard 
+                    key={yodha.id} 
+                    yodha={yodha} 
+                    onClick={() => setSelectedYodha(yodha)} 
+                  />
+                ))
+              ) : (
+                <div className="col-span-full text-center py-12">
+                  <p 
+                    className="text-gray-400 text-sm"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    NO YODHAS FOUND. CREATE YOUR FIRST WARRIOR!
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Yodha Detail Modal */}
+        {selectedYodha && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+            <div className="arcade-card p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-start mb-6">
+                <h2 
+                  className="text-2xl text-orange-400 arcade-glow"
+                  style={{fontFamily: 'Press Start 2P, monospace'}}
+                >
+                  {selectedYodha.name}
+                </h2>
+                <button 
+                  onClick={() => setSelectedYodha(null)}
+                  className="text-red-400 hover:text-red-300 text-xl"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                  <div className="w-48 h-48 mx-auto mb-6 border-2 border-orange-600 rounded-lg overflow-hidden">
+                    <Image 
+                      src={selectedYodha.image} 
+                      alt={selectedYodha.name}
+                      width={192}
+                      height={192}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <h3 
+                        className="text-sm text-orange-400 mb-2"
+                        style={{fontFamily: 'Press Start 2P, monospace'}}
+                      >
+                        BIO
+                      </h3>
+                      <p 
+                        className="text-xs text-gray-300 leading-relaxed"
+                        style={{fontFamily: 'Press Start 2P, monospace'}}
+                      >
+                        {selectedYodha.bio}
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 
+                        className="text-sm text-orange-400 mb-2"
+                        style={{fontFamily: 'Press Start 2P, monospace'}}
+                      >
+                        LIFE HISTORY
+                      </h3>
+                      <p 
+                        className="text-xs text-gray-300 leading-relaxed"
+                        style={{fontFamily: 'Press Start 2P, monospace'}}
+                      >
+                        {selectedYodha.life_history}
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 
+                        className="text-sm text-orange-400 mb-2"
+                        style={{fontFamily: 'Press Start 2P, monospace'}}
+                      >
+                        PERSONALITY TRAITS
+                      </h3>
+                      <p 
+                        className="text-xs text-gray-300 leading-relaxed"
+                        style={{fontFamily: 'Press Start 2P, monospace'}}
+                      >
+                        {selectedYodha.adjectives}
+                      </p>
+                    </div>
+
+                    <div>
+                      <h3 
+                        className="text-sm text-orange-400 mb-2"
+                        style={{fontFamily: 'Press Start 2P, monospace'}}
+                      >
+                        KNOWLEDGE AREAS
+                      </h3>
+                      <p 
+                        className="text-xs text-gray-300 leading-relaxed"
+                        style={{fontFamily: 'Press Start 2P, monospace'}}
+                      >
+                        {selectedYodha.knowledge_areas}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 
+                    className="text-lg text-orange-400 mb-6 text-center"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    WARRIOR TRAITS
+                  </h3>
+                  
+                  <div className="space-y-4 mb-8">
+                    <TraitBar label="STRENGTH" value={selectedYodha.traits.strength} />
+                    <TraitBar label="WIT" value={selectedYodha.traits.wit} />
+                    <TraitBar label="CHARISMA" value={selectedYodha.traits.charisma} />
+                    <TraitBar label="DEFENCE" value={selectedYodha.traits.defence} />
+                    <TraitBar label="LUCK" value={selectedYodha.traits.luck} />
+                  </div>
+
+                  <div className="border-t border-orange-600 pt-6">
+                    <div className="text-center mb-6">
+                      <div className="flex justify-center items-center gap-4 mb-4">
+                        <div className={`px-3 py-1 rounded ${getRankBgColor(selectedYodha.rank)} ${getRankColor(selectedYodha.rank)} border border-current`}>
+                          <span 
+                            className="text-xs"
+                            style={{fontFamily: 'Press Start 2P, monospace'}}
+                          >
+                            RANK: {selectedYodha.rank.toUpperCase()}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <p 
+                        className="text-sm text-green-400 mb-2"
+                        style={{fontFamily: 'Press Start 2P, monospace'}}
+                      >
+                        TOTAL WINNINGS: {selectedYodha.totalWinnings} RANN
+                      </p>
+                      
+                      <p 
+                        className="text-xs text-gray-400 mb-4"
+                        style={{fontFamily: 'Press Start 2P, monospace'}}
+                      >
+                        TOKEN ID: #{selectedYodha.tokenId}
+                      </p>
+
+                      {selectedYodha.rank !== 'platinum' && (
+                        <p 
+                          className="text-xs text-yellow-400 mb-4"
+                          style={{fontFamily: 'Press Start 2P, monospace'}}
+                        >
+                          NEXT RANK: {getNextRank(selectedYodha.rank).toUpperCase()} 
+                          (REQUIRES {getPromotionRequirement(selectedYodha.rank)} RANN)
+                        </p>
+                      )}
+                    </div>
+
+                    {selectedYodha.rank !== 'platinum' ? (
+                      <button
+                        onClick={() => handlePromoteYodha(selectedYodha)}
+                        disabled={!canPromote(selectedYodha)}
+                        className={`w-full py-4 text-sm tracking-wide transition-colors ${
+                          canPromote(selectedYodha)
+                            ? 'arcade-button'
+                            : 'bg-gray-800 border-2 border-gray-600 text-gray-500 opacity-50 cursor-not-allowed'
+                        }`}
+                        style={{fontFamily: 'Press Start 2P, monospace'}}
+                      >
+                        {canPromote(selectedYodha) ? 'PROMOTE WARRIOR' : 'INSUFFICIENT WINNINGS'}
+                      </button>
+                    ) : (
+                      <div className="text-center">
+                        <p 
+                          className="text-blue-300 text-sm py-4"
+                          style={{fontFamily: 'Press Start 2P, monospace'}}
+                        >
+                          MAXIMUM RANK ACHIEVED!
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Back to Home */}
         <div className="text-center mt-12">
