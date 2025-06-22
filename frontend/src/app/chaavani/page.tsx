@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 export default function ChaavaniPage() {
-  const [activeTab, setActiveTab] = useState<'ai' | 'manual'>('ai');
+  const [aiEnabled, setAiEnabled] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [formData, setFormData] = useState({
     name: '',
@@ -73,40 +73,44 @@ export default function ChaavaniPage() {
           </div>
         </div>
 
-        {/* Tab Navigation */}
+        {/* AI Toggle Switch */}
         <div className="flex justify-center mb-12">
-          <div className="battle-frame p-2 flex gap-2">
-            <button
-              onClick={() => setActiveTab('ai')}
-              className={`px-6 py-3 text-xs tracking-wide transition-all duration-300 ${
-                activeTab === 'ai' 
-                  ? 'arcade-button' 
-                  : 'bg-gray-800 border-2 border-gray-600 text-gray-400 hover:border-yellow-600 hover:text-yellow-400'
-              }`}
+          <div className="battle-frame p-4 flex items-center gap-4">
+            <span 
+              className="text-yellow-400 text-sm tracking-wide"
               style={{fontFamily: 'Press Start 2P, monospace'}}
             >
-              BUILD WITH AI
-            </button>
+              AI ASSISTANCE
+            </span>
             <button
-              onClick={() => setActiveTab('manual')}
-              className={`px-6 py-3 text-xs tracking-wide transition-all duration-300 ${
-                activeTab === 'manual' 
-                  ? 'arcade-button' 
-                  : 'bg-gray-800 border-2 border-gray-600 text-gray-400 hover:border-yellow-600 hover:text-yellow-400'
+              onClick={() => setAiEnabled(!aiEnabled)}
+              className={`relative inline-flex items-center w-16 h-8 rounded-full transition-colors duration-300 focus:outline-none ${
+                aiEnabled 
+                  ? 'bg-yellow-600' 
+                  : 'bg-gray-600'
               }`}
+            >
+              <span
+                className={`inline-block w-6 h-6 transform bg-white rounded-full transition-transform duration-300 ${
+                  aiEnabled ? 'translate-x-9' : 'translate-x-1'
+                }`}
+              />
+            </button>
+            <span 
+              className={`text-sm tracking-wide ${aiEnabled ? 'text-yellow-400' : 'text-gray-400'}`}
               style={{fontFamily: 'Press Start 2P, monospace'}}
             >
-              BUILD MANUALLY
-            </button>
+              {aiEnabled ? 'ON' : 'OFF'}
+            </span>
           </div>
         </div>
 
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
-            {/* Left Panel - AI/Manual Input */}
+            {/* Left Panel - AI Input (conditional) */}
             <div className="arcade-card p-8">
-              {activeTab === 'ai' ? (
+              {aiEnabled ? (
                 // AI Section
                 <div>
                   <div className="mb-6">
@@ -157,34 +161,29 @@ export default function ChaavaniPage() {
                   </div>
                 </div>
               ) : (
-                // Manual Section
-                <div>
-                  <div className="mb-6">
-                    <div className="weapon-container w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4">
-                      <span className="text-2xl">⚒️</span>
-                    </div>
-                    <h2 
-                      className="text-2xl text-blue-400 text-center mb-4 tracking-wider arcade-glow"
-                      style={{fontFamily: 'Press Start 2P, monospace'}}
-                    >
-                      MANUAL FORGE
-                    </h2>
-                    <p 
-                      className="text-gray-300 text-xs text-center leading-relaxed"
-                      style={{fontFamily: 'Press Start 2P, monospace'}}
-                    >
-                      CRAFT EVERY DETAIL BY HAND
-                    </p>
+                // AI Disabled - Instructions
+                <div className="text-center py-12">
+                  <div className="weapon-container w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-6">
+                    <span className="text-2xl">⚒️</span>
                   </div>
-
-                  <div className="text-center">
-                    <p 
-                      className="text-gray-400 text-xs leading-relaxed"
-                      style={{fontFamily: 'Press Start 2P, monospace'}}
-                    >
-                      USE THE FORM ON THE RIGHT TO MANUALLY DEFINE YOUR WARRIOR'S ATTRIBUTES
-                    </p>
-                  </div>
+                  <h2 
+                    className="text-2xl text-blue-400 mb-6 tracking-wider arcade-glow"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    MANUAL FORGE MODE
+                  </h2>
+                  <p 
+                    className="text-gray-300 text-xs leading-relaxed mb-4"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    CRAFT YOUR WARRIOR MANUALLY
+                  </p>
+                  <p 
+                    className="text-gray-400 text-xs leading-relaxed"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    USE THE FORM TO DEFINE ALL ATTRIBUTES
+                  </p>
                 </div>
               )}
             </div>

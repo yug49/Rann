@@ -1,6 +1,11 @@
+"use client";
+
 import Link from 'next/link';
+import { useAccount } from 'wagmi';
 
 export default function HomePage() {
+  const { isConnected } = useAccount();
+
   return (
     <div className="min-h-screen battlefield-bg relative overflow-hidden">
       {/* Epic Background Elements */}
@@ -42,6 +47,37 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* Wallet Connection Warning */}
+        {!isConnected && (
+          <div className="max-w-4xl mx-auto mb-12">
+            <div className="arcade-card p-8 border-red-600 bg-red-900/20">
+              <div className="text-center">
+                <div className="mb-4">
+                  <span className="text-4xl">🔒</span>
+                </div>
+                <h2 
+                  className="text-2xl text-red-400 mb-4 tracking-wider arcade-glow"
+                  style={{fontFamily: 'Press Start 2P, monospace'}}
+                >
+                  WALLET CONNECTION REQUIRED
+                </h2>
+                <p 
+                  className="text-red-200 text-sm leading-relaxed mb-4"
+                  style={{fontFamily: 'Press Start 2P, monospace'}}
+                >
+                  TO ENTER THE BATTLEFIELD AND ACCESS ALL FEATURES
+                </p>
+                <p 
+                  className="text-red-300 text-xs"
+                  style={{fontFamily: 'Press Start 2P, monospace'}}
+                >
+                  CONNECT YOUR WALLET TO PROCEED
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Epic Game Mode Arena */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-6xl mx-auto">
           
@@ -74,14 +110,24 @@ export default function HomePage() {
                   IN THE ANCIENT SMITHY
                 </p>
               </div>
-              <Link href="/chaavani">
+              {isConnected ? (
+                <Link href="/chaavani">
+                  <button 
+                    className="arcade-button px-8 py-4 text-xs tracking-wide"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    ENTER FORGE
+                  </button>
+                </Link>
+              ) : (
                 <button 
-                  className="arcade-button px-8 py-4 text-xs tracking-wide"
+                  className="arcade-button px-8 py-4 text-xs tracking-wide opacity-50 cursor-not-allowed"
                   style={{fontFamily: 'Press Start 2P, monospace'}}
+                  disabled
                 >
-                  ENTER FORGE
+                  WALLET REQUIRED
                 </button>
-              </Link>
+              )}
             </div>
           </div>
 
@@ -114,14 +160,24 @@ export default function HomePage() {
                   IN THE HALLS OF WISDOM
                 </p>
               </div>
-              <Link href="/gurukul">
+              {isConnected ? (
+                <Link href="/gurukul">
+                  <button 
+                    className="arcade-button px-8 py-4 text-xs tracking-wide"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    ENTER ACADEMY
+                  </button>
+                </Link>
+              ) : (
                 <button 
-                  className="arcade-button px-8 py-4 text-xs tracking-wide"
+                  className="arcade-button px-8 py-4 text-xs tracking-wide opacity-50 cursor-not-allowed"
                   style={{fontFamily: 'Press Start 2P, monospace'}}
+                  disabled
                 >
-                  ENTER ACADEMY
+                  WALLET REQUIRED
                 </button>
-              </Link>
+              )}
             </div>
           </div>
 
@@ -154,14 +210,24 @@ export default function HomePage() {
                   IN THE MERCHANT DISTRICT
                 </p>
               </div>
-              <Link href="/bazaar">
+              {isConnected ? (
+                <Link href="/bazaar">
+                  <button 
+                    className="arcade-button px-8 py-4 text-xs tracking-wide"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    ENTER MARKET
+                  </button>
+                </Link>
+              ) : (
                 <button 
-                  className="arcade-button px-8 py-4 text-xs tracking-wide"
+                  className="arcade-button px-8 py-4 text-xs tracking-wide opacity-50 cursor-not-allowed"
                   style={{fontFamily: 'Press Start 2P, monospace'}}
+                  disabled
                 >
-                  ENTER MARKET
+                  WALLET REQUIRED
                 </button>
-              </Link>
+              )}
             </div>
           </div>
 
@@ -194,12 +260,22 @@ export default function HomePage() {
                   ON THE LEGENDARY BATTLEFIELD
                 </p>
               </div>
-              <button 
-                className="arcade-button px-8 py-4 text-xs tracking-wide"
-                style={{fontFamily: 'Press Start 2P, monospace'}}
-              >
-                ENTER ARENA
-              </button>
+              {isConnected ? (
+                <button 
+                  className="arcade-button px-8 py-4 text-xs tracking-wide"
+                  style={{fontFamily: 'Press Start 2P, monospace'}}
+                >
+                  ENTER ARENA
+                </button>
+              ) : (
+                <button 
+                  className="arcade-button px-8 py-4 text-xs tracking-wide opacity-50 cursor-not-allowed"
+                  style={{fontFamily: 'Press Start 2P, monospace'}}
+                  disabled
+                >
+                  WALLET REQUIRED
+                </button>
+              )}
             </div>
           </div>
 
