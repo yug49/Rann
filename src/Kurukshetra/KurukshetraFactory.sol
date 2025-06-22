@@ -278,4 +278,25 @@ contract KurukshetraFactory {
     function getYodhaNFTCollection() external view returns (address) {
         return i_yodhaNFTCollection;
     }
+
+    function getArenasOfARanking(IYodhaNFT.Ranking _ranking) external view returns (address[] memory) {
+        uint256 count = 0;
+        for (uint256 i = 0; i < arenas.length; i++) {
+            if (arenaRankings[arenas[i]] == _ranking) {
+                count++;
+            }
+        }
+
+        address[] memory rankedArenas = new address[](count);
+
+        uint256 index = 0;
+        for (uint256 i = 0; i < arenas.length; i++) {
+            if (arenaRankings[arenas[i]] == _ranking) {
+                rankedArenas[index] = arenas[i];
+                index++;
+            }
+        }
+
+        return rankedArenas;
+    }
 }

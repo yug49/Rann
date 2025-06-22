@@ -434,4 +434,18 @@ contract YodhaNFT is ERC721 {
     function getWinnings(uint256 _tokenId) public view returns (uint256) {
         return s_YodhaIdToWinAmounts[_tokenId];
     }
+
+    // Function to make manage yodhaNFTs section in the chaavani app
+    function getNFTsOfAOwner(address _owner) public view returns (uint256[] memory) {
+        uint256 balanace = balanceOf(_owner);
+        uint256[] memory tokenIds = new uint256[](balanace);
+        uint256 index = 0;
+        for (uint256 i = 1; i < s_tokenCounter; i++) {
+            if (ownerOf(i) == _owner) {
+                tokenIds[index] = i;
+                index++;
+            }
+        }
+        return tokenIds;
+    }
 }
