@@ -1,8 +1,10 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAccount } from 'wagmi';
 import { useState, useEffect } from 'react';
+import './home-glass.css';
 
 // Token Exchange Card Component
 const TokenExchangeCard = ({ 
@@ -131,9 +133,21 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen battlefield-bg relative overflow-hidden">
+    <div className="home-page min-h-screen relative overflow-hidden">
+      {/* Background Image */}
+      <div className="fixed inset-0 -z-10">
+        <Image
+          src="/Home.png"
+          alt="Home Background"
+          fill
+          className="object-cover"
+          priority
+        />
+      </div>
+      
       {/* Epic Background Elements */}
       <div className="absolute inset-0 pointer-events-none">
+        
         {/* Floating Weapon Elements */}
         <div className="absolute top-20 left-10 text-4xl floating-element pulse-element opacity-20">⚔️</div>
         <div className="absolute top-40 right-20 text-3xl floating-element pulse-element opacity-20" style={{animationDelay: '1s'}}>🛡️</div>
@@ -157,7 +171,7 @@ export default function HomePage() {
           </h1>
           <div className="arcade-border p-6 mx-auto max-w-4xl">
             <p 
-              className="text-yellow-300 text-lg md:text-xl tracking-wide metal-text"
+              className="text-yellow-400 text-lg md:text-xl tracking-wide metal-text"
               style={{fontFamily: 'Press Start 2P, monospace'}}
             >
               ENTER THE ULTIMATE BATTLEGROUND
@@ -495,7 +509,7 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Epic Call to Action */}
+        {/* Epic Call to Action
         <div className="text-center mt-20">
           <div className="battle-frame p-8 mx-auto max-w-3xl">
             <p 
@@ -511,7 +525,7 @@ export default function HomePage() {
               THE BATTLEFIELD AWAITS YOUR COURAGE
             </p>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

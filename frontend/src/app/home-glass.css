@@ -1,0 +1,239 @@
+/* Light Theme Overrides for Home Page */
+/* Force override all dark theme styles */
+.home-page {
+  /* Override the dark background */
+  background: transparent !important;
+  color: #2d3748 !important;
+}
+
+/* Stronger overrides for body styling on home page */
+.home-page body,
+.home-page *:not(.arcade-button):not(button) {
+  color: #2d3748 !important;
+}
+
+/* Override global arcade text effects for light theme */
+.home-page .arcade-glow {
+  text-shadow: 
+    1px 1px 2px rgba(255, 255, 255, 0.8),
+    0 0 3px currentColor,
+    0 0 6px rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Light theme text colors with higher specificity */
+.home-page .text-yellow-400,
+.home-page .text-yellow-300,
+.home-page .text-yellow-200,
+.home-page h1.text-yellow-400,
+.home-page p.text-yellow-300,
+.home-page p.text-yellow-200 {
+  color: #2d5a27 !important; /* Dark green for main titles */
+  text-shadow: 
+    1px 1px 2px rgba(255, 255, 255, 0.8),
+    0 0 3px rgba(255, 255, 255, 0.6) !important;
+}
+
+.home-page .text-red-400,
+.home-page .text-red-200,
+.home-page .text-red-300,
+.home-page .text-red-500,
+.home-page p.text-red-400,
+.home-page p.text-red-200,
+.home-page p.text-red-300,
+.home-page p.text-red-500 {
+  color: #c53030 !important; /* Rich red */
+  text-shadow: 
+    1px 1px 2px rgba(255, 255, 255, 0.8),
+    0 0 2px rgba(255, 255, 255, 0.4) !important;
+}
+
+.home-page .text-blue-400,
+.home-page .text-blue-200,
+.home-page .text-blue-500,
+.home-page h2.text-blue-400,
+.home-page p.text-blue-200,
+.home-page p.text-blue-500 {
+  color: #2b6cb0 !important; /* Ocean blue */
+  text-shadow: 
+    1px 1px 2px rgba(255, 255, 255, 0.8),
+    0 0 2px rgba(255, 255, 255, 0.4) !important;
+}
+
+.home-page .text-orange-400,
+.home-page .text-orange-200,
+.home-page .text-orange-500,
+.home-page h2.text-orange-400,
+.home-page p.text-orange-200,
+.home-page p.text-orange-500 {
+  color: #dd6b20 !important; /* Warm orange */
+  text-shadow: 
+    1px 1px 2px rgba(255, 255, 255, 0.8),
+    0 0 2px rgba(255, 255, 255, 0.4) !important;
+}
+
+.home-page .text-green-400 {
+  color: #38a169 !important; /* Forest green */
+}
+
+.home-page .text-gray-400,
+.home-page .text-gray-300 {
+  color: #4a5568 !important; /* Dark gray for contrast */
+}
+
+/* Light theme card backgrounds */
+.home-page .arcade-card {
+  background: 
+    radial-gradient(circle at top left, rgba(173, 216, 230, 0.15), rgba(135, 206, 235, 0.1) 50%),
+    linear-gradient(135deg, rgba(173, 216, 230, 0.2) 0%, rgba(135, 206, 235, 0.15) 30%, rgba(173, 216, 230, 0.2) 100%) !important;
+  border: 3px solid !important;
+  border-image: linear-gradient(45deg, #2d5a27, #38a169) 1 !important;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    0 0 8px rgba(45, 90, 39, 0.2) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+}
+
+.home-page .arcade-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 
+    0 8px 20px rgba(0, 0, 0, 0.15),
+    0 0 16px rgba(45, 90, 39, 0.3) !important;
+  border-image: linear-gradient(45deg, #2d5a27, #2b6cb0) 1 !important;
+}
+
+/* Light theme for special warning card */
+.home-page .bg-red-900\/20 {
+  background: rgba(255, 182, 193, 0.2) !important; /* Light red background with more transparency */
+  border-color: #e53e3e !important;
+  backdrop-filter: blur(15px) !important;
+  -webkit-backdrop-filter: blur(15px) !important;
+}
+
+/* Light theme for input fields and containers */
+.home-page .bg-stone-800,
+.home-page .bg-stone-700 {
+  background: rgba(173, 216, 230, 0.2) !important;
+  border-color: #2d5a27 !important;
+  color: #2d3748 !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+.home-page .bg-stone-800 input,
+.home-page .bg-stone-700 input {
+  background: transparent !important;
+  color: #2d3748 !important;
+}
+
+.home-page input::placeholder {
+  color: #718096 !important;
+}
+
+/* Light theme buttons */
+.home-page .arcade-button {
+  background: linear-gradient(135deg, #2d5a27 0%, #38a169 50%, #2d5a27 100%) !important;
+  border: 2px solid #2b6cb0 !important;
+  color: white !important;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    0 0 8px rgba(45, 90, 39, 0.2) !important;
+}
+
+.home-page .arcade-button:hover {
+  background: linear-gradient(135deg, #38a169 0%, #48bb78 50%, #38a169 100%) !important;
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.15),
+    0 0 16px rgba(45, 90, 39, 0.4) !important;
+  transform: scale(1.02);
+}
+
+.home-page .bg-green-600 {
+  background: linear-gradient(135deg, #38a169, #48bb78) !important;
+}
+
+.home-page .bg-red-600 {
+  background: linear-gradient(135deg, #e53e3e, #f56565) !important;
+}
+
+/* Light theme for weapon containers */
+.home-page .weapon-container {
+  background: radial-gradient(circle, rgba(173, 216, 230, 0.25), rgba(135, 206, 235, 0.15)) !important;
+  border: 2px solid #2d5a27 !important;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    0 0 4px rgba(45, 90, 39, 0.2) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+/* Enhance floating elements for light background */
+.home-page .floating-element {
+  opacity: 0.4 !important;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2)) !important;
+}
+
+/* Light theme for gradient lines */
+.home-page .bg-gradient-to-r.from-transparent.via-yellow-600.to-transparent {
+  background: linear-gradient(to right, transparent, rgba(45, 90, 39, 0.6), transparent) !important;
+}
+
+.home-page .bg-gradient-to-r.from-transparent.via-red-600.to-transparent {
+  background: linear-gradient(to right, transparent, rgba(229, 62, 62, 0.6), transparent) !important;
+}
+
+/* Improve contrast for borders */
+.home-page .border-yellow-600,
+.home-page .border-yellow-400 {
+  border-color: #2d5a27 !important;
+}
+
+.home-page .border-red-600,
+.home-page .border-red-400 {
+  border-color: #e53e3e !important;
+}
+
+.home-page .border-blue-400 {
+  border-color: #2b6cb0 !important;
+}
+
+.home-page .border-orange-400 {
+  border-color: #dd6b20 !important;
+}
+
+.home-page .border-gray-600 {
+  border-color: #4a5568 !important;
+}
+
+/* Ensure good contrast for disabled states */
+.home-page .opacity-50 {
+  opacity: 0.6 !important;
+  color: #718096 !important;
+}
+
+/* Enhance the glow effects for light theme */
+.home-page .arcade-glow {
+  text-shadow: 
+    1px 1px 2px rgba(255, 255, 255, 0.8),
+    0 0 3px currentColor,
+    0 0 6px rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Make sure emojis are visible */
+.home-page .filter.drop-shadow-lg {
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3)) !important;
+}
+
+/* Light theme for the main title/destiny box */
+.home-page .arcade-border,
+.home-page div.arcade-border {
+  background: 
+    radial-gradient(circle at top left, rgba(173, 216, 230, 0.15), rgba(135, 206, 235, 0.1) 50%),
+    linear-gradient(135deg, rgba(173, 216, 230, 0.2) 0%, rgba(135, 206, 235, 0.15) 30%, rgba(173, 216, 230, 0.2) 100%) !important;
+  border: 2px solid #2d5a27 !important;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    0 0 8px rgba(45, 90, 39, 0.2) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+}
