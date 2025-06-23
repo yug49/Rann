@@ -396,6 +396,19 @@ body {
   background-attachment: fixed;
 }
 
+/* Gurukul Background with Gurukul Image */
+.gurukul-bg {
+  background: 
+    radial-gradient(circle at 25% 25%, rgba(220, 20, 60, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(30, 58, 138, 0.05) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(15, 15, 15, 0.2) 0%, rgba(26, 26, 26, 0.3) 50%, rgba(15, 15, 15, 0.2) 100%),
+    url('/Gurukul.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
 /* Animated Background Elements */
 @keyframes pulse-glow {
   0%, 100% { opacity: 0.3; }

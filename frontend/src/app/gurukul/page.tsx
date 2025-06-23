@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import Image from 'next/image';
+import '../home-glass.css';
 
 interface YodhaTraits {
   strength: number;
@@ -27,6 +28,7 @@ interface YodhaNFT {
   id: number;
   name: string;
   traits: YodhaTraits;
+  image: string;
 }
 
 export default function GurukulPage() {
@@ -44,6 +46,7 @@ export default function GurukulPage() {
   const mockYodha: YodhaNFT = {
     id: 1,
     name: "Arjuna the Strategist",
+    image: "/lazered.png",
     traits: {
       strength: 65.23,
       wit: 78.45,
@@ -107,6 +110,12 @@ export default function GurukulPage() {
       correctAnswer: 2
     }
   ];
+
+  // Initialize with mock data for testing
+  useEffect(() => {
+    setSelectedYodha(mockYodha);
+    setQuestions(mockQuestions);
+  }, []);
 
   const handleApproveNFT = async () => {
     setIsApproving(true);
@@ -177,16 +186,16 @@ export default function GurukulPage() {
     const isDecreased = hasChanged && value < originalValue;
     
     let barColor = 'bg-yellow-500'; // Default color
-    let textColor = 'text-yellow-400'; // Default text color
+    let textColor = 'text-orange-400'; // Default text color
     
     if (isIncreased) {
       barColor = 'bg-green-500';
-      textColor = 'text-green-400';
+      textColor = 'text-orange-400';
     } else if (isDecreased) {
       barColor = 'bg-red-500';
       textColor = 'text-red-400';
     } else if (isUpdated) {
-      textColor = 'text-yellow-400'; // No change
+      textColor = 'text-orange-400'; // No change
     }
 
     return (
@@ -207,7 +216,7 @@ export default function GurukulPage() {
             </span>
             {hasChanged && (
               <span 
-                className={`text-xs ${isIncreased ? 'text-green-400' : 'text-red-400'}`}
+                className={`text-xs ${isIncreased ? 'text-orange-400' : 'text-red-400'}`}
                 style={{fontFamily: 'Press Start 2P, monospace'}}
               >
                 ({isIncreased ? '+' : ''}{(value - originalValue!).toFixed(2)})
@@ -226,20 +235,61 @@ export default function GurukulPage() {
   };
 
   return (
-    <div className="min-h-screen battlefield-bg">
-      <div className="container mx-auto px-6 py-12">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Background Image */}
+      <div className="fixed inset-0 -z-10">
+        <Image
+          src="/Gurukul.png"
+          alt="Gurukul Background"
+          fill
+          className="object-cover"
+          priority
+        />
+        {/* Very subtle black overlay to darken background */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.175)',
+            zIndex: 1
+          }}
+        ></div>
+      </div>
+      
+      {/* Epic Background Elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Geometric Battle Lines */}
+        <div className="absolute top-1/4 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-600 to-transparent opacity-30"></div>
+        <div className="absolute bottom-1/4 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent opacity-30"></div>
+      </div>
+
+      {/* Main Content */}
+      <div className="relative z-10 container mx-auto px-6 py-12">
         {/* Page Header */}
         <div className="text-center mb-12">
           <h1 
-            className="text-4xl md:text-6xl text-blue-400 mb-6 tracking-widest arcade-glow"
-            style={{fontFamily: 'Press Start 2P, monospace'}}
+            className="text-4xl md:text-6xl text-orange-400 mb-6 tracking-widest arcade-glow"
+            style={{
+              fontFamily: 'Press Start 2P, monospace'
+            }}
           >
             GURUKUL
           </h1>
-          <div className="arcade-border p-4 mx-auto max-w-3xl">
+          <div 
+            className="arcade-border p-4 mx-auto max-w-3xl"
+            style={{
+              background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+              border: '2px solid #ff8c00',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+              borderRadius: '24px'
+            }}
+          >
             <p 
-              className="text-blue-300 text-sm md:text-base tracking-wide"
-              style={{fontFamily: 'Press Start 2P, monospace'}}
+              className="text-orange-400 text-sm md:text-base tracking-wide arcade-glow"
+              style={{
+                fontFamily: 'Press Start 2P, monospace'
+              }}
             >
               ANCIENT ACADEMY OF WARRIOR WISDOM
             </p>
@@ -249,13 +299,23 @@ export default function GurukulPage() {
         {!hasEnteredGurukul ? (
           // Approval and Entry Section
           <div className="max-w-2xl mx-auto">
-            <div className="arcade-card p-8 text-center">
+            <div 
+              className="arcade-card p-8 text-center"
+              style={{
+                background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+                border: '3px solid #ff8c00',
+                borderRadius: '24px',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)'
+              }}
+            >
               <div className="mb-8">
                 <div className="weapon-container w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6">
                   <span className="text-3xl">🏛️</span>
                 </div>
                 <h2 
-                  className="text-2xl text-blue-400 mb-4 tracking-wider arcade-glow"
+                  className="text-2xl text-orange-400 mb-4 tracking-wider arcade-glow"
                   style={{fontFamily: 'Press Start 2P, monospace'}}
                 >
                   PREPARE FOR TRAINING
@@ -276,7 +336,10 @@ export default function GurukulPage() {
                     className={`arcade-button px-8 py-4 text-xs tracking-wide ${
                       isApproving ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
-                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                    style={{
+                      fontFamily: 'Press Start 2P, monospace',
+                      borderRadius: '12px'
+                    }}
                   >
                     {isApproving ? 'APPROVING NFT...' : 'APPROVE NFT'}
                   </button>
@@ -300,7 +363,10 @@ export default function GurukulPage() {
                   <button
                     onClick={handleEnterGurukul}
                     className="arcade-button px-8 py-4 text-xs tracking-wide"
-                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                    style={{
+                      fontFamily: 'Press Start 2P, monospace',
+                      borderRadius: '12px'
+                    }}
                   >
                     ENTER GURUKUL
                   </button>
@@ -314,20 +380,36 @@ export default function GurukulPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               
               {/* Yodha Info Panel */}
-              <div className="arcade-card p-6">
+              <div 
+                className="arcade-card p-6"
+                style={{
+                  background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+                  border: '3px solid #ff8c00',
+                  borderRadius: '24px',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)'
+                }}
+              >
                 <h3 
-                  className="text-xl text-yellow-400 text-center mb-6 tracking-wider arcade-glow"
+                  className="text-xl text-orange-400 text-center mb-6 tracking-wider arcade-glow"
                   style={{fontFamily: 'Press Start 2P, monospace'}}
                 >
                   YOUR YODHA
                 </h3>
                 
                 <div className="text-center mb-6">
-                  <div className="weapon-container w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4">
-                    <span className="text-2xl">⚔️</span>
+                  <div className="w-52 h-52 mx-auto mb-4 border-2 border-orange-600 rounded-2xl overflow-hidden">
+                    <Image 
+                      src={selectedYodha?.image || "/lazered.png"} 
+                      alt={selectedYodha?.name || "Yodha"}
+                      width={128}
+                      height={128}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <h4 
-                    className="text-lg text-blue-300 mb-4"
+                    className="text-lg text-orange-300 mb-4"
                     style={{fontFamily: 'Press Start 2P, monospace'}}
                   >
                     {selectedYodha?.name}
@@ -336,7 +418,7 @@ export default function GurukulPage() {
 
                 <div className="space-y-4">
                   <h5 
-                    className="text-sm text-yellow-400 mb-4 text-center"
+                    className="text-sm text-orange-400 mb-4 text-center"
                     style={{fontFamily: 'Press Start 2P, monospace'}}
                   >
                     CURRENT TRAITS
@@ -354,7 +436,17 @@ export default function GurukulPage() {
               </div>
 
               {/* Questions Panel */}
-              <div className="lg:col-span-2 arcade-card p-6">
+              <div 
+                className="lg:col-span-2 arcade-card p-6"
+                style={{
+                  background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+                  border: '3px solid #ff8c00',
+                  borderRadius: '24px',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)'
+                }}
+              >
                 <h3 
                   className="text-xl text-orange-400 text-center mb-6 tracking-wider arcade-glow"
                   style={{fontFamily: 'Press Start 2P, monospace'}}
@@ -366,7 +458,7 @@ export default function GurukulPage() {
                   {questions.map((question, index) => (
                     <div key={question.id} className="border-b border-gray-600 pb-6 last:border-b-0">
                       <h4 
-                        className="text-sm text-yellow-400 mb-4 leading-relaxed"
+                        className="text-sm text-orange-400 mb-4 leading-relaxed"
                         style={{fontFamily: 'Press Start 2P, monospace'}}
                       >
                         {index + 1}. {question.question}
@@ -376,10 +468,10 @@ export default function GurukulPage() {
                         {question.options.map((option) => (
                           <label 
                             key={option.id}
-                            className={`cursor-pointer p-3 border-2 transition-all duration-300 ${
+                            className={`cursor-pointer p-3 border-2 transition-all duration-300 rounded-lg ${
                               userAnswers[question.id] === option.id
-                                ? 'border-blue-400 bg-blue-900/20'
-                                : 'border-gray-600 hover:border-blue-600'
+                                ? 'border-orange-400 bg-orange-900/20'
+                                : 'border-gray-600 hover:border-orange-600'
                             }`}
                           >
                             <input
@@ -392,7 +484,7 @@ export default function GurukulPage() {
                             />
                             <span 
                               className={`text-xs leading-relaxed ${
-                                userAnswers[question.id] === option.id ? 'text-blue-300' : 'text-gray-300'
+                                userAnswers[question.id] === option.id ? 'text-orange-300' : 'text-gray-300'
                               }`}
                               style={{fontFamily: 'Press Start 2P, monospace'}}
                             >
@@ -412,7 +504,7 @@ export default function GurukulPage() {
                     className={`arcade-button px-8 py-4 text-xs tracking-wide ${
                       (!areAllQuestionsAnswered() || isSubmitting) ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
-                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                    style={{fontFamily: 'Press Start 2P, monospace', borderRadius: '12px'}}
                   >
                     {isSubmitting ? 'COMPLETING TRAINING...' : 
                      !areAllQuestionsAnswered() ? 'ANSWER ALL QUESTIONS' : 
@@ -425,19 +517,29 @@ export default function GurukulPage() {
         ) : (
           // Training Completed Section
           <div className="max-w-4xl mx-auto">
-            <div className="arcade-card p-8 text-center">
+            <div 
+              className="arcade-card p-8 text-center"
+              style={{
+                background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+                border: '3px solid #ff8c00',
+                borderRadius: '24px',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)'
+              }}
+            >
               <div className="mb-8">
                 <div className="weapon-container w-24 h-24 mx-auto rounded-full flex items-center justify-center mb-6">
                   <span className="text-4xl">🏆</span>
                 </div>
                 <h2 
-                  className="text-3xl text-green-400 mb-4 tracking-wider arcade-glow"
+                  className="text-3xl text-orange-400 mb-4 tracking-wider arcade-glow"
                   style={{fontFamily: 'Press Start 2P, monospace'}}
                 >
                   TRAINING COMPLETE!
                 </h2>
                 <p 
-                  className="text-green-300 text-sm leading-relaxed mb-8"
+                  className="text-orange-300 text-sm leading-relaxed mb-8"
                   style={{fontFamily: 'Press Start 2P, monospace'}}
                 >
                   YOUR YODHA'S TRAITS HAVE BEEN MODIFIED BY TRAINING
@@ -447,7 +549,7 @@ export default function GurukulPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
                   <h3 
-                    className="text-lg text-yellow-400 mb-6"
+                    className="text-lg text-orange-400 mb-6"
                     style={{fontFamily: 'Press Start 2P, monospace'}}
                   >
                     PREVIOUS TRAITS
@@ -463,7 +565,7 @@ export default function GurukulPage() {
 
                 <div>
                   <h3 
-                    className="text-lg text-green-400 mb-6"
+                    className="text-lg text-orange-400 mb-6"
                     style={{fontFamily: 'Press Start 2P, monospace'}}
                   >
                     UPDATED TRAITS
@@ -506,14 +608,16 @@ export default function GurukulPage() {
               </div>
 
               <div className="mt-8">
-                <Link href="/">
-                  <button 
-                    className="arcade-button px-8 py-4 text-xs tracking-wide"
-                    style={{fontFamily: 'Press Start 2P, monospace'}}
-                  >
-                    RETURN TO ARENA
-                  </button>
-                </Link>
+                <a 
+                  href="/"
+                  className="inline-block arcade-button px-8 py-4 text-xs tracking-wide"
+                  style={{
+                    fontFamily: 'Press Start 2P, monospace',
+                    borderRadius: '12px'
+                  }}
+                >
+                  RETURN TO ARENA
+                </a>
               </div>
             </div>
           </div>
@@ -522,14 +626,16 @@ export default function GurukulPage() {
         {/* Back to Home (only if not in training) */}
         {!hasEnteredGurukul && (
           <div className="text-center mt-12">
-            <Link href="/">
-              <button 
-                className="bg-gray-800 border-2 border-gray-600 text-gray-400 px-6 py-3 text-xs tracking-wide hover:border-yellow-600 hover:text-yellow-400 transition-all duration-300"
-                style={{fontFamily: 'Press Start 2P, monospace'}}
-              >
-                GO BACK
-              </button>
-            </Link>
+            <a 
+              href="/"
+              className="inline-block arcade-button px-6 py-3 text-xs tracking-wide"
+              style={{
+                fontFamily: 'Press Start 2P, monospace',
+                borderRadius: '12px'
+              }}
+            >
+              GO BACK
+            </a>
           </div>
         )}
       </div>
