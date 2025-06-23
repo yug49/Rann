@@ -254,6 +254,10 @@ contract Kurukshetra {
 
     event GameResetted(uint256 indexed yodhaOneNFTId, uint256 indexed yodhaTwoNFTId);
 
+    event GameRefunded(
+        address[] indexed playerBetAddresses, uint256 indexed yodhaNFTId
+    );
+
     /**
      * @notice Initializes the game with the given parameters.
      * @param _yodhaOneNFTId The NFT ID of Yodha One.
@@ -352,8 +356,15 @@ contract Kurukshetra {
         if (s_currentRound != 0) {
             revert Kurukshetra__GameAlreadyStarted();
         }
+
         if (s_playerTwoBetAddresses.length == 0 || s_playerOneBetAddresses.length == 0) {
-            revert Kurukshetra__ThereShouldBeBettersOnBothSide();
+            if(s_playerOneBetAddresses.length == 0) {
+                _refund(false);
+            } else{
+                _refund(true);
+            }
+
+            return;
         }
         s_currentRound = 1;
         s_lastRoundEndedAt = block.timestamp;
@@ -885,6 +896,26 @@ contract Kurukshetra {
                 s_playersAlreadyUsedDefluenceAddresses[s_playerTwoBetAddresses[i]] = false;
             }
         }
+    }
+
+    /**
+     * 
+     * @param isPlayerOne A boolean indicating if the refund is for Player One or Player Two.
+     * @notice Refunds the bet amount to all players who bet on the specified Yodha
+     */
+    function _refund(bool isPlayerOne) private {
+        if (isPlayerOne) {
+            for (uint256 i = 0; i < s_playerOneBetAddresses.length; i++) {
+                i_rannToken.transfer(s_playerOneBetAddresses[i], i_betAmount);
+            }
+            emit GameRefunded(s_playerOneBetAddresses, s_yodhaOneNFTId);
+        } else {
+            for (uint256 i = 0; i < s_playerTwoBetAddresses.length; i++) {
+                i_rannToken.transfer(s_playerTwoBetAddresses[i], i_betAmount);
+            }
+            emit GameRefunded(s_playerTwoBetAddresses, s_yodhaTwoNFTId);
+        }
+        _resetGame();
     }
 
     /* Helper Getter Functions */

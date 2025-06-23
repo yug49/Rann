@@ -287,12 +287,6 @@ export default function ChaavaniPage() {
       
       {/* Epic Background Elements */}
       <div className="absolute inset-0 pointer-events-none">
-        {/* Floating Weapon Elements */}
-        <div className="absolute top-20 left-10 text-4xl floating-element pulse-element opacity-20">⚒️</div>
-        <div className="absolute top-40 right-20 text-3xl floating-element pulse-element opacity-20" style={{animationDelay: '1s'}}>🔥</div>
-        <div className="absolute bottom-32 left-20 text-3xl floating-element pulse-element opacity-20" style={{animationDelay: '2s'}}>🗡️</div>
-        <div className="absolute bottom-20 right-32 text-4xl floating-element pulse-element opacity-20" style={{animationDelay: '0.5s'}}>⚡</div>
-        
         {/* Geometric Battle Lines */}
         <div className="absolute top-1/4 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-600 to-transparent opacity-30"></div>
         <div className="absolute bottom-1/4 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent opacity-30"></div>
