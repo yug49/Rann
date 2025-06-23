@@ -180,11 +180,9 @@ export default function HomePage() {
         {/* Epic Title Section */}
         <div className="text-center mb-20">
           <h1 
-            className="text-6xl md:text-8xl text-yellow-400 mb-8 tracking-widest arcade-glow"
+            className="text-6xl md:text-8xl text-red-400 mb-8 tracking-widest arcade-glow"
             style={{
-              fontFamily: 'Press Start 2P, monospace',
-              color: '#2d5a27',
-              textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8), 0 0 3px rgba(255, 255, 255, 0.6)'
+              fontFamily: 'Press Start 2P, monospace'
             }}
           >
             RANN
@@ -506,7 +504,7 @@ export default function HomePage() {
           <div className="mt-20 max-w-4xl mx-auto">
             <div className="text-center mb-8">
               <h2 
-                className="text-3xl text-yellow-400 mb-4 tracking-wider arcade-glow"
+                className="text-3xl text-red-400 mb-4 tracking-wider arcade-glow"
                 style={{fontFamily: 'Press Start 2P, monospace'}}
               >
                 TOKEN EXCHANGE
