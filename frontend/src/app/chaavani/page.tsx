@@ -206,12 +206,11 @@ export default function ChaavaniPage() {
       onClick={onClick}
       style={{
         background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
-        border: '3px solid transparent',
-        borderImage: 'linear-gradient(45deg, #ff8c00, #ff6347, #ff8c00) 1',
+        border: '3px solid #ff8c00',
+        borderRadius: '24px',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
-        borderRadius: '24px'
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)'
       }}
     >
       <div className="w-full h-64 mb-4 border-2 border-orange-600 rounded-2xl overflow-hidden relative">
@@ -315,8 +314,7 @@ export default function ChaavaniPage() {
             className="arcade-border p-4 mx-auto max-w-3xl"
             style={{
               background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
-              border: '2px solid transparent',
-              borderImage: 'linear-gradient(45deg, #ff8c00, #ff6347, #ff8c00) 1',
+              border: '2px solid #ff8c00',
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)',
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
@@ -340,8 +338,7 @@ export default function ChaavaniPage() {
             className="p-2 flex gap-2"
             style={{
               background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
-              border: '2px solid transparent',
-              borderImage: 'linear-gradient(45deg, #ff8c00, #ff6347, #ff8c00) 1',
+              border: '3px solid #ff8c00',
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)',
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
@@ -357,7 +354,7 @@ export default function ChaavaniPage() {
               }`}
               style={{
                 fontFamily: 'Press Start 2P, monospace',
-                borderRadius: '16px',
+                borderRadius: '12px',
                 background: activeSection === 'create' ? undefined : 'rgba(0, 0, 0, 0.3)'
               }}
             >
@@ -372,7 +369,7 @@ export default function ChaavaniPage() {
               }`}
               style={{
                 fontFamily: 'Press Start 2P, monospace',
-                borderRadius: '16px',
+                borderRadius: '12px',
                 background: activeSection === 'manage' ? undefined : 'rgba(0, 0, 0, 0.3)'
               }}
             >
@@ -389,8 +386,7 @@ export default function ChaavaniPage() {
                 className="p-4 flex items-center gap-4"
                 style={{
                   background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
-                  border: '2px solid transparent',
-                  borderImage: 'linear-gradient(45deg, #ff8c00, #ff6347, #ff8c00) 1',
+                  border: '3px solid #ff8c00',
                   backdropFilter: 'blur(20px)',
                   WebkitBackdropFilter: 'blur(20px)',
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
@@ -438,8 +434,7 @@ export default function ChaavaniPage() {
               className="arcade-card p-8"
               style={{
                 background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
-                border: '3px solid transparent',
-                borderImage: 'linear-gradient(45deg, #ff8c00, #ff6347, #ff8c00) 1',
+                border: '3px solid #ff8c00',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
                 boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
@@ -479,7 +474,7 @@ export default function ChaavaniPage() {
                         value={aiPrompt}
                         onChange={(e) => setAiPrompt(e.target.value)}
                         placeholder="Describe the type of warrior you want to create..."
-                        className="w-full h-32 bg-gray-900 border-2 border-gray-600 text-gray-300 p-3 text-xs resize-none focus:border-yellow-600 focus:outline-none transition-colors"
+                        className="w-full h-32 bg-gray-900 border-2 border-gray-600 text-gray-300 p-3 text-xs resize-none focus:border-yellow-600 focus:outline-none transition-colors rounded-2xl"
                         style={{fontFamily: 'Press Start 2P, monospace'}}
                       />
                     </div>
@@ -490,7 +485,10 @@ export default function ChaavaniPage() {
                       className={`w-full arcade-button py-4 text-xs tracking-wide ${
                         (!aiPrompt.trim() || isGenerating) ? 'opacity-50 cursor-not-allowed' : ''
                       }`}
-                      style={{fontFamily: 'Press Start 2P, monospace'}}
+                      style={{
+                        fontFamily: 'Press Start 2P, monospace',
+                        borderRadius: '12px'
+                      }}
                     >
                       {isGenerating ? 'FORGING WARRIOR...' : 'GENERATE PERSONALITY'}
                     </button>
@@ -529,8 +527,7 @@ export default function ChaavaniPage() {
               className="arcade-card p-8"
               style={{
                 background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
-                border: '3px solid transparent',
-                borderImage: 'linear-gradient(45deg, #ff8c00, #ff6347, #ff8c00) 1',
+                border: '3px solid #ff8c00',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
                 boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
@@ -560,7 +557,7 @@ export default function ChaavaniPage() {
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
                     placeholder="Enter warrior name..."
-                    className="w-full bg-gray-900 border-2 border-gray-600 text-gray-300 p-3 text-xs focus:border-yellow-600 focus:outline-none transition-colors"
+                    className="w-full bg-gray-900 border-2 border-gray-600 text-gray-300 p-3 text-xs focus:border-yellow-600 focus:outline-none transition-colors rounded-2xl"
                     style={{fontFamily: 'Press Start 2P, monospace'}}
                   />
                 </div>
@@ -577,7 +574,7 @@ export default function ChaavaniPage() {
                     value={formData.bio}
                     onChange={(e) => handleInputChange('bio', e.target.value)}
                     placeholder="Brief description of the warrior..."
-                    className="w-full h-20 bg-gray-900 border-2 border-gray-600 text-gray-300 p-3 text-xs resize-none focus:border-yellow-600 focus:outline-none transition-colors"
+                    className="w-full h-20 bg-gray-900 border-2 border-gray-600 text-gray-300 p-3 text-xs resize-none focus:border-yellow-600 focus:outline-none transition-colors rounded-2xl"
                     style={{fontFamily: 'Press Start 2P, monospace'}}
                   />
                 </div>
@@ -594,7 +591,7 @@ export default function ChaavaniPage() {
                     value={formData.life_history}
                     onChange={(e) => handleInputChange('life_history', e.target.value)}
                     placeholder="Warrior's background and history..."
-                    className="w-full h-24 bg-gray-900 border-2 border-gray-600 text-gray-300 p-3 text-xs resize-none focus:border-yellow-600 focus:outline-none transition-colors"
+                    className="w-full h-24 bg-gray-900 border-2 border-gray-600 text-gray-300 p-3 text-xs resize-none focus:border-yellow-600 focus:outline-none transition-colors rounded-2xl"
                     style={{fontFamily: 'Press Start 2P, monospace'}}
                   />
                 </div>
@@ -612,7 +609,7 @@ export default function ChaavaniPage() {
                     value={formData.adjectives}
                     onChange={(e) => handleInputChange('adjectives', e.target.value)}
                     placeholder="Visionary, Ambitious, Perfectionistic..."
-                    className="w-full bg-gray-900 border-2 border-gray-600 text-gray-300 p-3 text-xs focus:border-yellow-600 focus:outline-none transition-colors"
+                    className="w-full bg-gray-900 border-2 border-gray-600 text-gray-300 p-3 text-xs focus:border-yellow-600 focus:outline-none transition-colors rounded-2xl"
                     style={{fontFamily: 'Press Start 2P, monospace'}}
                   />
                 </div>
@@ -630,7 +627,7 @@ export default function ChaavaniPage() {
                     value={formData.knowledge_areas}
                     onChange={(e) => handleInputChange('knowledge_areas', e.target.value)}
                     placeholder="Military strategy, Divine weapons..."
-                    className="w-full bg-gray-900 border-2 border-gray-600 text-gray-300 p-3 text-xs focus:border-yellow-600 focus:outline-none transition-colors"
+                    className="w-full bg-gray-900 border-2 border-gray-600 text-gray-300 p-3 text-xs focus:border-yellow-600 focus:outline-none transition-colors rounded-2xl"
                     style={{fontFamily: 'Press Start 2P, monospace'}}
                   />
                 </div>
@@ -643,7 +640,7 @@ export default function ChaavaniPage() {
                   >
                     WARRIOR IMAGE
                   </label>
-                  <div className="border-2 border-dashed border-gray-600 p-4 text-center hover:border-yellow-600 transition-colors relative">
+                  <div className="border-2 border-dashed border-gray-600 p-4 text-center hover:border-yellow-600 transition-colors relative rounded-2xl">
                     {imagePreview ? (
                       <div className="space-y-2">
                         <img 
@@ -694,7 +691,10 @@ export default function ChaavaniPage() {
                     className={`w-full arcade-button py-4 text-xs tracking-wide ${
                       !isFormComplete ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
-                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                    style={{
+                      fontFamily: 'Press Start 2P, monospace',
+                      borderRadius: '12px'
+                    }}
                   >
                     {!isFormComplete ? 'COMPLETE ALL FIELDS' : 'MINT YODHA NFT'}
                   </button>
@@ -753,8 +753,7 @@ export default function ChaavaniPage() {
               className="arcade-card p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
               style={{
                 background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
-                border: '3px solid transparent',
-                borderImage: 'linear-gradient(45deg, #ff8c00, #ff6347, #ff8c00) 1',
+                border: '3px solid #ff8c00',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
                 boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
@@ -914,7 +913,10 @@ export default function ChaavaniPage() {
                             ? 'arcade-button'
                             : 'bg-gray-800 border-2 border-gray-600 text-gray-500 opacity-50 cursor-not-allowed'
                         }`}
-                        style={{fontFamily: 'Press Start 2P, monospace'}}
+                        style={{
+                          fontFamily: 'Press Start 2P, monospace',
+                          borderRadius: '12px'
+                        }}
                       >
                         {canPromote(selectedYodha) ? 'PROMOTE WARRIOR' : 'INSUFFICIENT WINNINGS'}
                       </button>
@@ -941,8 +943,7 @@ export default function ChaavaniPage() {
               className="arcade-card p-8"
               style={{
                 background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
-                border: '3px solid transparent',
-                borderImage: 'linear-gradient(45deg, #ff8c00, #ff6347, #ff8c00) 1',
+                border: '3px solid #ff8c00',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
                 boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
@@ -951,7 +952,7 @@ export default function ChaavaniPage() {
             >
               <div className="text-center mb-8">
                 <h2 
-                  className="text-2xl text-purple-400 mb-4 tracking-wider arcade-glow"
+                  className="text-2xl text-orange-400 mb-4 tracking-wider arcade-glow"
                   style={{fontFamily: 'Press Start 2P, monospace'}}
                 >
                   AI FORGE ASSISTANT
@@ -993,8 +994,7 @@ export default function ChaavaniPage() {
                 <div 
                   className="p-4 border-2 border-purple-600 rounded-2xl"
                   style={{
-                    background: 'rgba(128, 0, 128, 0.1)',
-                    borderRadius: '20px'
+                    background: 'rgba(128, 0, 128, 0.1)'
                   }}
                 >
                   <h3 
