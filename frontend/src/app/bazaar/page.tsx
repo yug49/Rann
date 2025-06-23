@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
+import '../home-glass.css';
 
 interface YodhaTraits {
   strength: number;
@@ -184,6 +184,14 @@ export default function BazaarPage() {
     <div 
       className="arcade-card p-6 cursor-pointer transform hover:scale-105 transition-all duration-300"
       onClick={onClick}
+      style={{
+        background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+        border: '3px solid #ff8c00',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+        borderRadius: '24px'
+      }}
     >
       <div className="w-full h-64 mb-4 border-2 border-orange-600 rounded-lg overflow-hidden relative">
         <Image 
@@ -245,37 +253,92 @@ export default function BazaarPage() {
   );
 
   return (
-    <div className="min-h-screen battlefield-bg">
-      <div className="container mx-auto px-6 py-12">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Background Image */}
+      <div className="fixed inset-0 -z-10">
+        <Image
+          src="/Bazaar.png"
+          alt="Bazaar Background"
+          fill
+          className="object-cover"
+          priority
+        />
+        {/* Very subtle black overlay to darken background */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.175)',
+            zIndex: 1
+          }}
+        ></div>
+      </div>
+      
+      {/* Epic Background Elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Geometric Battle Lines */}
+        <div className="absolute top-1/4 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-600 to-transparent opacity-30"></div>
+        <div className="absolute bottom-1/4 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent opacity-30"></div>
+      </div>
+
+      {/* Main Content */}
+      <div className="relative z-10 container mx-auto px-6 py-12">
         {/* Page Header */}
         <div className="text-center mb-12">
           <h1 
             className="text-4xl md:text-6xl text-orange-400 mb-6 tracking-widest arcade-glow"
-            style={{fontFamily: 'Press Start 2P, monospace'}}
+            style={{
+              fontFamily: 'Press Start 2P, monospace'
+            }}
           >
             BAZAAR
           </h1>
-          <div className="arcade-border p-4 mx-auto max-w-3xl">
+          <div 
+            className="arcade-border p-4 mx-auto max-w-3xl"
+            style={{
+              background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+              border: '2px solid #ff8c00',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+              borderRadius: '24px'
+            }}
+          >
             <p 
-              className="text-orange-300 text-sm md:text-base tracking-wide"
-              style={{fontFamily: 'Press Start 2P, monospace'}}
+              className="text-orange-400 text-sm md:text-base tracking-wide arcade-glow"
+              style={{
+                fontFamily: 'Press Start 2P, monospace'
+              }}
             >
               LEGENDARY WARRIOR MARKETPLACE
             </p>
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex justify-center mb-12">
-          <div className="battle-frame p-2 flex gap-2">
+        {/* Section Navigation */}
+        <div className="flex justify-center mb-8">
+          <div 
+            className="p-2 flex gap-2"
+            style={{
+              background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+              border: '3px solid #ff8c00',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+              borderRadius: '20px'
+            }}
+          >
             <button
               onClick={() => setActiveTab('market')}
               className={`px-6 py-3 text-xs tracking-wide transition-all duration-300 ${
                 activeTab === 'market' 
                   ? 'arcade-button' 
-                  : 'bg-gray-800 border-2 border-gray-600 text-gray-400 hover:border-orange-600 hover:text-orange-400'
+                  : 'border-2 border-gray-600 text-gray-300 hover:border-yellow-600 hover:text-yellow-400'
               }`}
-              style={{fontFamily: 'Press Start 2P, monospace'}}
+              style={{
+                fontFamily: 'Press Start 2P, monospace',
+                borderRadius: '12px',
+                background: activeTab === 'market' ? undefined : 'rgba(0, 0, 0, 0.3)'
+              }}
             >
               BROWSE MARKET
             </button>
@@ -284,9 +347,13 @@ export default function BazaarPage() {
               className={`px-6 py-3 text-xs tracking-wide transition-all duration-300 ${
                 activeTab === 'manage' 
                   ? 'arcade-button' 
-                  : 'bg-gray-800 border-2 border-gray-600 text-gray-400 hover:border-orange-600 hover:text-orange-400'
+                  : 'border-2 border-gray-600 text-gray-300 hover:border-yellow-600 hover:text-yellow-400'
               }`}
-              style={{fontFamily: 'Press Start 2P, monospace'}}
+              style={{
+                fontFamily: 'Press Start 2P, monospace',
+                borderRadius: '12px',
+                background: activeTab === 'manage' ? undefined : 'rgba(0, 0, 0, 0.3)'
+              }}
             >
               MANAGE LISTINGS
             </button>
@@ -327,7 +394,17 @@ export default function BazaarPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               
               {/* Create New Listing */}
-              <div className="arcade-card p-8">
+              <div 
+                className="arcade-card p-8"
+                style={{
+                  background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+                  border: '3px solid #ff8c00',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+                  borderRadius: '24px'
+                }}
+              >
                 <div className="text-center mb-6">
                   <div className="weapon-container w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4">
                     <span className="text-2xl">🏪</span>
@@ -382,7 +459,10 @@ export default function BazaarPage() {
                     className={`w-full arcade-button py-4 text-xs tracking-wide ${
                       (!newListingTokenId || !newListingPrice || isListing) ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
-                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                    style={{
+                      fontFamily: 'Press Start 2P, monospace',
+                      borderRadius: '12px'
+                    }}
                   >
                     {isListing ? 'LISTING WARRIOR...' : 'CREATE LISTING'}
                   </button>
@@ -390,7 +470,17 @@ export default function BazaarPage() {
               </div>
 
               {/* Current Listings */}
-              <div className="arcade-card p-8">
+              <div 
+                className="arcade-card p-8"
+                style={{
+                  background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+                  border: '3px solid #ff8c00',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+                  borderRadius: '24px'
+                }}
+              >
                 <h2 
                   className="text-2xl text-orange-400 text-center mb-6 tracking-wider arcade-glow"
                   style={{fontFamily: 'Press Start 2P, monospace'}}
@@ -460,7 +550,17 @@ export default function BazaarPage() {
         {/* Yodha Detail Modal */}
         {selectedYodha && (
           <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-            <div className="arcade-card p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div 
+              className="arcade-card p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              style={{
+                background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+                border: '3px solid #ff8c00',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+                borderRadius: '24px'
+              }}
+            >
               <div className="flex justify-between items-start mb-6">
                 <h2 
                   className="text-2xl text-orange-400 arcade-glow"
@@ -612,7 +712,10 @@ export default function BazaarPage() {
                       <button
                         onClick={() => handleBuyYodha(selectedYodha)}
                         className="w-full arcade-button py-4 text-sm tracking-wide"
-                        style={{fontFamily: 'Press Start 2P, monospace'}}
+                        style={{
+                          fontFamily: 'Press Start 2P, monospace',
+                          borderRadius: '12px'
+                        }}
                       >
                         BUY WARRIOR
                       </button>
@@ -622,7 +725,10 @@ export default function BazaarPage() {
                       <button
                         onClick={() => handleRemoveListing(selectedYodha)}
                         className="w-full bg-red-800 hover:bg-red-700 border-2 border-red-600 text-red-300 py-4 text-sm tracking-wide transition-colors"
-                        style={{fontFamily: 'Press Start 2P, monospace'}}
+                        style={{
+                          fontFamily: 'Press Start 2P, monospace',
+                          borderRadius: '12px'
+                        }}
                       >
                         REMOVE LISTING
                       </button>
@@ -636,14 +742,16 @@ export default function BazaarPage() {
 
         {/* Back to Home */}
         <div className="text-center mt-12">
-          <Link href="/">
-            <button 
-              className="bg-gray-800 border-2 border-gray-600 text-gray-400 px-6 py-3 text-xs tracking-wide hover:border-orange-600 hover:text-orange-400 transition-all duration-300"
-              style={{fontFamily: 'Press Start 2P, monospace'}}
-            >
-              GO BACK
-            </button>
-          </Link>
+          <a 
+            href="/"
+            className="inline-block arcade-button px-6 py-3 text-xs tracking-wide"
+            style={{
+              fontFamily: 'Press Start 2P, monospace',
+              borderRadius: '12px'
+            }}
+          >
+            GO BACK
+          </a>
         </div>
       </div>
     </div>
