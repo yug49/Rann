@@ -312,7 +312,7 @@ export default function HomePage() {
                   className="text-yellow-200 text-xs leading-relaxed"
                   style={{fontFamily: 'Press Start 2P, monospace'}}
                 >
-                  IN THE ANCIENT SMITHY
+                  IN THE ANCIENT SMITH
                 </p>
               </div>
               {isMounted && isConnected ? (
@@ -478,7 +478,7 @@ export default function HomePage() {
 
           {/* Kurukshetra - The Arena */}
           <div 
-            className="arcade-card p-8 group cursor-pointer"
+            className="arcade-card p-8 group cursor-pointer relative overflow-hidden flex flex-col justify-end min-h-[400px]"
             style={{
               background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
               border: '3px solid #2d5a27 !important',
@@ -486,36 +486,25 @@ export default function HomePage() {
               WebkitBackdropFilter: 'blur(20px)',
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(45, 90, 39, 0.2)',
               borderRadius: '16px !important',
-              borderImage: 'none !important'
+              borderImage: 'none !important',
+              padding: '2rem',
             }}
           >
-            <div className="text-center">
-              <div className="mb-6">
-                <div className="weapon-container w-20 h-20 mx-auto rounded-full flex items-center justify-center relative">
-                  <span className="text-3xl filter drop-shadow-lg">⚔️</span>
-                  <div className="absolute inset-0 rounded-full border-2 border-red-400 opacity-0 group-hover:opacity-100 transition-opacity animate-pulse"></div>
-                </div>
-              </div>
+            <Image 
+              src="/Kurukshetra_landing.png" 
+              alt="Kurukshetra Background" 
+              fill 
+              className="object-cover object-center absolute inset-0 -z-10 opacity-70" 
+              style={{borderRadius: '16px', objectFit: 'cover', objectPosition: 'center'}}
+              priority
+            />
+            <div className="text-center relative z-10">
               <h2 
-                className="text-2xl text-red-400 mb-4 tracking-wider arcade-glow"
+                className="text-2xl text-white mb-4 tracking-wider arcade-glow"
                 style={{fontFamily: 'Press Start 2P, monospace'}}
               >
                 KURUKSHETRA
               </h2>
-              <div className="border-t-2 border-red-400 pt-4 mb-6">
-                <p 
-                  className="text-red-200 text-xs leading-relaxed"
-                  style={{fontFamily: 'Press Start 2P, monospace'}}
-                >
-                  PROVE YOUR WORTH IN BATTLE
-                </p>
-                <p 
-                  className="text-red-500 text-xs mt-2"
-                  style={{fontFamily: 'Press Start 2P, monospace'}}
-                >
-                  ON THE LEGENDARY BATTLEFIELD
-                </p>
-              </div>
               {isMounted && isConnected ? (
                 <a href="/kurukshetra">
                   <button 
