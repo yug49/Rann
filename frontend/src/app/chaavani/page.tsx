@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import '../home-glass.css';
 
 interface YodhaTraits {
   strength: number;
@@ -39,7 +40,7 @@ export default function ChaavaniPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedYodha, setSelectedYodha] = useState<UserYodha | null>(null);
-  const [activeSection, setActiveSection] = useState<'create' | 'manage'>('create');
+  const [activeSection, setActiveSection] = useState<'create' | 'manage' | 'ai'>('create');
 
   // Mock data for user's Yodhas
   const userYodhas: UserYodha[] = [
@@ -203,8 +204,17 @@ export default function ChaavaniPage() {
     <div 
       className="arcade-card p-6 cursor-pointer transform hover:scale-105 transition-all duration-300"
       onClick={onClick}
+      style={{
+        background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+        border: '3px solid transparent',
+        borderImage: 'linear-gradient(45deg, #ff8c00, #ff6347, #ff8c00) 1',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+        borderRadius: '24px'
+      }}
     >
-      <div className="w-full h-64 mb-4 border-2 border-orange-600 rounded-lg overflow-hidden relative">
+      <div className="w-full h-64 mb-4 border-2 border-orange-600 rounded-2xl overflow-hidden relative">
         <Image 
           src={yodha.image} 
           alt={yodha.name}
@@ -212,7 +222,7 @@ export default function ChaavaniPage() {
           height={256}
           className="w-full h-full object-cover"
         />
-        <div className={`absolute top-2 right-2 px-2 py-1 rounded text-xs ${getRankBgColor(yodha.rank)} ${getRankColor(yodha.rank)} border border-current`}>
+        <div className={`absolute top-2 right-2 px-2 py-1 rounded-xl text-xs ${getRankBgColor(yodha.rank)} ${getRankColor(yodha.rank)} border border-current`}>
           <span style={{fontFamily: 'Press Start 2P, monospace'}}>
             {yodha.rank.toUpperCase()}
           </span>
@@ -256,20 +266,68 @@ export default function ChaavaniPage() {
   );
 
   return (
-    <div className="min-h-screen battlefield-bg">
-      <div className="container mx-auto px-6 py-12">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Background Image */}
+      <div className="fixed inset-0 -z-10">
+        <Image
+          src="/Chaavani.png"
+          alt="Chaavani Background"
+          fill
+          className="object-cover"
+          priority
+        />
+        {/* Very subtle black overlay to darken background */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.175)',
+            zIndex: 1
+          }}
+        ></div>
+      </div>
+      
+      {/* Epic Background Elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Floating Weapon Elements */}
+        <div className="absolute top-20 left-10 text-4xl floating-element pulse-element opacity-20">⚒️</div>
+        <div className="absolute top-40 right-20 text-3xl floating-element pulse-element opacity-20" style={{animationDelay: '1s'}}>🔥</div>
+        <div className="absolute bottom-32 left-20 text-3xl floating-element pulse-element opacity-20" style={{animationDelay: '2s'}}>🗡️</div>
+        <div className="absolute bottom-20 right-32 text-4xl floating-element pulse-element opacity-20" style={{animationDelay: '0.5s'}}>⚡</div>
+        
+        {/* Geometric Battle Lines */}
+        <div className="absolute top-1/4 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-600 to-transparent opacity-30"></div>
+        <div className="absolute bottom-1/4 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent opacity-30"></div>
+      </div>
+
+      {/* Main Content */}
+      <div className="relative z-10 container mx-auto px-6 py-12">
         {/* Page Header */}
         <div className="text-center mb-12">
           <h1 
-            className="text-4xl md:text-6xl text-yellow-400 mb-6 tracking-widest arcade-glow"
-            style={{fontFamily: 'Press Start 2P, monospace'}}
+            className="text-4xl md:text-6xl text-orange-400 mb-6 tracking-widest arcade-glow"
+            style={{
+              fontFamily: 'Press Start 2P, monospace'
+            }}
           >
             CHAAVANI
           </h1>
-          <div className="arcade-border p-4 mx-auto max-w-3xl">
+          <div 
+            className="arcade-border p-4 mx-auto max-w-3xl"
+            style={{
+              background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+              border: '2px solid transparent',
+              borderImage: 'linear-gradient(45deg, #ff8c00, #ff6347, #ff8c00) 1',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+              borderRadius: '24px'
+            }}
+          >
             <p 
-              className="text-yellow-300 text-sm md:text-base tracking-wide"
-              style={{fontFamily: 'Press Start 2P, monospace'}}
+              className="text-orange-400 text-sm md:text-base tracking-wide arcade-glow"
+              style={{
+                fontFamily: 'Press Start 2P, monospace'
+              }}
             >
               FORGE YOUR LEGENDARY YODHA WARRIOR
             </p>
@@ -278,15 +336,30 @@ export default function ChaavaniPage() {
 
         {/* Section Navigation */}
         <div className="flex justify-center mb-8">
-          <div className="battle-frame p-2 flex gap-2">
+          <div 
+            className="p-2 flex gap-2"
+            style={{
+              background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+              border: '2px solid transparent',
+              borderImage: 'linear-gradient(45deg, #ff8c00, #ff6347, #ff8c00) 1',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+              borderRadius: '20px'
+            }}
+          >
             <button
               onClick={() => setActiveSection('create')}
               className={`px-6 py-3 text-xs tracking-wide transition-all duration-300 ${
                 activeSection === 'create' 
                   ? 'arcade-button' 
-                  : 'bg-gray-800 border-2 border-gray-600 text-gray-400 hover:border-yellow-600 hover:text-yellow-400'
+                  : 'border-2 border-gray-600 text-gray-300 hover:border-yellow-600 hover:text-yellow-400'
               }`}
-              style={{fontFamily: 'Press Start 2P, monospace'}}
+              style={{
+                fontFamily: 'Press Start 2P, monospace',
+                borderRadius: '16px',
+                background: activeSection === 'create' ? undefined : 'rgba(0, 0, 0, 0.3)'
+              }}
             >
               CREATE YODHA
             </button>
@@ -295,9 +368,13 @@ export default function ChaavaniPage() {
               className={`px-6 py-3 text-xs tracking-wide transition-all duration-300 ${
                 activeSection === 'manage' 
                   ? 'arcade-button' 
-                  : 'bg-gray-800 border-2 border-gray-600 text-gray-400 hover:border-yellow-600 hover:text-yellow-400'
+                  : 'border-2 border-gray-600 text-gray-300 hover:border-yellow-600 hover:text-yellow-400'
               }`}
-              style={{fontFamily: 'Press Start 2P, monospace'}}
+              style={{
+                fontFamily: 'Press Start 2P, monospace',
+                borderRadius: '16px',
+                background: activeSection === 'manage' ? undefined : 'rgba(0, 0, 0, 0.3)'
+              }}
             >
               MANAGE YODHAS
             </button>
@@ -308,41 +385,67 @@ export default function ChaavaniPage() {
           <>
             {/* AI Toggle Switch */}
             <div className="flex justify-center mb-12">
-          <div className="battle-frame p-4 flex items-center gap-4">
-            <span 
-              className="text-yellow-400 text-sm tracking-wide"
-              style={{fontFamily: 'Press Start 2P, monospace'}}
-            >
-              AI ASSISTANCE
-            </span>
-            <button
-              onClick={() => setAiEnabled(!aiEnabled)}
-              className={`relative inline-flex items-center w-16 h-8 rounded-full transition-colors duration-300 focus:outline-none ${
-                aiEnabled 
-                  ? 'bg-yellow-600' 
-                  : 'bg-gray-600'
-              }`}
-            >
-              <span
-                className={`inline-block w-6 h-6 transform bg-white rounded-full transition-transform duration-300 ${
-                  aiEnabled ? 'translate-x-9' : 'translate-x-1'
-                }`}
-              />
-            </button>
-            <span 
-              className={`text-sm tracking-wide ${aiEnabled ? 'text-yellow-400' : 'text-gray-400'}`}
-              style={{fontFamily: 'Press Start 2P, monospace'}}
-            >
-              {aiEnabled ? 'ON' : 'OFF'}
-            </span>
-          </div>
-        </div>
+              <div 
+                className="p-4 flex items-center gap-4"
+                style={{
+                  background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+                  border: '2px solid transparent',
+                  borderImage: 'linear-gradient(45deg, #ff8c00, #ff6347, #ff8c00) 1',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+                  borderRadius: '20px'
+                }}
+              >
+                <span 
+                  className="text-orange-400 text-sm tracking-wide arcade-glow"
+                  style={{
+                    fontFamily: 'Press Start 2P, monospace'
+                  }}
+                >
+                  AI ASSISTANCE
+                </span>
+                <button
+                  onClick={() => setAiEnabled(!aiEnabled)}
+                  className={`relative inline-flex items-center w-16 h-8 rounded-full transition-colors duration-300 focus:outline-none ${
+                    aiEnabled 
+                      ? 'bg-yellow-600' 
+                      : 'bg-gray-600'
+                  }`}
+                >
+                  <span
+                    className={`inline-block w-6 h-6 transform bg-white rounded-full transition-transform duration-300 ${
+                      aiEnabled ? 'translate-x-9' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+                <span 
+                  className={`text-sm tracking-wide ${aiEnabled ? 'text-orange-400 arcade-glow' : 'text-gray-400'}`}
+                  style={{
+                    fontFamily: 'Press Start 2P, monospace'
+                  }}
+                >
+                  {aiEnabled ? 'ON' : 'OFF'}
+                </span>
+              </div>
+            </div>
 
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
             {/* Left Panel - AI Input (conditional) */}
-            <div className="arcade-card p-8">
+            <div 
+              className="arcade-card p-8"
+              style={{
+                background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+                border: '3px solid transparent',
+                borderImage: 'linear-gradient(45deg, #ff8c00, #ff6347, #ff8c00) 1',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+                borderRadius: '24px'
+              }}
+            >
               {aiEnabled ? (
                 // AI Section
                 <div>
@@ -351,7 +454,7 @@ export default function ChaavaniPage() {
                       <span className="text-2xl">🤖</span>
                     </div>
                     <h2 
-                      className="text-2xl text-yellow-400 text-center mb-4 tracking-wider arcade-glow"
+                      className="text-2xl text-orange-400 text-center mb-4 tracking-wider arcade-glow"
                       style={{fontFamily: 'Press Start 2P, monospace'}}
                     >
                       AI FORGE
@@ -400,7 +503,7 @@ export default function ChaavaniPage() {
                     <span className="text-2xl">⚒️</span>
                   </div>
                   <h2 
-                    className="text-2xl text-blue-400 mb-6 tracking-wider arcade-glow"
+                    className="text-2xl text-orange-400 mb-6 tracking-wider arcade-glow"
                     style={{fontFamily: 'Press Start 2P, monospace'}}
                   >
                     MANUAL FORGE MODE
@@ -422,7 +525,18 @@ export default function ChaavaniPage() {
             </div>
 
             {/* Right Panel - Form */}
-            <div className="arcade-card p-8">
+            <div 
+              className="arcade-card p-8"
+              style={{
+                background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+                border: '3px solid transparent',
+                borderImage: 'linear-gradient(45deg, #ff8c00, #ff6347, #ff8c00) 1',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+                borderRadius: '24px'
+              }}
+            >
               <div className="mb-6">
                 <h3 
                   className="text-xl text-orange-400 text-center mb-4 tracking-wider arcade-glow"
@@ -535,7 +649,7 @@ export default function ChaavaniPage() {
                         <img 
                           src={imagePreview} 
                           alt="Preview" 
-                          className="w-20 h-20 mx-auto rounded-lg object-cover border-2 border-yellow-600"
+                          className="w-20 h-20 mx-auto rounded-2xl object-cover border-2 border-yellow-600"
                         />
                         <p 
                           className="text-green-400 text-xs"
@@ -635,7 +749,18 @@ export default function ChaavaniPage() {
         {/* Yodha Detail Modal */}
         {selectedYodha && (
           <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-            <div className="arcade-card p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div 
+              className="arcade-card p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              style={{
+                background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+                border: '3px solid transparent',
+                borderImage: 'linear-gradient(45deg, #ff8c00, #ff6347, #ff8c00) 1',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+                borderRadius: '24px'
+              }}
+            >
               <div className="flex justify-between items-start mb-6">
                 <h2 
                   className="text-2xl text-orange-400 arcade-glow"
@@ -653,7 +778,7 @@ export default function ChaavaniPage() {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div>
-                  <div className="w-48 h-48 mx-auto mb-6 border-2 border-orange-600 rounded-lg overflow-hidden">
+                  <div className="w-48 h-48 mx-auto mb-6 border-2 border-orange-600 rounded-2xl overflow-hidden">
                     <Image 
                       src={selectedYodha.image} 
                       alt={selectedYodha.name}
@@ -745,7 +870,7 @@ export default function ChaavaniPage() {
                   <div className="border-t border-orange-600 pt-6">
                     <div className="text-center mb-6">
                       <div className="flex justify-center items-center gap-4 mb-4">
-                        <div className={`px-3 py-1 rounded ${getRankBgColor(selectedYodha.rank)} ${getRankColor(selectedYodha.rank)} border border-current`}>
+                        <div className={`px-3 py-1 rounded-xl ${getRankBgColor(selectedYodha.rank)} ${getRankColor(selectedYodha.rank)} border border-current`}>
                           <span 
                             className="text-xs"
                             style={{fontFamily: 'Press Start 2P, monospace'}}
@@ -810,12 +935,98 @@ export default function ChaavaniPage() {
           </div>
         )}
 
+        {activeSection === 'ai' && (
+          <div className="max-w-4xl mx-auto">
+            <div 
+              className="arcade-card p-8"
+              style={{
+                background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+                border: '3px solid transparent',
+                borderImage: 'linear-gradient(45deg, #ff8c00, #ff6347, #ff8c00) 1',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+                borderRadius: '24px'
+              }}
+            >
+              <div className="text-center mb-8">
+                <h2 
+                  className="text-2xl text-purple-400 mb-4 tracking-wider arcade-glow"
+                  style={{fontFamily: 'Press Start 2P, monospace'}}
+                >
+                  AI FORGE ASSISTANT
+                </h2>
+                <p 
+                  className="text-purple-200 text-sm"
+                  style={{fontFamily: 'Press Start 2P, monospace'}}
+                >
+                  GET STRATEGIC ADVICE FOR YOUR WARRIORS
+                </p>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label 
+                    className="block text-purple-300 text-xs mb-2"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    ASK THE AI FORGE MASTER:
+                  </label>
+                  <textarea
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    placeholder="What attributes should I prioritize for my next Yodha? How can I optimize my current warriors?"
+                    className="w-full p-4 bg-black/50 border-2 border-purple-600 text-purple-100 text-sm rounded-2xl"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                    rows={4}
+                  />
+                </div>
+
+                <button
+                  onClick={() => console.log('AI assistance requested:', aiPrompt)}
+                  className="w-full arcade-button py-4 text-sm tracking-wide"
+                  style={{fontFamily: 'Press Start 2P, monospace'}}
+                >
+                  CONSULT FORGE MASTER
+                </button>
+
+                <div 
+                  className="p-4 border-2 border-purple-600 rounded-2xl"
+                  style={{
+                    background: 'rgba(128, 0, 128, 0.1)',
+                    borderRadius: '20px'
+                  }}
+                >
+                  <h3 
+                    className="text-purple-300 text-xs mb-3"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    FORGE MASTER'S WISDOM:
+                  </h3>
+                  <p 
+                    className="text-purple-200 text-xs leading-relaxed"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    {aiPrompt ? 
+                      "The AI Forge Master will provide strategic guidance on warrior creation, attribute optimization, and battle preparation strategies. Ask specific questions about your Yodha development!" :
+                      "Enter your question above to receive ancient wisdom from the AI Forge Master..."
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Back to Home */}
         <div className="text-center mt-12">
           <a 
             href="/"
-            className="inline-block bg-gray-800 border-2 border-gray-600 text-gray-400 px-6 py-3 text-xs tracking-wide hover:border-yellow-600 hover:text-yellow-400 transition-all duration-300"
-            style={{fontFamily: 'Press Start 2P, monospace'}}
+            className="inline-block arcade-button px-6 py-3 text-xs tracking-wide"
+            style={{
+              fontFamily: 'Press Start 2P, monospace',
+              borderRadius: '12px'
+            }}
           >
             GO BACK
           </a>

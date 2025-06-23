@@ -78,6 +78,51 @@ body {
   border-image: linear-gradient(45deg, #ffd700, #dc143c) 1;
 }
 
+/* Red themed arcade card for header */
+.arcade-card-red {
+  background: 
+    radial-gradient(circle at top left, rgba(220, 38, 38, 0.15), rgba(185, 28, 28, 0.1) 50%),
+    linear-gradient(135deg, rgba(220, 38, 38, 0.2) 0%, rgba(185, 28, 28, 0.15) 30%, rgba(220, 38, 38, 0.2) 100%);
+  border: 2px solid;
+  border-image: linear-gradient(45deg, #dc2626, #ef4444) 1;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  transition: all 0.3s ease;
+}
+
+.arcade-card-red:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 0 12px rgba(220, 38, 38, 0.3),
+    0 6px 12px rgba(0, 0, 0, 0.4);
+  border-image: linear-gradient(45deg, #ef4444, #f87171) 1;
+}
+
+/* Slate themed arcade card for header (better than red) */
+.arcade-card-slate {
+  background: 
+    radial-gradient(circle at top left, rgba(100, 116, 139, 0.2), rgba(71, 85, 105, 0.15) 50%),
+    linear-gradient(135deg, rgba(100, 116, 139, 0.25) 0%, rgba(71, 85, 105, 0.2) 30%, rgba(100, 116, 139, 0.25) 100%);
+  border: 2px solid #64748b;
+  border-radius: 12px !important;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  transition: all 0.3s ease;
+}
+
+.arcade-card-slate:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 0 12px rgba(100, 116, 139, 0.3),
+    0 6px 12px rgba(0, 0, 0, 0.4);
+  border-color: #94a3b8;
+}
+
+/* White color for RANN token amount */
+.arcade-card-slate .text-red-400:last-child {
+  color: #ffffff !important;
+}
+
 /* Enhanced Arena Card Styling */
 .arena-list-card {
   background: 
@@ -163,6 +208,153 @@ body {
   transform: scale(1.02);
 }
 
+/* Red themed connect button wrapper */
+.connect-button-wrapper-red button {
+  font-family: 'Press Start 2P', monospace !important;
+  font-size: 10px !important;
+  text-transform: uppercase !important;
+  transition: all 0.3s ease !important;
+}
+
+/* Red themed arcade buttons */
+.arcade-button-red {
+  background: linear-gradient(135deg, #dc2626, #ef4444) !important;
+  border: 2px solid #f87171 !important;
+  color: #ffffff !important;
+  padding: 8px 16px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.arcade-button-red:hover {
+  background: linear-gradient(135deg, #ef4444, #f87171) !important;
+  box-shadow: 0 0 12px rgba(220, 38, 38, 0.4) !important;
+  transform: scale(1.02) !important;
+}
+
+.arcade-button-red-small {
+  background: linear-gradient(135deg, #dc2626, #ef4444) !important;
+  border: 2px solid #f87171 !important;
+  color: #ffffff !important;
+  padding: 6px 12px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.arcade-button-red-small:hover {
+  background: linear-gradient(135deg, #ef4444, #f87171) !important;
+  box-shadow: 0 0 8px rgba(220, 38, 38, 0.4) !important;
+  transform: scale(1.02) !important;
+}
+
+.arcade-button-red-error {
+  background: linear-gradient(135deg, #991b1b, #dc2626) !important;
+  border: 2px solid #ef4444 !important;
+  color: #ffffff !important;
+  padding: 8px 16px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: pulse-error 2s ease-in-out infinite;
+}
+
+@keyframes pulse-error {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(220, 38, 38, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(220, 38, 38, 0.6);
+  }
+}
+
+/* Slate themed connect button wrapper */
+.connect-button-wrapper-slate button {
+  font-family: 'Press Start 2P', monospace !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  transition: all 0.3s ease !important;
+}
+
+/* Slate themed arcade buttons - much better looking */
+.arcade-button-slate {
+  background: linear-gradient(135deg, #475569, #64748b) !important;
+  border: 2px solid #94a3b8 !important;
+  color: #f1f5f9 !important;
+  padding: 12px 24px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 0 8px rgba(100, 116, 139, 0.2);
+  border-radius: 12px !important;
+  min-height: 48px !important;
+}
+
+.arcade-button-slate:hover {
+  background: linear-gradient(135deg, #64748b, #94a3b8) !important;
+  box-shadow: 0 0 16px rgba(100, 116, 139, 0.4) !important;
+  transform: scale(1.02) !important;
+  border-color: #cbd5e1 !important;
+}
+
+.arcade-button-slate-medium {
+  background: linear-gradient(135deg, #475569, #64748b) !important;
+  border: 2px solid #94a3b8 !important;
+  color: #f1f5f9 !important;
+  padding: 8px 16px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 0 6px rgba(100, 116, 139, 0.2);
+  border-radius: 12px !important;
+  min-height: 40px !important;
+}
+
+.arcade-button-slate-medium:hover {
+  background: linear-gradient(135deg, #64748b, #94a3b8) !important;
+  box-shadow: 0 0 12px rgba(100, 116, 139, 0.4) !important;
+  transform: scale(1.02) !important;
+  border-color: #cbd5e1 !important;
+}
+
+.arcade-button-slate-error {
+  background: linear-gradient(135deg, #7f1d1d, #991b1b) !important;
+  border: 2px solid #dc2626 !important;
+  color: #ffffff !important;
+  padding: 12px 24px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: pulse-error 2s ease-in-out infinite;
+  border-radius: 12px !important;
+  min-height: 48px !important;
+}
+
 /* Icon Containers */
 .weapon-container {
   background: radial-gradient(circle, #2d2d2d, #1a1a1a);
@@ -210,6 +402,174 @@ body {
   background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
   border-bottom: 3px solid #ffd700;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+}
+
+/* Grey Themed Translucent Header */
+.arcade-header-grey {
+  background: 
+    radial-gradient(circle at top left, rgba(100, 116, 139, 0.25), rgba(71, 85, 105, 0.15) 50%),
+    linear-gradient(135deg, rgba(100, 116, 139, 0.3) 0%, rgba(71, 85, 105, 0.25) 30%, rgba(100, 116, 139, 0.3) 100%);
+  border-bottom: 3px solid rgba(148, 163, 184, 0.6);
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.3),
+    0 0 12px rgba(148, 163, 184, 0.2);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  position: relative;
+}
+
+.arcade-header-grey::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(51, 65, 85, 0.1);
+  pointer-events: none;
+}
+
+/* Footer Styles */
+.arcade-footer {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+  border-top: 3px solid #ffd700;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.8);
+}
+
+/* Grey Themed Translucent Footer */
+.arcade-footer-grey {
+  width: 100%;
+  padding: 1.25rem 0.5rem;
+  background: 
+    radial-gradient(circle at bottom right, rgba(100, 116, 139, 0.25), rgba(71, 85, 105, 0.15) 50%),
+    linear-gradient(135deg, rgba(100, 116, 139, 0.3) 0%, rgba(71, 85, 105, 0.25) 30%, rgba(100, 116, 139, 0.3) 100%);
+  border-top: 3px solid rgba(148, 163, 184, 0.6);
+  box-shadow: 
+    0 -4px 20px rgba(0, 0, 0, 0.3),
+    0 0 12px rgba(148, 163, 184, 0.2);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Press Start 2P', monospace;
+  letter-spacing: 0.04em;
+  position: relative;
+}
+
+.arcade-footer-grey::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(51, 65, 85, 0.1);
+  pointer-events: none;
+}
+
+.footer-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer-title {
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #f1f5f9;
+  text-shadow: 
+    1px 1px 2px rgba(0, 0, 0, 0.8),
+    0 0 4px rgba(241, 245, 249, 0.3);
+}
+
+.footer-title-red {
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #ef4444;
+  text-shadow: 
+    1px 1px 2px rgba(0, 0, 0, 0.8),
+    0 0 4px rgba(239, 68, 68, 0.4);
+}
+
+.footer-subtitle {
+  font-size: 0.85rem;
+  color: #e2e8f0;
+  margin-bottom: 0.2rem;
+  text-shadow: 
+    1px 1px 2px rgba(0, 0, 0, 0.6),
+    0 0 2px rgba(226, 232, 240, 0.2);
+}
+
+.footer-links {
+  font-size: 0.95rem;
+  color: #e2e8f0;
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-shadow: 
+    1px 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.footer-link {
+  color: #f1f5f9;
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+
+.footer-link:hover {
+  color: #cbd5e1;
+  text-shadow: 
+    1px 1px 2px rgba(0, 0, 0, 0.8),
+    0 0 6px rgba(203, 213, 225, 0.4);
+}
+
+.footer-icon {
+  font-size: 1.25em;
+}
+
+.footer-link-text {
+  color: #f1f5f9;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1em;
+  margin-left: 8px;
+  border-bottom: 1.5px dashed rgba(241, 245, 249, 0.6);
+  transition: all 0.3s ease;
+}
+
+.footer-link-text:hover {
+  color: #cbd5e1;
+  border-bottom-color: rgba(203, 213, 225, 0.8);
+  text-shadow: 
+    1px 1px 2px rgba(0, 0, 0, 0.8),
+    0 0 4px rgba(203, 213, 225, 0.3);
+}
+
+.footer-team {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: #e2e8f0;
+  opacity: 0.7;
+}
+
+/* Arcade Button with Icon */
+.arcade-button-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 /* Connect Button Arcade Style */

@@ -46,7 +46,18 @@ const TokenExchangeCard = ({
   const buttonColor = type === 'mint' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700';
 
   return (
-    <div className={`arcade-card p-6 ${cardColor} group`}>
+    <div 
+      className={`arcade-card p-6 ${cardColor} group home-token-card`}
+      style={{
+        background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%) !important',
+        border: type === 'mint' ? '3px solid #38a169 !important' : '3px solid #e53e3e !important',
+        backdropFilter: 'blur(20px) !important',
+        WebkitBackdropFilter: 'blur(20px) !important',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(45, 90, 39, 0.2) !important',
+        borderRadius: '16px !important',
+        borderImage: 'none !important'
+      }}
+    >
       <div className="text-center mb-6">
         <div className="mb-4">
           <span className="text-4xl filter drop-shadow-lg">{icon}</span>
@@ -113,7 +124,10 @@ const TokenExchangeCard = ({
             onClick={handleExchange}
             disabled={!amount || parseFloat(amount) <= 0 || isLoading}
             className={`w-full py-3 px-4 rounded text-white font-bold text-sm transition-all duration-200 ${buttonColor} disabled:opacity-50 disabled:cursor-not-allowed`}
-            style={{fontFamily: 'Press Start 2P, monospace'}}
+            style={{
+              fontFamily: 'Press Start 2P, monospace',
+              borderRadius: '12px !important'
+            }}
           >
             {isLoading ? 'PROCESSING...' : `${type === 'mint' ? 'MINT' : 'BURN'} ${toToken}`}
           </button>
@@ -143,6 +157,14 @@ export default function HomePage() {
           className="object-cover"
           priority
         />
+        {/* Very subtle black overlay to darken background */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.175)',
+            zIndex: 1
+          }}
+        ></div>
       </div>
       
       {/* Epic Background Elements */}
@@ -165,20 +187,44 @@ export default function HomePage() {
         <div className="text-center mb-20">
           <h1 
             className="text-6xl md:text-8xl text-yellow-400 mb-8 tracking-widest arcade-glow"
-            style={{fontFamily: 'Press Start 2P, monospace'}}
+            style={{
+              fontFamily: 'Press Start 2P, monospace',
+              color: '#2d5a27',
+              textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8), 0 0 3px rgba(255, 255, 255, 0.6)'
+            }}
           >
             RANN
           </h1>
-          <div className="arcade-border p-6 mx-auto max-w-4xl">
+          <div 
+            className="arcade-border p-6 mx-auto max-w-4xl"
+            style={{
+              background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+              border: '2px solid #2d5a27',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(45, 90, 39, 0.2)',
+              borderRadius: '12px'
+            }}
+          >
             <p 
               className="text-yellow-400 text-lg md:text-xl tracking-wide metal-text"
-              style={{fontFamily: 'Press Start 2P, monospace'}}
+              style={{
+                fontFamily: 'Press Start 2P, monospace',
+                color: '#2d5a27',
+                background: 'none',
+                WebkitTextFillColor: '#2d5a27',
+                textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8), 0 0 3px rgba(255, 255, 255, 0.6)'
+              }}
             >
               ENTER THE ULTIMATE BATTLEGROUND
             </p>
             <p 
               className="text-red-400 text-sm mt-4 arcade-glow"
-              style={{fontFamily: 'Press Start 2P, monospace'}}
+              style={{
+                fontFamily: 'Press Start 2P, monospace',
+                color: '#c53030',
+                textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8), 0 0 2px rgba(255, 255, 255, 0.4)'
+              }}
             >
               WHERE LEGENDS ARE FORGED IN COMBAT
             </p>
@@ -188,7 +234,17 @@ export default function HomePage() {
         {/* Wallet Connection Warning */}
         {isMounted && !isConnected && (
           <div className="max-w-4xl mx-auto mb-12">
-            <div className="arcade-card p-8 border-red-600 bg-red-900/20">
+            <div 
+              className="arcade-card p-8 border-red-600 bg-red-900/20"
+              style={{
+                background: 'radial-gradient(circle at top left, rgba(255, 182, 193, 0.2), rgba(255, 160, 160, 0.15) 50%), linear-gradient(135deg, rgba(255, 182, 193, 0.25) 0%, rgba(255, 160, 160, 0.2) 30%, rgba(255, 182, 193, 0.25) 100%)',
+                border: '3px solid #e53e3e',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(229, 62, 62, 0.2)',
+                borderRadius: '16px'
+              }}
+            >
               <div className="text-center">
                 <div className="mb-4">
                   <span className="text-4xl">🔒</span>
@@ -220,7 +276,18 @@ export default function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-6xl mx-auto">
           
           {/* Chaavani - The Forge */}
-          <div className="arcade-card p-8 group">
+          <div 
+            className="arcade-card p-8 group"
+            style={{
+              background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+              border: '3px solid #2d5a27 !important',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(45, 90, 39, 0.2)',
+              borderRadius: '16px !important',
+              borderImage: 'none !important'
+            }}
+          >
             <div className="text-center">
               <div className="mb-6">
                 <div className="weapon-container w-20 h-20 mx-auto rounded-full flex items-center justify-center relative">
@@ -229,7 +296,7 @@ export default function HomePage() {
                 </div>
               </div>
               <h2 
-                className="text-2xl text-yellow-400 mb-4 tracking-wider arcade-glow"
+                className="text-2xl text-yellow-200 mb-4 tracking-wider arcade-glow"
                 style={{fontFamily: 'Press Start 2P, monospace'}}
               >
                 CHAAVANI
@@ -242,7 +309,7 @@ export default function HomePage() {
                   FORGE YOUR LEGENDARY WARRIORS
                 </p>
                 <p 
-                  className="text-yellow-500 text-xs mt-2"
+                  className="text-yellow-200 text-xs leading-relaxed"
                   style={{fontFamily: 'Press Start 2P, monospace'}}
                 >
                   IN THE ANCIENT SMITHY
@@ -252,7 +319,10 @@ export default function HomePage() {
                 <Link href="/chaavani">
                   <button 
                     className="arcade-button px-8 py-4 text-xs tracking-wide"
-                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                    style={{
+                      fontFamily: 'Press Start 2P, monospace',
+                      borderRadius: '12px !important'
+                    }}
                   >
                     ENTER FORGE
                   </button>
@@ -260,7 +330,10 @@ export default function HomePage() {
               ) : (
                 <button 
                   className="arcade-button px-8 py-4 text-xs tracking-wide opacity-50 cursor-not-allowed"
-                  style={{fontFamily: 'Press Start 2P, monospace'}}
+                  style={{
+                    fontFamily: 'Press Start 2P, monospace',
+                    borderRadius: '12px !important'
+                  }}
                   disabled
                 >
                   WALLET REQUIRED
@@ -270,7 +343,18 @@ export default function HomePage() {
           </div>
 
           {/* Gurukul - The Academy */}
-          <div className="arcade-card p-8 group">
+          <div 
+            className="arcade-card p-8 group"
+            style={{
+              background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+              border: '3px solid #2d5a27 !important',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(45, 90, 39, 0.2)',
+              borderRadius: '16px !important',
+              borderImage: 'none !important'
+            }}
+          >
             <div className="text-center">
               <div className="mb-6">
                 <div className="weapon-container w-20 h-20 mx-auto rounded-full flex items-center justify-center relative">
@@ -302,7 +386,10 @@ export default function HomePage() {
                 <Link href="/gurukul">
                   <button 
                     className="arcade-button px-8 py-4 text-xs tracking-wide"
-                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                    style={{
+                      fontFamily: 'Press Start 2P, monospace',
+                      borderRadius: '12px !important'
+                    }}
                   >
                     ENTER ACADEMY
                   </button>
@@ -310,7 +397,10 @@ export default function HomePage() {
               ) : (
                 <button 
                   className="arcade-button px-8 py-4 text-xs tracking-wide opacity-50 cursor-not-allowed"
-                  style={{fontFamily: 'Press Start 2P, monospace'}}
+                  style={{
+                    fontFamily: 'Press Start 2P, monospace',
+                    borderRadius: '12px !important'
+                  }}
                   disabled
                 >
                   WALLET REQUIRED
@@ -320,7 +410,18 @@ export default function HomePage() {
           </div>
 
           {/* Bazaar - The Market */}
-          <div className="arcade-card p-8 group">
+          <div 
+            className="arcade-card p-8 group"
+            style={{
+              background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+              border: '3px solid #2d5a27 !important',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(45, 90, 39, 0.2)',
+              borderRadius: '16px !important',
+              borderImage: 'none !important'
+            }}
+          >
             <div className="text-center">
               <div className="mb-6">
                 <div className="weapon-container w-20 h-20 mx-auto rounded-full flex items-center justify-center relative">
@@ -352,7 +453,10 @@ export default function HomePage() {
                 <Link href="/bazaar">
                   <button 
                     className="arcade-button px-8 py-4 text-xs tracking-wide"
-                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                    style={{
+                      fontFamily: 'Press Start 2P, monospace',
+                      borderRadius: '12px !important'
+                    }}
                   >
                     ENTER MARKET
                   </button>
@@ -360,7 +464,10 @@ export default function HomePage() {
               ) : (
                 <button 
                   className="arcade-button px-8 py-4 text-xs tracking-wide opacity-50 cursor-not-allowed"
-                  style={{fontFamily: 'Press Start 2P, monospace'}}
+                  style={{
+                    fontFamily: 'Press Start 2P, monospace',
+                    borderRadius: '12px !important'
+                  }}
                   disabled
                 >
                   WALLET REQUIRED
@@ -370,7 +477,18 @@ export default function HomePage() {
           </div>
 
           {/* Kurukshetra - The Arena */}
-          <div className="arcade-card p-8 group cursor-pointer">
+          <div 
+            className="arcade-card p-8 group cursor-pointer"
+            style={{
+              background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+              border: '3px solid #2d5a27 !important',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(45, 90, 39, 0.2)',
+              borderRadius: '16px !important',
+              borderImage: 'none !important'
+            }}
+          >
             <div className="text-center">
               <div className="mb-6">
                 <div className="weapon-container w-20 h-20 mx-auto rounded-full flex items-center justify-center relative">
@@ -402,7 +520,10 @@ export default function HomePage() {
                 <a href="/kurukshetra">
                   <button 
                     className="arcade-button px-8 py-4 text-xs tracking-wide"
-                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                    style={{
+                      fontFamily: 'Press Start 2P, monospace',
+                      borderRadius: '12px !important'
+                    }}
                   >
                     ENTER ARENA
                   </button>
@@ -410,7 +531,10 @@ export default function HomePage() {
               ) : (
                 <button 
                   className="arcade-button px-8 py-4 text-xs tracking-wide opacity-50 cursor-not-allowed"
-                  style={{fontFamily: 'Press Start 2P, monospace'}}
+                  style={{
+                    fontFamily: 'Press Start 2P, monospace',
+                    borderRadius: '12px !important'
+                  }}
                   disabled
                 >
                   WALLET REQUIRED
@@ -468,7 +592,18 @@ export default function HomePage() {
         {/* Leaderboard Section */}
         {isMounted && isConnected && (
           <div className="mt-20 max-w-4xl mx-auto">
-            <div className="arcade-card p-8 group cursor-pointer">
+            <div 
+              className="arcade-card p-8 group cursor-pointer home-leaderboard-card"
+              style={{
+                background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%) !important',
+                border: '3px solid #2d5a27 !important',
+                backdropFilter: 'blur(20px) !important',
+                WebkitBackdropFilter: 'blur(20px) !important',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(45, 90, 39, 0.2) !important',
+                borderRadius: '16px !important',
+                borderImage: 'none !important'
+              }}
+            >
               <Link href="/leaderboard">
                 <div className="text-center">
                   <div className="mb-6">
@@ -499,7 +634,10 @@ export default function HomePage() {
                   </div>
                   <button 
                     className="arcade-button px-8 py-4 text-xs tracking-wide"
-                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                    style={{
+                      fontFamily: 'Press Start 2P, monospace',
+                      borderRadius: '12px !important'
+                    }}
                   >
                     VIEW LEADERBOARD
                   </button>
