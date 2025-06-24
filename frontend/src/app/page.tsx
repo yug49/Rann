@@ -547,7 +547,7 @@ export default function HomePage() {
         {isMounted && isConnected && (
           <div className="mt-20 max-w-4xl mx-auto">
             <div 
-              className="arcade-card p-8 group cursor-pointer home-leaderboard-card"
+              className="arcade-card p-8 group cursor-pointer home-leaderboard-card relative overflow-hidden flex flex-col justify-end min-h-[400px]"
               style={{
                 background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%) !important',
                 border: '3px solid #2d5a27 !important',
@@ -555,36 +555,21 @@ export default function HomePage() {
                 WebkitBackdropFilter: 'blur(20px) !important',
                 boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(45, 90, 39, 0.2) !important',
                 borderRadius: '16px !important',
-                borderImage: 'none !important'
+                borderImage: 'none !important',
+                padding: '2rem',
               }}
             >
+              <Image 
+                src="/Leaderboard_landing.png" 
+                alt="Leaderboard Background" 
+                fill 
+                className="object-cover object-center absolute inset-0 -z-10 opacity-70" 
+                style={{borderRadius: '16px', objectFit: 'cover', objectPosition: 'center'}}
+                priority
+              />
               <Link href="/leaderboard">
-                <div className="text-center">
+                <div className="text-center relative z-10">
                   <div className="mb-6">
-                    <div className="weapon-container w-20 h-20 mx-auto rounded-full flex items-center justify-center relative">
-                      <span className="text-3xl filter drop-shadow-lg">🏆</span>
-                      <div className="absolute inset-0 rounded-full border-2 border-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity animate-pulse"></div>
-                    </div>
-                  </div>
-                  <h2 
-                    className="text-2xl text-yellow-400 mb-4 tracking-wider arcade-glow"
-                    style={{fontFamily: 'Press Start 2P, monospace'}}
-                  >
-                    LEADERBOARD
-                  </h2>
-                  <div className="border-t-2 border-yellow-400 pt-4 mb-6">
-                    <p 
-                      className="text-yellow-200 text-xs leading-relaxed"
-                      style={{fontFamily: 'Press Start 2P, monospace'}}
-                    >
-                      WITNESS THE GREATEST WARRIORS
-                    </p>
-                    <p 
-                      className="text-yellow-500 text-xs mt-2"
-                      style={{fontFamily: 'Press Start 2P, monospace'}}
-                    >
-                      IN THE HALL OF LEGENDS
-                    </p>
                   </div>
                   <button 
                     className="arcade-button px-8 py-4 text-xs tracking-wide"
