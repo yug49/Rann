@@ -513,7 +513,7 @@ export default function HomePage() {
                 className="text-yellow-300 text-sm"
                 style={{fontFamily: 'Press Start 2P, monospace'}}
               >
-                CONVERT ETH TO RANN TOKENS FOR BATTLE
+                CONVERT FLOW TO RANN TOKENS FOR BATTLE
               </p>
             </div>
 
@@ -521,9 +521,9 @@ export default function HomePage() {
               {/* Mint RANN Tokens */}
               <TokenExchangeCard 
                 title="MINT RANN"
-                description="CONVERT ETH TO RANN"
+                description="CONVERT FLOW TO RANN"
                 icon="⚡"
-                fromToken="ETH"
+                fromToken="FLOW"
                 toToken="RANN"
                 rate="1:1"
                 type="mint"
@@ -532,10 +532,10 @@ export default function HomePage() {
               {/* Burn RANN Tokens */}
               <TokenExchangeCard 
                 title="BURN RANN"
-                description="CONVERT RANN TO ETH"
+                description="CONVERT RANN TO FLOW"
                 icon="🔥"
                 fromToken="RANN"
-                toToken="ETH"
+                toToken="FLOW"
                 rate="1:1"
                 type="burn"
               />
