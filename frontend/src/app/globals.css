@@ -383,6 +383,32 @@ body {
   background-attachment: fixed;
 }
 
+/* Meet The Team Background with MTT Image */
+.meettheteam-bg {
+  background: 
+    radial-gradient(circle at 25% 25%, rgba(220, 20, 60, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(30, 58, 138, 0.05) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(15, 15, 15, 0.2) 0%, rgba(26, 26, 26, 0.3) 50%, rgba(15, 15, 15, 0.2) 100%),
+    url('/mtt.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+/* Leaderboard Background with Leaderboard Image */
+.leaderboard-bg {
+  background: 
+    radial-gradient(circle at 25% 25%, rgba(220, 20, 60, 0.02) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(30, 58, 138, 0.02) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(15, 15, 15, 0.1) 0%, rgba(26, 26, 26, 0.15) 50%, rgba(15, 15, 15, 0.1) 100%),
+    url('/Leaderboard.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
 /* Bazaar Background with Bazaar Image */
 .bazaar-bg {
   background: 

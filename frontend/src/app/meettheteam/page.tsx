@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { FaGithub, FaTwitter, FaLinkedin } from 'react-icons/fa';
+import '../home-glass.css';
 
 const teamMembers = [
 	{
@@ -27,32 +28,83 @@ const teamMembers = [
 
 export default function MeetTheTeam() {
 	return (
-		<div className="min-h-screen battlefield-bg relative overflow-hidden">
-			<div className="relative z-10 container mx-auto px-6 py-16">
-				<h1 className="text-center text-4xl md:text-5xl text-yellow-400 mb-12 tracking-widest arcade-glow" style={{ fontFamily: 'Press Start 2P, monospace' }}>
-					Meet the Team
-				</h1>
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
+		<div className="min-h-screen relative overflow-hidden">
+			{/* Background Image */}
+			<div className="fixed inset-0 -z-10">
+				<Image
+					src="/mtt.png"
+					alt="Meet The Team Background"
+					fill
+					className="object-cover"
+					priority
+				/>
+				{/* Very subtle black overlay to darken background */}
+				<div 
+					className="absolute inset-0"
+					style={{
+						backgroundColor: 'rgba(0, 0, 0, 0.175)',
+						zIndex: 1
+					}}
+				></div>
+			</div>
+			
+			{/* Epic Background Elements */}
+			<div className="absolute inset-0 pointer-events-none">
+				{/* Geometric Battle Lines */}
+				<div className="absolute top-1/4 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-600 to-transparent opacity-30"></div>
+				<div className="absolute bottom-1/4 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent opacity-30"></div>
+			</div>
+
+			{/* Main Content */}
+			<div className="relative z-10 container mx-auto px-6 py-12">
+				{/* Page Header */}
+				<div className="text-center mb-12">
+					<h1 
+						className="text-4xl md:text-6xl text-orange-400 mb-6 tracking-widest arcade-glow"
+						style={{
+							fontFamily: 'Press Start 2P, monospace'
+						}}
+					>
+						MEET THE TEAM
+					</h1>
+					
+				</div>
+
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-8xl mx-auto">
 					{teamMembers.map((member) => (
-						<div key={member.name} className="arcade-card p-8 group flex flex-col items-center rounded-2xl">
+						<div 
+							key={member.name} 
+							className="arcade-card p-8 group flex flex-col items-center transform hover:scale-105 transition-all duration-300"
+							style={{
+								background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+								border: '3px solid #ff8c00',
+								borderRadius: '24px',
+								backdropFilter: 'blur(20px)',
+								WebkitBackdropFilter: 'blur(20px)',
+								boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)'
+							}}
+						>
 							<div className="mb-6">
-								<div className="weapon-container w-40 h-40 mx-auto rounded-2xl flex items-center justify-center relative overflow-hidden">
-									<Image src={member.photo} alt={member.name} width={144} height={144} className="rounded-2xl object-cover" />
-									<div className="absolute inset-0 rounded-2xl border-2 border-yellow-600 opacity-0 group-hover:opacity-100 transition-opacity animate-pulse"></div>
+								<div className="w-full mx-auto rounded-2xl flex items-center justify-center relative overflow-hidden border-2 border-orange-600">
+									<Image src={member.photo} alt={member.name} width={300} height={256} className="w-full h-full rounded-2xl object-cover" />
+									<div className="absolute inset-0 rounded-2xl border-2 border-orange-600 opacity-0 group-hover:opacity-100 transition-opacity animate-pulse"></div>
 								</div>
 							</div>
-							<h2 className="text-xl text-yellow-400 mb-2 tracking-wider arcade-glow" style={{ fontFamily: 'Press Start 2P, monospace' }}>
+							<h2 
+								className="text-xl text-orange-400 mb-4 tracking-wider arcade-glow text-center"
+								style={{ fontFamily: 'Press Start 2P, monospace' }}
+							>
 								{member.name}
 							</h2>
-							<div className="border-t-2 border-yellow-600 pt-3 mb-4 w-full text-center"></div>
-							<div className="flex justify-center gap-4 mt-auto text-yellow-400 text-2xl">
-								<a href={member.linkedin} target="_blank" rel="noopener noreferrer" title="LinkedIn">
+							<div className="border-t-2 border-orange-600 pt-4 mb-4 w-full text-center"></div>
+							<div className="flex justify-center gap-4 mt-auto text-orange-400 text-2xl">
+								<a href={member.linkedin} target="_blank" rel="noopener noreferrer" title="LinkedIn" className="hover:text-orange-300 transition-colors">
 									<FaLinkedin />
 								</a>
-								<a href={member.twitter} target="_blank" rel="noopener noreferrer" title="Twitter">
+								<a href={member.twitter} target="_blank" rel="noopener noreferrer" title="Twitter" className="hover:text-orange-300 transition-colors">
 									<FaTwitter />
 								</a>
-								<a href={member.github} target="_blank" rel="noopener noreferrer" title="GitHub">
+								<a href={member.github} target="_blank" rel="noopener noreferrer" title="GitHub" className="hover:text-orange-300 transition-colors">
 									<FaGithub />
 								</a>
 							</div>

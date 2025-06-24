@@ -5,6 +5,7 @@ import { useAccount } from 'wagmi';
 import { Badge } from '../../components/ui/badge';
 import { Modal } from '../../components/ui/modal';
 import Image from 'next/image';
+import './leaderboard-glass.css';
 
 // Types
 type RankCategory = 'UNRANKED' | 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM';
@@ -187,17 +188,48 @@ export default function LeaderboardPage() {
   // Show loading state until component mounts to prevent hydration mismatch
   if (!isMounted) {
     return (
-      <div className="min-h-screen battlefield-bg flex items-center justify-center">
-        <div className="text-center">
-          <div className="arcade-card p-8 max-w-md">
-            <h1 className="text-2xl text-yellow-400 mb-4 arcade-glow" style={{fontFamily: 'Press Start 2P, monospace'}}>
-              LEADERBOARD
-            </h1>
-            <p className="text-gray-300 mb-6">
-              Loading Hall of Legends...
-            </p>
-            <div className="text-yellow-400 text-sm">
-              ⚡ Initializing...
+      <div className="min-h-screen relative overflow-hidden">
+        {/* Background Image */}
+        <div className="fixed inset-0 -z-10">
+          <Image
+            src="/Leaderboard.png"
+            alt="Leaderboard Background"
+            fill
+            className="object-cover"
+            priority
+          />
+          {/* Very subtle black overlay to darken background */}
+          <div 
+            className="absolute inset-0"
+            style={{
+              backgroundColor: 'rgba(0, 0, 0, 0.175)',
+              zIndex: 1
+            }}
+          ></div>
+        </div>
+        
+        <div className="relative z-10 flex items-center justify-center min-h-screen leaderboard-page">
+          <div className="text-center">
+            <div 
+              className="arcade-card p-8 max-w-md"
+              style={{
+                background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+                border: '3px solid #ff8c00',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+                borderRadius: '24px'
+              }}
+            >
+              <h1 className="text-2xl text-orange-400 mb-4 arcade-glow" style={{fontFamily: 'Press Start 2P, monospace'}}>
+                LEADERBOARD
+              </h1>
+              <p className="text-gray-300 mb-6">
+                Loading Hall of Legends...
+              </p>
+              <div className="text-orange-400 text-sm">
+                ⚡ Initializing...
+              </div>
             </div>
           </div>
         </div>
@@ -207,17 +239,48 @@ export default function LeaderboardPage() {
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen battlefield-bg flex items-center justify-center">
-        <div className="text-center">
-          <div className="arcade-card p-8 max-w-md">
-            <h1 className="text-2xl text-yellow-400 mb-4 arcade-glow" style={{fontFamily: 'Press Start 2P, monospace'}}>
-              LEADERBOARD
-            </h1>
-            <p className="text-gray-300 mb-6">
-              Connect your wallet to view the Hall of Legends and witness the greatest warriors!
-            </p>
-            <div className="text-yellow-400 text-sm">
-              ⚠️ Wallet connection required
+      <div className="min-h-screen relative overflow-hidden">
+        {/* Background Image */}
+        <div className="fixed inset-0 -z-10">
+          <Image
+            src="/Leaderboard.png"
+            alt="Leaderboard Background"
+            fill
+            className="object-cover"
+            priority
+          />
+          {/* Very subtle black overlay to darken background */}
+          <div 
+            className="absolute inset-0"
+            style={{
+              backgroundColor: 'rgba(0, 0, 0, 0.175)',
+              zIndex: 1
+            }}
+          ></div>
+        </div>
+        
+        <div className="relative z-10 flex items-center justify-center min-h-screen leaderboard-page">
+          <div className="text-center">
+            <div 
+              className="arcade-card p-8 max-w-md"
+              style={{
+                background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+                border: '3px solid #ff8c00',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+                borderRadius: '24px'
+              }}
+            >
+              <h1 className="text-2xl text-orange-400 mb-4 arcade-glow" style={{fontFamily: 'Press Start 2P, monospace'}}>
+                LEADERBOARD
+              </h1>
+              <p className="text-gray-300 mb-6">
+                Connect your wallet to view the Hall of Legends and witness the greatest warriors!
+              </p>
+              <div className="text-orange-400 text-sm">
+                ⚠️ Wallet connection required
+              </div>
             </div>
           </div>
         </div>
@@ -226,34 +289,92 @@ export default function LeaderboardPage() {
   }
 
   return (
-    <div className="min-h-screen battlefield-bg p-6">
-      <div className="container mx-auto max-w-7xl">
-        {/* Header */}
-        <div className="text-center mb-8">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Background Image */}
+      <div className="fixed inset-0 -z-10">
+        <Image
+          src="/Leaderboard.png"
+          alt="Leaderboard Background"
+          fill
+          className="object-cover"
+          priority
+        />
+        {/* Very subtle black overlay to darken background */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.175)',
+            zIndex: 1
+          }}
+        ></div>
+      </div>
+      
+      {/* Epic Background Elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Geometric Battle Lines */}
+        <div className="absolute top-1/4 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-600 to-transparent opacity-30"></div>
+        <div className="absolute bottom-1/4 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent opacity-30"></div>
+      </div>
+
+      {/* Main Content */}
+      <div className="relative z-10 container mx-auto px-6 py-12 leaderboard-page">
+        {/* Page Header */}
+        <div className="text-center mb-12">
           <h1 
-            className="text-4xl text-yellow-400 mb-4 arcade-glow"
-            style={{fontFamily: 'Press Start 2P, monospace'}}
+            className="text-4xl md:text-6xl text-orange-400 mb-6 tracking-widest arcade-glow"
+            style={{
+              fontFamily: 'Press Start 2P, monospace'
+            }}
           >
             HALL OF LEGENDS
           </h1>
-          <p 
-            className="text-yellow-300 text-sm"
-            style={{fontFamily: 'Press Start 2P, monospace'}}
+          <div 
+            className="arcade-border p-4 mx-auto max-w-3xl"
+            style={{
+              background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+              border: '2px solid #ff8c00',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+              borderRadius: '24px'
+            }}
           >
-            WITNESS THE GREATEST WARRIORS AND THEIR TRIUMPHS
-          </p>
+            <p 
+              className="text-white text-sm md:text-base tracking-wide arcade-glow"
+              style={{
+                fontFamily: 'Press Start 2P, monospace'
+              }}
+            >
+              WITNESS THE GREATEST WARRIORS AND THEIR TRIUMPHS
+            </p>
+          </div>
         </div>
 
         {/* Rank Filter Tabs */}
         <div className="flex justify-center mb-8">
-          <div className="inline-flex rank-filter-container rounded-lg p-2 shadow-lg">
+          <div 
+            className="p-2 flex gap-2"
+            style={{
+              background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+              border: '3px solid #ff8c00',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+              borderRadius: '20px'
+            }}
+          >
             {(['PLATINUM', 'GOLD', 'SILVER', 'BRONZE', 'UNRANKED'] as RankCategory[]).map((rank) => (
               <button
                 key={rank}
                 onClick={() => setActiveRank(rank)}
-                className={`px-4 py-3 text-xs rounded-md transition-all duration-300 rank-button rank-${rank.toLowerCase()} ${
-                  activeRank === rank ? 'active' : ''
+                className={`px-4 py-3 text-xs tracking-wide transition-all duration-300 ${
+                  activeRank === rank ? 'arcade-button' : 'border-2 border-gray-600 text-gray-300 hover:border-orange-600 hover:text-orange-400'
                 }`}
+                style={{
+                  fontFamily: 'Press Start 2P, monospace',
+                  borderRadius: '12px',
+                  background: activeRank === rank ? undefined : 'rgba(0, 0, 0, 0.3)'
+                }}
               >
                 {rank}
               </button>
@@ -262,12 +383,22 @@ export default function LeaderboardPage() {
         </div>
 
         {/* Leaderboard Content */}
-        <div className="arcade-card p-6">
+        <div 
+          className="arcade-card p-6"
+          style={{
+            background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+            border: '3px solid #ff8c00',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+            borderRadius: '24px'
+          }}
+        >
           <div className="flex items-center justify-center mb-6">
             <div className="flex items-center gap-4">
               <span className="text-2xl">🏆</span>
               <h2 
-                className="text-xl text-yellow-400 arcade-glow"
+                className="text-xl text-orange-400 arcade-glow"
                 style={{fontFamily: 'Press Start 2P, monospace'}}
               >
                 {activeRank} WARRIORS
@@ -281,13 +412,21 @@ export default function LeaderboardPage() {
             {getYodhasByRank(activeRank).map((yodha, index) => (
               <div 
                 key={yodha.id}
-                className="arcade-card p-4 cursor-pointer hover:border-yellow-400 transition-all duration-200"
+                className="arcade-card p-4 cursor-pointer hover:scale-105 transition-all duration-300"
                 onClick={() => handleYodhaClick(yodha)}
+                style={{
+                  background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.1), rgba(100, 140, 180, 0.08) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.15) 0%, rgba(100, 140, 180, 0.1) 30%, rgba(120, 160, 200, 0.15) 100%)',
+                  border: '2px solid #ff8c00',
+                  backdropFilter: 'blur(15px)',
+                  WebkitBackdropFilter: 'blur(15px)',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1), 0 0 6px rgba(255, 140, 0, 0.2)',
+                  borderRadius: '16px'
+                }}
               >
                 <div className="flex items-center gap-6">
                   {/* Rank Position */}
                   <div className="text-center min-w-12">
-                    <div className="text-2xl text-yellow-400 font-bold">
+                    <div className="text-2xl text-orange-400 font-bold">
                       #{index + 1}
                     </div>
                     {index === 0 && <div className="text-lg">👑</div>}
@@ -296,7 +435,7 @@ export default function LeaderboardPage() {
                   </div>
 
                   {/* Yodha Image */}
-                  <div className="w-20 h-20 border-2 border-yellow-600 rounded-lg overflow-hidden bg-stone-800">
+                  <div className="w-20 h-20 border-2 border-orange-600 rounded-lg overflow-hidden bg-stone-800">
                     <Image 
                       src={yodha.image} 
                       alt={yodha.name}
@@ -343,10 +482,10 @@ export default function LeaderboardPage() {
         {/* Yodha Detail Modal */}
         {selectedYodha && (
           <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-4xl mx-auto leaderboard-page">
               <div className="flex justify-between items-center mb-6">
                 <h2 
-                  className="text-2xl text-yellow-400 arcade-glow"
+                  className="text-2xl text-orange-400 arcade-glow"
                   style={{fontFamily: 'Press Start 2P, monospace'}}
                 >
                   {selectedYodha.name}
@@ -361,7 +500,7 @@ export default function LeaderboardPage() {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div>
-                  <div className="w-64 h-64 mx-auto mb-6 border-2 border-yellow-600 rounded-lg overflow-hidden">
+                  <div className="w-64 h-64 mx-auto mb-6 border-2 border-orange-600 rounded-lg overflow-hidden">
                     <Image 
                       src={selectedYodha.image} 
                       alt={selectedYodha.name}
@@ -374,7 +513,7 @@ export default function LeaderboardPage() {
                   <div className="space-y-4">
                     <div>
                       <h3 
-                        className="text-sm text-yellow-400 mb-2"
+                        className="text-sm text-orange-400 mb-2"
                         style={{fontFamily: 'Press Start 2P, monospace'}}
                       >
                         BIO
@@ -389,7 +528,7 @@ export default function LeaderboardPage() {
 
                     <div>
                       <h3 
-                        className="text-sm text-yellow-400 mb-2"
+                        className="text-sm text-orange-400 mb-2"
                         style={{fontFamily: 'Press Start 2P, monospace'}}
                       >
                         LIFE HISTORY
@@ -404,7 +543,7 @@ export default function LeaderboardPage() {
 
                     <div>
                       <h3 
-                        className="text-sm text-yellow-400 mb-2"
+                        className="text-sm text-orange-400 mb-2"
                         style={{fontFamily: 'Press Start 2P, monospace'}}
                       >
                         PERSONALITY TRAITS
@@ -419,7 +558,7 @@ export default function LeaderboardPage() {
 
                     <div>
                       <h3 
-                        className="text-sm text-yellow-400 mb-2"
+                        className="text-sm text-orange-400 mb-2"
                         style={{fontFamily: 'Press Start 2P, monospace'}}
                       >
                         KNOWLEDGE AREAS
@@ -436,7 +575,7 @@ export default function LeaderboardPage() {
 
                 <div>
                   <h3 
-                    className="text-lg text-yellow-400 mb-6 text-center"
+                    className="text-lg text-orange-400 mb-6 text-center"
                     style={{fontFamily: 'Press Start 2P, monospace'}}
                   >
                     WARRIOR TRAITS
@@ -450,7 +589,7 @@ export default function LeaderboardPage() {
                     <TraitBar label="LUCK" value={selectedYodha.luck} />
                   </div>
 
-                  <div className="border-t border-yellow-600 pt-6">
+                  <div className="border-t border-orange-600 pt-6">
                     <div className="text-center mb-6">
                       <div className="flex justify-center items-center gap-4 mb-4">
                         <Badge className={getRankColor(selectedYodha.rank)}>
@@ -463,9 +602,19 @@ export default function LeaderboardPage() {
                         </Badge>
                       </div>
 
-                      <div className="arcade-card p-4">
+                      <div 
+                        className="arcade-card p-4"
+                        style={{
+                          background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+                          border: '2px solid #ff8c00',
+                          backdropFilter: 'blur(20px)',
+                          WebkitBackdropFilter: 'blur(20px)',
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+                          borderRadius: '16px'
+                        }}
+                      >
                         <h4 
-                          className="text-sm text-yellow-400 mb-2"
+                          className="text-sm text-orange-400 mb-2"
                           style={{fontFamily: 'Press Start 2P, monospace'}}
                         >
                           TOTAL WINNINGS
@@ -478,7 +627,7 @@ export default function LeaderboardPage() {
 
                       <div className="mt-4 text-xs text-gray-400">
                         <span>Owner: </span>
-                        <span className="text-yellow-400 font-mono">
+                        <span className="text-orange-400 font-mono">
                           {selectedYodha.owner}
                         </span>
                       </div>
@@ -489,6 +638,20 @@ export default function LeaderboardPage() {
             </div>
           </Modal>
         )}
+
+        {/* Back to Home */}
+        <div className="text-center mt-12">
+          <a 
+            href="/"
+            className="inline-block arcade-button px-6 py-3 text-xs tracking-wide"
+            style={{
+              fontFamily: 'Press Start 2P, monospace',
+              borderRadius: '12px'
+            }}
+          >
+            GO BACK
+          </a>
+        </div>
       </div>
     </div>
   );
