@@ -17,7 +17,7 @@ contract HelperConfig is Script {
         string initialIpfsCid;
     }
 
-    address public constant GAME_MASTER_PUBLIC_KEY = address(0x123); // need to set this to the actual game master public key once the backend is ready
+    address public constant GAME_MASTER_PUBLIC_KEY = 0x5c6E63E3681D4EB7dEeaA0B4e6C552C636d28263; // need to set this to the actual game master public key once the backend is ready
     uint256 public constant INITIAL_NUMBER_OF_QUESTIONS = 5;
     address public constant CADENCE_ARCH = 0x0000000000000000000000010000000000000001;
     uint256[] public s_initialQuestionsToOptions;
