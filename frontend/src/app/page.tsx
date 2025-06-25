@@ -2,15 +2,17 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useAccount } from 'wagmi';
+import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { useState, useEffect } from 'react';
+import { parseEther } from 'viem';
+import { chainsToTSender, rannTokenAbi } from '../constants';
 import './home-glass.css';
 
 // Token Exchange Card Component
 const TokenExchangeCard = ({ 
   title, 
   description, 
-  icon, 
+  icon,
   fromToken, 
   toToken, 
   rate, 
@@ -26,24 +28,66 @@ const TokenExchangeCard = ({
 }) => {
   const [amount, setAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const { address, chainId } = useAccount();
+  
+  const { writeContract, data: hash } = useWriteContract();
+  
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash,
+  });
+
+  // Get contract address for current chain
+  const contractAddress = chainId ? chainsToTSender[chainId]?.rannToken : undefined;
 
   const handleExchange = async () => {
-    if (!amount || parseFloat(amount) <= 0) return;
+    if (!amount || parseFloat(amount) <= 0 || !contractAddress || !address) return;
     
     setIsLoading(true);
-    // Mock transaction - in production, this would interact with the smart contract
-    console.log(`${type === 'mint' ? 'Minting' : 'Burning'} ${amount} tokens`);
     
-    // Simulate transaction delay
-    setTimeout(() => {
+    try {
+      const amountInWei = parseEther(amount);
+      
+      if (type === 'mint') {
+        // Call mint function with value
+        writeContract({
+          address: contractAddress as `0x${string}`,
+          abi: rannTokenAbi,
+          functionName: 'mint',
+          args: [amountInWei],
+          value: amountInWei, // Send ETH/FLOW equivalent to mint amount
+        });
+      } else {
+        // Call burn function
+        writeContract({
+          address: contractAddress as `0x${string}`,
+          abi: rannTokenAbi,
+          functionName: 'burn',
+          args: [amountInWei],
+        });
+      }
+    } catch (error) {
+      console.error('Transaction failed:', error);
       setIsLoading(false);
-      setAmount('');
-      alert(`${type === 'mint' ? 'Minted' : 'Burned'} ${amount} ${toToken} tokens!`);
-    }, 2000);
+    }
   };
+
+  // Reset loading state when transaction is confirmed or fails
+  useEffect(() => {
+    if (isConfirmed || (!isConfirming && hash)) {
+      setIsLoading(false);
+      if (isConfirmed) {
+        setAmount('');
+        setSuccessMessage(`Successfully ${type === 'mint' ? 'minted' : 'burned'} ${amount} ${type === 'mint' ? 'RANN' : 'RANN'} tokens!`);
+        // Clear success message after 5 seconds
+        setTimeout(() => setSuccessMessage(''), 5000);
+      }
+    }
+  }, [isConfirmed, isConfirming, hash, amount, type]);
 
   const cardColor = type === 'mint' ? 'border-green-500' : 'border-red-500';
   const buttonColor = type === 'mint' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700';
+  const isTransactionPending = isLoading || isConfirming;
 
   return (
     <div 
@@ -129,8 +173,17 @@ const TokenExchangeCard = ({
               borderRadius: '12px !important'
             }}
           >
-            {isLoading ? 'PROCESSING...' : `${type === 'mint' ? 'MINT' : 'BURN'} ${toToken}`}
+            {isLoading ? 'PROCESSING...' : `${type === 'mint' ? 'MINT' : 'BURN'}`}
           </button>
+
+          {/* Success Message */}
+          {successMessage && (
+            <div className="bg-green-800 border border-green-600 p-3 rounded mt-2 animate-pulse">
+              <p className="text-green-200 text-xs text-center" style={{fontFamily: 'Press Start 2P, monospace'}}>
+                {successMessage}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

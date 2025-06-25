@@ -2,12 +2,13 @@
 
 import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { FaGithub } from "react-icons/fa"
-import { useAccount, useBalance } from "wagmi"
+import { useAccount, useBalance, useReadContract } from "wagmi"
 import { useState, useEffect } from "react"
+import { chainsToTSender, rannTokenAbi } from "../constants"
+import { formatEther } from "viem"
 
 const Header: React.FC = () => {
-  const { address, isConnected } = useAccount();
-  const [rannBalance, setRannBalance] = useState<string>("0");
+  const { address, isConnected, chainId } = useAccount();
   const [isMounted, setIsMounted] = useState(false);
 
   // Prevent hydration mismatch by waiting for client-side mount
@@ -15,15 +16,35 @@ const Header: React.FC = () => {
     setIsMounted(true);
   }, []);
 
-  // Mock RANN token balance - in production, this would use useBalance with token address
-  useEffect(() => {
-    if (isConnected && address) {
-      // For now, using mock data - replace with actual contract call
-      setRannBalance("1,250");
-    } else {
-      setRannBalance("0");
+  // Get contract address for current chain
+  const contractAddress = chainId ? chainsToTSender[chainId]?.rannToken : undefined;
+
+  // Read RANN token balance
+  const { data: rannBalance, refetch: refetchBalance } = useReadContract({
+    address: contractAddress as `0x${string}` | undefined,
+    abi: rannTokenAbi,
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
+    query: {
+      enabled: !!(isConnected && address && contractAddress),
     }
-  }, [isConnected, address]);
+  });
+
+  // Format balance for display
+  const formattedBalance = rannBalance ? 
+    parseFloat(formatEther(rannBalance as bigint)).toFixed(2) : 
+    "0.00";
+
+  // Refetch balance periodically when connected
+  useEffect(() => {
+    if (isConnected && address && contractAddress) {
+      const interval = setInterval(() => {
+        refetchBalance();
+      }, 10000); // Refetch every 10 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [isConnected, address, contractAddress, refetchBalance]);
 
   return (
     <header className="arcade-header-grey">
@@ -55,7 +76,7 @@ const Header: React.FC = () => {
                       RANN
                     </div>
                     <div className="text-sm text-red-400 font-bold" style={{fontFamily: 'Press Start 2P, monospace'}}>
-                      {rannBalance}
+                      {formattedBalance}
                     </div>
                   </div>
                 </div>
