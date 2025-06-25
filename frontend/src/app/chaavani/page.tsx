@@ -3,9 +3,12 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import '../home-glass.css';
 import { nearAIService } from '../../services/nearAI';
 import { nearWalletService } from '../../services/nearWallet';
+import { ipfsService } from '../../services/ipfsService';
+import { chainsToTSender, yodhaNFTAbi } from '../../constants';
 
 interface YodhaTraits {
   strength: number;
@@ -46,6 +49,14 @@ export default function ChaavaniPage() {
   const [activeSection, setActiveSection] = useState<'create' | 'manage' | 'ai'>('create');
   const [nearWalletConnected, setNearWalletConnected] = useState(false);
   const [nearAccountId, setNearAccountId] = useState<string | null>(null);
+  const [isMinting, setIsMinting] = useState(false);
+  const [ipfsCid, setIpfsCid] = useState<string | null>(null);
+
+  // Wagmi hooks for contract interaction
+  const { writeContract, data: hash } = useWriteContract();
+  const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash,
+  });
 
   // Check NEAR wallet connection status
   const checkNearWalletConnection = () => {
@@ -69,6 +80,20 @@ export default function ChaavaniPage() {
   useEffect(() => {
     checkNearWalletConnection();
   }, []);
+
+  // Handle transaction confirmation and display success message
+  useEffect(() => {
+    if (isConfirmed && hash) {
+      console.log('🎉 NFT MINTED SUCCESSFULLY!');
+      console.log('Transaction Hash:', hash);
+      console.log('Metadata CID:', ipfsCid);
+      console.log('View your NFT metadata at:', `https://ipfs.io/ipfs/${ipfsCid}`);
+      
+      // TODO: Add UI success notification here
+      // For now, we'll log to console as requested
+      alert(`🎉 NFT Minted Successfully!\n\nTransaction Hash: ${hash}\nMetadata CID: ${ipfsCid}\n\nCheck the console for more details.`);
+    }
+  }, [isConfirmed, hash, ipfsCid]);
 
   // Mock data for user's Yodhas
   const userYodhas: UserYodha[] = [
@@ -233,6 +258,60 @@ export default function ChaavaniPage() {
       });
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  // Mint Yodha NFT function - uploads image and creates JSON metadata on IPFS
+  const handleMintYodhaNFT = async () => {
+    if (!formData.image || !formData.name || !formData.bio || !formData.life_history || !formData.adjectives || !formData.knowledge_areas) {
+      console.error('All form fields must be filled before minting');
+      return;
+    }
+
+    setIsMinting(true);
+    console.log('Starting Yodha NFT minting process...');
+
+    try {
+      // Upload image and create JSON metadata on IPFS
+      console.log('Uploading warrior data to IPFS...');
+      const uploadResult = await ipfsService.uploadYodhaNFT({
+        name: formData.name,
+        bio: formData.bio,
+        life_history: formData.life_history,
+        adjectives: formData.adjectives,
+        knowledge_areas: formData.knowledge_areas,
+        image: formData.image
+      });
+      
+      // Store the metadata CID for future use (this will be used for NFT minting)
+      setIpfsCid(uploadResult.metadataCid);
+      
+      console.log('=== YODHA NFT UPLOAD COMPLETE ===');
+      console.log('Image CID:', uploadResult.imageCid);
+      console.log('Metadata CID:', uploadResult.metadataCid);
+      console.log('Image URL:', uploadResult.imageUrl);
+      console.log('Metadata URL:', uploadResult.metadataUrl);
+      console.log('Generated Metadata:', uploadResult.metadata);
+      console.log('===================================');
+
+      // Step 2: Mint NFT on blockchain using the metadata CID
+      const tokenURI = `ipfs://${uploadResult.metadataCid}`;
+      console.log('Minting NFT with tokenURI:', tokenURI);
+      
+      writeContract({
+        address: chainsToTSender[545].yodhaNFT as `0x${string}`,
+        abi: yodhaNFTAbi,
+        functionName: 'mintNft',
+        args: [tokenURI],
+      });
+
+      console.log('NFT minting transaction initiated...');
+      
+    } catch (error) {
+      console.error('Failed to upload Yodha NFT to IPFS:', error);
+      // TODO: Add user-friendly error message
+    } finally {
+      setIsMinting(false);
     }
   };
 
@@ -881,17 +960,41 @@ export default function ChaavaniPage() {
                 {/* Mint Button */}
                 <div className="pt-4">
                   <button
-                    disabled={!isFormComplete}
+                    onClick={handleMintYodhaNFT}
+                    disabled={!isFormComplete || isMinting}
                     className={`w-full arcade-button py-4 text-xs tracking-wide ${
-                      !isFormComplete ? 'opacity-50 cursor-not-allowed' : ''
+                      !isFormComplete || isMinting ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                     style={{
                       fontFamily: 'Press Start 2P, monospace',
                       borderRadius: '12px'
                     }}
                   >
-                    {!isFormComplete ? 'COMPLETE ALL FIELDS' : 'MINT YODHA NFT'}
+                    {isMinting ? 'UPLOADING TO IPFS...' : (!isFormComplete ? 'COMPLETE ALL FIELDS' : 'MINT YODHA NFT')}
                   </button>
+                  
+                  {/* Display CID if NFT data uploaded */}
+                  {ipfsCid && (
+                    <div className="mt-4 p-3 bg-green-900/30 border border-green-500 rounded-lg">
+                      <p className="text-green-400 text-xs mb-2" style={{fontFamily: 'Press Start 2P, monospace'}}>
+                        YODHA NFT METADATA UPLOADED TO IPFS
+                      </p>
+                      <p className="text-green-300 text-xs break-all mb-1">
+                        METADATA CID: {ipfsCid}
+                      </p>
+                      <p className="text-yellow-300 text-xs mb-2" style={{fontFamily: 'Press Start 2P, monospace'}}>
+                        ✅ IMAGE + JSON METADATA STORED ON IPFS
+                      </p>
+                      <a 
+                        href={`https://${process.env.NEXT_PUBLIC_GATEWAY_URL || 'gateway.pinata.cloud'}/ipfs/${ipfsCid}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:text-blue-300 text-xs underline block mt-2"
+                      >
+                        View Metadata JSON on IPFS Gateway
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1220,7 +1323,8 @@ export default function ChaavaniPage() {
             style={{
               fontFamily: 'Press Start 2P, monospace',
               borderRadius: '12px'
-            }}            >
+            }}
+          >
             GO BACK
           </Link>
         </div>
