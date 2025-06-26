@@ -1,7 +1,7 @@
 {
-  "name": "traits-generator",
-  "version": "0.0.2",
-  "description": "Reads the JSON attributes file and return traits values of the character.",
+  "name": "move_choser",
+  "version": "0.0.1",
+  "description": "THe agent will choose the move for both the warriors",
   "category": "agent",
   "tags": [],
   "details": {
@@ -9,7 +9,7 @@
       "defaults": {
         "model": "llama-v3p1-70b-instruct",
         "model_provider": "fireworks",
-        "model_temperature": 0.8,
+        "model_temperature": 1.0,
         "model_max_tokens": 16384
       }
     }
