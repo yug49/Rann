@@ -362,6 +362,15 @@ const ChaavaniPage = memo(function ChaavaniPage() {
     setSelectedYodha(null);
   };
 
+  // Helper function to check if a Yodha is inactive (all traits are zero)
+  const isYodhaInactive = (traits: YodhaTraits) => {
+    return traits.strength === 0 && 
+           traits.wit === 0 && 
+           traits.charisma === 0 && 
+           traits.defence === 0 && 
+           traits.luck === 0;
+  };
+
   const getRankColor = (rank: string) => {
     switch (rank) {
       case 'unranked': return 'text-gray-500';
@@ -435,51 +444,67 @@ const ChaavaniPage = memo(function ChaavaniPage() {
     <div className="mb-3">
       <div className="flex justify-between mb-1">
         <span 
-          className="text-xs text-orange-400"
+          className={`text-xs ${value === 0 ? 'text-red-400' : 'text-orange-400'}`}
           style={{fontFamily: 'Press Start 2P, monospace'}}
         >
           {label}
         </span>
         <span 
-          className="text-xs text-orange-300"
+          className={`text-xs ${value === 0 ? 'text-red-300' : 'text-orange-300'}`}
           style={{fontFamily: 'Press Start 2P, monospace'}}
         >
-          {value.toFixed(1)}
+          {value.toFixed(1)} {value === 0 && '(INACTIVE)'}
         </span>
       </div>
-      <div className="w-full bg-gray-800 h-2 border border-orange-600">
+      <div className={`w-full bg-gray-800 h-2 border ${value === 0 ? 'border-red-600' : 'border-orange-600'}`}>
         <div 
-          className="h-full bg-orange-500 transition-all duration-500"
-          style={{ width: `${value}%` }}
+          className={`h-full transition-all duration-500 ${value === 0 ? 'bg-red-500' : 'bg-orange-500'}`}
+          style={{ width: `${Math.max(value, 2)}%` }} /* Show at least 2% width for zero values for visibility */
         ></div>
       </div>
     </div>
   ));
 
-  const YodhaCard = memo(({ yodha, onClick }: { yodha: UserYodha; onClick: () => void }) => (
-    <div 
-      className="arcade-card p-6 cursor-pointer transform hover:scale-105 transition-all duration-300"
-      onClick={onClick}
-      style={{
-        background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
-        border: '3px solid #ff8c00',
-        borderRadius: '24px',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)'
-      }}
-    >
+  const YodhaCard = memo(({ yodha, onClick }: { yodha: UserYodha; onClick: () => void }) => {
+    const isInactive = isYodhaInactive(yodha.traits);
+    
+    return (
+      <div 
+        className={`arcade-card p-6 cursor-pointer transform hover:scale-105 transition-all duration-300 ${isInactive ? 'opacity-75' : ''}`}
+        onClick={onClick}
+        style={{
+          background: isInactive 
+            ? 'radial-gradient(circle at top left, rgba(60, 60, 60, 0.15), rgba(50, 50, 50, 0.1) 50%), linear-gradient(135deg, rgba(80, 80, 80, 0.2) 0%, rgba(60, 60, 60, 0.15) 30%, rgba(80, 80, 80, 0.2) 100%)'
+            : 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+          border: `3px solid ${isInactive ? '#666666' : '#ff8c00'}`,
+          borderRadius: '24px',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          boxShadow: isInactive 
+            ? '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(102, 102, 102, 0.3)'
+            : '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)'
+        }}
+      >
       <div className="w-full h-64 mb-4 border-2 border-orange-600 rounded-2xl overflow-hidden relative">
         <YodhaImage 
           src={yodha.image} 
           alt={yodha.name}
           className="w-full h-full object-cover"
         />
+        {/* Rank Badge */}
         <div className={`absolute top-2 right-2 px-2 py-1 rounded-xl text-xs ${getRankBgColor(yodha.rank)} ${getRankColor(yodha.rank)} border border-current`}>
           <span style={{fontFamily: 'Press Start 2P, monospace'}}>
             {yodha.rank.toUpperCase()}
           </span>
         </div>
+        {/* Inactive Badge */}
+        {isYodhaInactive(yodha.traits) && (
+          <div className="absolute top-2 left-2 px-2 py-1 rounded-xl text-xs bg-red-900 text-red-400 border border-red-500">
+            <span style={{fontFamily: 'Press Start 2P, monospace'}}>
+              INACTIVE
+            </span>
+          </div>
+        )}
       </div>
       
       <div className="text-center mb-4">
@@ -516,7 +541,8 @@ const ChaavaniPage = memo(function ChaavaniPage() {
         </div>
       </div>
     </div>
-  ));
+    );
+  });
 
   // Function to convert cropped area to a File object
   const getCroppedImg = useCallback((image: HTMLImageElement, crop: PixelCrop): Promise<File> => {
@@ -1404,7 +1430,43 @@ const ChaavaniPage = memo(function ChaavaniPage() {
                         TOKEN ID: #{selectedYodha.tokenId}
                       </p>
 
-                      {selectedYodha.rank !== 'platinum' && (
+                      {/* Show inactive status if Yodha is inactive */}
+                      {isYodhaInactive(selectedYodha.traits) && (
+                        <div className="mb-6">
+                          <div className="bg-red-900 border-2 border-red-500 rounded-xl p-3 mb-4">
+                            <p 
+                              className="text-red-400 text-xs text-center"
+                              style={{fontFamily: 'Press Start 2P, monospace'}}
+                            >
+                              ⚠️ YODHA IS INACTIVE
+                            </p>
+                            <p 
+                              className="text-red-300 text-xs text-center mt-2"
+                              style={{fontFamily: 'Press Start 2P, monospace'}}
+                            >
+                              ACTIVATE FIRST TO USE IN BATTLES
+                            </p>
+                          </div>
+                          
+                          <button
+                            className="w-full arcade-button py-4 text-sm tracking-wide bg-green-600 hover:bg-green-700 border-green-500"
+                            style={{
+                              fontFamily: 'Press Start 2P, monospace',
+                              borderRadius: '12px'
+                            }}
+                            onClick={() => {
+                              // TODO: Implement actual activation logic
+                              console.log(`Activating ${selectedYodha.name}`);
+                              alert('Activate Yodha functionality coming soon!');
+                            }}
+                          >
+                            🌟 ACTIVATE YODHA
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Only show promotion info for active Yodhas */}
+                      {!isYodhaInactive(selectedYodha.traits) && selectedYodha.rank !== 'platinum' && (
                         <p 
                           className="text-xs text-yellow-400 mb-4"
                           style={{fontFamily: 'Press Start 2P, monospace'}}
@@ -1415,7 +1477,7 @@ const ChaavaniPage = memo(function ChaavaniPage() {
                       )}
                     </div>
 
-                    {selectedYodha.rank !== 'platinum' ? (
+                    {!isYodhaInactive(selectedYodha.traits) && selectedYodha.rank !== 'platinum' ? (
                       <button
                         onClick={() => handlePromoteYodha(selectedYodha)}
                         disabled={!canPromote(selectedYodha)}
@@ -1431,7 +1493,7 @@ const ChaavaniPage = memo(function ChaavaniPage() {
                       >
                         {canPromote(selectedYodha) ? 'PROMOTE WARRIOR' : 'INSUFFICIENT WINNINGS'}
                       </button>
-                    ) : (
+                    ) : !isYodhaInactive(selectedYodha.traits) && selectedYodha.rank === 'platinum' ? (
                       <div className="text-center">
                         <p 
                           className="text-blue-300 text-sm py-4"
@@ -1440,7 +1502,7 @@ const ChaavaniPage = memo(function ChaavaniPage() {
                           MAXIMUM RANK ACHIEVED!
                         </p>
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               </div>
