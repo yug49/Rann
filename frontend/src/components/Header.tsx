@@ -1,8 +1,7 @@
 "use client";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit"
-import { FaGithub } from "react-icons/fa"
-import { useAccount, useBalance, useReadContract } from "wagmi"
+import { useAccount, useBalance, useReadContract, useEnsName } from "wagmi"
 import { useState, useEffect } from "react"
 import { chainsToTSender, rannTokenAbi } from "../constants"
 import { formatEther } from "viem"
@@ -30,10 +29,28 @@ const Header: React.FC = () => {
     }
   });
 
+  // Resolve ENS name
+  const { data: ensName } = useEnsName({
+    address: address as `0x${string}` | undefined,
+    query: {
+      enabled: !!address,
+    }
+  });
+
   // Format balance for display
   const formattedBalance = rannBalance ? 
     parseFloat(formatEther(rannBalance as bigint)).toFixed(2) : 
     "0.00";
+
+  // Helper function to format display name (ENS or truncated address)
+  const formatDisplayName = (account: any) => {
+    if (ensName) {
+      // Display ENS name with a subtle indicator
+      return `${ensName} •`;
+    }
+    // Fallback to account.displayName which is already truncated by RainbowKit
+    return account.displayName;
+  };
 
   // Refetch balance periodically when connected
   useEffect(() => {
@@ -181,7 +198,7 @@ const Header: React.FC = () => {
                                 borderRadius: '12px !important'
                               }}
                             >
-                              {account.displayName}
+                              {formatDisplayName(account)}
                             </button>
                           </div>
                         );

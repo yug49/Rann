@@ -199,6 +199,14 @@ export default function HomePage() {
     setIsMounted(true);
   }, []);
 
+  const playSound = (soundFile: string) => {
+    const audio = new Audio(soundFile);
+    audio.volume = 0.5; // Adjust volume as needed
+    audio.play().catch(error => {
+      console.log('Audio play failed:', error);
+    });
+  };
+
   return (
     <div className="home-page min-h-screen relative overflow-hidden">
       {/* Background Image */}
@@ -359,6 +367,7 @@ export default function HomePage() {
                       fontFamily: 'Press Start 2P, monospace',
                       borderRadius: '12px !important'
                     }}
+                    onClick={() => playSound('/sword_sound.mp3')}
                   >
                     ENTER FORGE
                   </button>
@@ -417,6 +426,7 @@ export default function HomePage() {
                       fontFamily: 'Press Start 2P, monospace',
                       borderRadius: '12px !important'
                     }}
+                    onClick={() => playSound('/sword_sound.mp3')}
                   >
                     ENTER ACADEMY
                   </button>
@@ -475,6 +485,7 @@ export default function HomePage() {
                       fontFamily: 'Press Start 2P, monospace',
                       borderRadius: '12px !important'
                     }}
+                    onClick={() => playSound('/sword_sound.mp3')}
                   >
                     ENTER MARKET
                   </button>
@@ -531,6 +542,7 @@ export default function HomePage() {
                       fontFamily: 'Press Start 2P, monospace',
                       borderRadius: '12px !important'
                     }}
+                    onClick={() => playSound('/sword_sound.mp3')}
                   >
                     ENTER ARENA
                   </button>
@@ -562,12 +574,7 @@ export default function HomePage() {
               >
                 TOKEN EXCHANGE
               </h2>
-              <p 
-                className="text-yellow-300 text-sm"
-                style={{fontFamily: 'Press Start 2P, monospace'}}
-              >
-                CONVERT FLOW TO RANN TOKENS FOR BATTLE
-              </p>
+
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -630,6 +637,7 @@ export default function HomePage() {
                       fontFamily: 'Press Start 2P, monospace',
                       borderRadius: '12px !important'
                     }}
+                    onClick={() => playSound('/Leaderboard.wav')}
                   >
                     VIEW LEADERBOARD
                   </button>
