@@ -1215,15 +1215,6 @@ const ChaavaniPage = memo(function ChaavaniPage() {
               )}
             </div>
 
-            {/* Debug Info */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="mb-4 p-4 bg-gray-900/50 border border-gray-500 rounded-lg">
-                <p className="text-gray-300 text-xs" style={{fontFamily: 'Press Start 2P, monospace'}}>
-                  DEBUG: Chain ID: {chainId} | Contract Address: {chainsToTSender[chainId]?.yodhaNFT || 'NOT FOUND'}
-                </p>
-              </div>
-            )}
-
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {isLoadingNFTs ? (
                 <div className="col-span-full text-center py-12">
