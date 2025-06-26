@@ -1,14 +1,17 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useWriteContract, useWaitForTransactionReceipt, useAccount, useChainId } from 'wagmi';
+import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 import '../home-glass.css';
 import { nearAIService } from '../../services/nearAI';
 import { nearWalletService } from '../../services/nearWallet';
 import { ipfsService } from '../../services/ipfsService';
 import { chainsToTSender, yodhaNFTAbi } from '../../constants';
+import { useUserNFTs } from '../../hooks/useUserNFTs';
 
 interface YodhaTraits {
   strength: number;
@@ -32,7 +35,7 @@ interface UserYodha {
   totalWinnings: number;
 }
 
-export default function ChaavaniPage() {
+const ChaavaniPage = memo(function ChaavaniPage() {
   const [aiEnabled, setAiEnabled] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [formData, setFormData] = useState({
@@ -52,29 +55,53 @@ export default function ChaavaniPage() {
   const [isMinting, setIsMinting] = useState(false);
   const [ipfsCid, setIpfsCid] = useState<string | null>(null);
 
+  // Image cropper state
+  const [showCropper, setShowCropper] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [crop, setCrop] = useState<Crop>({
+    unit: '%',
+    width: 80,
+    height: 80,
+    x: 10,
+    y: 10
+  });
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+
   // Wagmi hooks for contract interaction
+  const { address: connectedAddress } = useAccount();
+  const chainId = useChainId();
+  
+  // Memoize the debug logging to prevent excessive console output
+  useMemo(() => {
+    console.log('Chaavani - chainId detected:', chainId, 'connectedAddress:', connectedAddress);
+  }, [chainId, connectedAddress]);
+  
   const { writeContract, data: hash } = useWriteContract();
   const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash,
   });
 
+  // Custom hook to manage user NFTs
+  const { userNFTs, isLoadingNFTs, hasError: tokenIdsError } = useUserNFTs(activeSection === 'manage', chainId);
+
   // Check NEAR wallet connection status
-  const checkNearWalletConnection = () => {
+  const checkNearWalletConnection = useCallback(() => {
     const connected = nearWalletService.isConnected();
     const accountId = nearWalletService.getAccountId();
     setNearWalletConnected(connected);
     setNearAccountId(accountId);
-  };
+  }, []);
 
   // Connect to NEAR wallet
-  const connectNearWallet = async () => {
+  const connectNearWallet = useCallback(async () => {
     try {
       await nearWalletService.connectWallet();
       checkNearWalletConnection();
     } catch (error) {
       console.error("Failed to connect NEAR wallet:", error);
     }
-  };
+  }, [checkNearWalletConnection]);
 
   // Check wallet connection on component mount
   useEffect(() => {
@@ -95,65 +122,50 @@ export default function ChaavaniPage() {
     }
   }, [isConfirmed, hash, ipfsCid]);
 
-  // Mock data for user's Yodhas
-  const userYodhas: UserYodha[] = [
-    {
-      id: 1,
-      tokenId: 101,
-      name: "Arjuna the Strategist",
-      bio: "A legendary warrior with unmatched archery skills and strategic mind",
-      life_history: "Born in the ancient kingdom of Hastinapura, trained by the greatest masters of warfare and divine knowledge",
-      adjectives: "Visionary, Ambitious, Perfectionistic, Risk-taking, Intellectually curious",
-      knowledge_areas: "Military strategy, Archery mastery, Divine weapons, Leadership, Ancient wisdom",
-      traits: { strength: 85.67, wit: 92.34, charisma: 78.12, defence: 88.45, luck: 76.89 },
-      image: "/lazered.png",
-      rank: 'gold',
-      totalWinnings: 15.7
-    },
-    {
-      id: 2,
-      tokenId: 102,
-      name: "Bhima the Destroyer",
-      bio: "A mighty warrior with incredible physical strength and fierce determination",
-      life_history: "Second of the Pandava brothers, known for his immense strength and loyalty to his family",
-      adjectives: "Powerful, Determined, Loyal, Aggressive, Protective",
-      knowledge_areas: "Physical combat, Mace warfare, Endurance training, Battle tactics, Brotherhood",
-      traits: { strength: 98.23, wit: 65.78, charisma: 82.45, defence: 94.12, luck: 71.56 },
-      image: "/lazered.png",
-      rank: 'silver',
-      totalWinnings: 8.5
-    },
-    {
-      id: 3,
-      tokenId: 103,
-      name: "Nakula the Swift",
-      bio: "A skilled swordsman known for his speed and expertise with horses",
-      life_history: "Twin brother of Sahadeva, master of sword fighting and horse management",
-      adjectives: "Swift, Elegant, Skilled, Graceful, Knowledgeable",
-      knowledge_areas: "Swordsmanship, Horse training, Speed combat, Veterinary science, Twin coordination",
-      traits: { strength: 78.91, wit: 84.33, charisma: 89.67, defence: 81.24, luck: 87.45 },
-      image: "/lazered.png",
-      rank: 'bronze',
-      totalWinnings: 2.1
-    }
-  ];
-
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = useCallback((field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
-  };
+  }, []);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setFormData(prev => ({ ...prev, image: file }));
+      // Create a FileReader to read the image
       const reader = new FileReader();
-      reader.onload = (e) => setImagePreview(e.target?.result as string);
+      reader.onload = (event) => {
+        const img = document.createElement('img');
+        img.onload = () => {
+          // Check if the image is square (1:1 aspect ratio)
+          if (img.width === img.height) {
+            // Image is square, proceed with upload
+            setFormData(prev => ({ ...prev, image: file }));
+            setImagePreview(event.target?.result as string);
+            console.log(`✅ Image uploaded: ${img.width}x${img.height} (Square)`);
+          } else {
+            // Image is not square, show cropper
+            console.log(`📐 Image needs cropping: ${img.width}x${img.height} - Opening cropper`);
+            setCropImageSrc(event.target?.result as string);
+            
+            // Set initial crop to be a square in the center (using percentage)
+            const cropSizePercent = 80; // 80% of the smaller dimension
+            setCrop({
+              unit: '%',
+              width: cropSizePercent,
+              height: cropSizePercent,
+              x: (100 - cropSizePercent) / 2,
+              y: (100 - cropSizePercent) / 2
+            });
+            
+            setShowCropper(true);
+          }
+        };
+        img.src = event.target?.result as string;
+      };
       reader.readAsDataURL(file);
     }
-  };
+  }, []);
 
   const generatePersonality = async () => {
     if (!aiPrompt.trim()) {
@@ -372,7 +384,54 @@ export default function ChaavaniPage() {
     }
   };
 
-  const TraitBar = ({ label, value }: { label: string; value: number }) => (
+  // Custom image component with fallback
+  const YodhaImage = memo(({ src, alt, className }: { src: string; alt: string; className: string }) => {
+    const [imageSrc, setImageSrc] = useState(src);
+    const [hasError, setHasError] = useState(false);
+    const [useRegularImg, setUseRegularImg] = useState(false);
+
+    useEffect(() => {
+      console.log(`🖼️ YodhaImage: Setting image src to: ${src}`);
+      setImageSrc(src);
+      setHasError(false);
+      // Use regular img tag for IPFS URLs to avoid Next.js restrictions
+      setUseRegularImg(src.includes('ipfs.io') || src.includes('dweb.link') || src.includes('cloudflare-ipfs.com'));
+    }, [src]);
+
+    const handleError = useCallback(() => {
+      if (!hasError) {
+        console.log(`🖼️ Image failed to load: ${imageSrc}, falling back to lazered.png`);
+        setImageSrc('/lazered.png');
+        setHasError(true);
+        setUseRegularImg(false); // Use Next.js Image for local fallback
+      }
+    }, [imageSrc, hasError]);
+
+    if (useRegularImg) {
+      return (
+        <img 
+          src={imageSrc}
+          alt={alt}
+          className={className}
+          onError={handleError}
+          style={{ objectFit: 'cover' }}
+        />
+      );
+    }
+
+    return (
+      <Image 
+        src={imageSrc}
+        alt={alt}
+        width={300}
+        height={256}
+        className={className}
+        onError={handleError}
+      />
+    );
+  });
+
+  const TraitBar = memo(({ label, value }: { label: string; value: number }) => (
     <div className="mb-3">
       <div className="flex justify-between mb-1">
         <span 
@@ -395,9 +454,9 @@ export default function ChaavaniPage() {
         ></div>
       </div>
     </div>
-  );
+  ));
 
-  const YodhaCard = ({ yodha, onClick }: { yodha: UserYodha; onClick: () => void }) => (
+  const YodhaCard = memo(({ yodha, onClick }: { yodha: UserYodha; onClick: () => void }) => (
     <div 
       className="arcade-card p-6 cursor-pointer transform hover:scale-105 transition-all duration-300"
       onClick={onClick}
@@ -411,11 +470,9 @@ export default function ChaavaniPage() {
       }}
     >
       <div className="w-full h-64 mb-4 border-2 border-orange-600 rounded-2xl overflow-hidden relative">
-        <Image 
+        <YodhaImage 
           src={yodha.image} 
           alt={yodha.name}
-          width={300}
-          height={256}
           className="w-full h-full object-cover"
         />
         <div className={`absolute top-2 right-2 px-2 py-1 rounded-xl text-xs ${getRankBgColor(yodha.rank)} ${getRankColor(yodha.rank)} border border-current`}>
@@ -459,7 +516,99 @@ export default function ChaavaniPage() {
         </div>
       </div>
     </div>
-  );
+  ));
+
+  // Function to convert cropped area to a File object
+  const getCroppedImg = useCallback((image: HTMLImageElement, crop: PixelCrop): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        reject(new Error('No 2d context'));
+        return;
+      }
+
+      // Get the scale ratios between displayed image and natural image
+      const scaleX = image.naturalWidth / image.width;
+      const scaleY = image.naturalHeight / image.height;
+
+      // Calculate the actual crop dimensions in natural image coordinates
+      const pixelCrop = {
+        x: crop.x * scaleX,
+        y: crop.y * scaleY,
+        width: crop.width * scaleX,
+        height: crop.height * scaleY,
+      };
+
+      // Set canvas size to crop size (use the original crop size for better quality)
+      canvas.width = pixelCrop.width;
+      canvas.height = pixelCrop.height;
+
+      console.log('Crop info:', {
+        displayedSize: { width: image.width, height: image.height },
+        naturalSize: { width: image.naturalWidth, height: image.naturalHeight },
+        scaleX, scaleY,
+        originalCrop: crop,
+        pixelCrop
+      });
+
+      // Draw the cropped image
+      ctx.drawImage(
+        image,
+        pixelCrop.x,
+        pixelCrop.y,
+        pixelCrop.width,
+        pixelCrop.height,
+        0,
+        0,
+        pixelCrop.width,
+        pixelCrop.height
+      );
+
+      // Convert canvas to blob then to File
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const file = new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' });
+          resolve(file);
+        } else {
+          reject(new Error('Canvas to blob conversion failed'));
+        }
+      }, 'image/jpeg', 0.9);
+    });
+  }, []);
+
+  // Handle crop completion
+  const handleCropComplete = useCallback(async () => {
+    if (completedCrop && imgRef.current && cropImageSrc) {
+      try {
+        console.log('Starting crop with:', completedCrop);
+        const croppedFile = await getCroppedImg(imgRef.current, completedCrop);
+        
+        // Set the cropped image as the form data
+        setFormData(prev => ({ ...prev, image: croppedFile }));
+        setImagePreview(URL.createObjectURL(croppedFile));
+        
+        // Close cropper
+        setShowCropper(false);
+        setCropImageSrc(null);
+        
+        console.log(`✅ Image cropped and uploaded: ${completedCrop.width}x${completedCrop.height} (Square)`);
+      } catch (error) {
+        console.error('Error cropping image:', error);
+        alert('Failed to crop image. Please try again.');
+      }
+    } else {
+      console.log('Missing crop data:', { completedCrop, imgRef: imgRef.current, cropImageSrc });
+    }
+  }, [completedCrop, cropImageSrc, getCroppedImg]);
+
+  // Handle crop cancel
+  const handleCropCancel = useCallback(() => {
+    setShowCropper(false);
+    setCropImageSrc(null);
+    setCompletedCrop(null);
+  }, []);
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -1018,24 +1167,91 @@ export default function ChaavaniPage() {
               >
                 MANAGE AND PROMOTE YOUR LEGENDARY FIGHTERS
               </p>
+              {!connectedAddress && (
+                <div className="mt-4 p-4 bg-red-900/50 border border-red-500 rounded-lg">
+                  <p 
+                    className="text-red-300 text-xs"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    CONNECT YOUR WALLET TO VIEW YOUR NFTS
+                  </p>
+                </div>
+              )}
+              {connectedAddress && !chainsToTSender[chainId] && (
+                <div className="mt-4 p-4 bg-yellow-900/50 border border-yellow-500 rounded-lg">
+                  <p 
+                    className="text-yellow-300 text-xs"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    CONTRACTS NOT DEPLOYED ON CHAIN {chainId}. PLEASE SWITCH TO FLOW TESTNET (CHAIN 545)
+                  </p>
+                </div>
+              )}
             </div>
 
+            {/* Debug Info */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mb-4 p-4 bg-gray-900/50 border border-gray-500 rounded-lg">
+                <p className="text-gray-300 text-xs" style={{fontFamily: 'Press Start 2P, monospace'}}>
+                  DEBUG: Chain ID: {chainId} | Contract Address: {chainsToTSender[chainId]?.yodhaNFT || 'NOT FOUND'}
+                </p>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {userYodhas.length > 0 ? (
-                userYodhas.map((yodha) => (
+              {isLoadingNFTs ? (
+                <div className="col-span-full text-center py-12">
+                  <div className="loading-spinner mx-auto mb-4"></div>
+                  <p 
+                    className="text-yellow-400 text-sm animate-pulse"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    LOADING YOUR WARRIORS...
+                  </p>
+                </div>
+              ) : tokenIdsError ? (
+                <div className="col-span-full text-center py-12">
+                  <p 
+                    className="text-red-400 text-sm"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    ERROR LOADING NFTS. CHECK NETWORK CONNECTION.
+                  </p>
+                </div>
+              ) : userNFTs.length > 0 ? (
+                userNFTs.map((yodha) => (
                   <YodhaCard 
                     key={yodha.id} 
                     yodha={yodha} 
                     onClick={() => setSelectedYodha(yodha)} 
                   />
                 ))
-              ) : (
+              ) : connectedAddress ? (
                 <div className="col-span-full text-center py-12">
                   <p 
                     className="text-gray-400 text-sm"
                     style={{fontFamily: 'Press Start 2P, monospace'}}
                   >
                     NO YODHAS FOUND. CREATE YOUR FIRST WARRIOR!
+                  </p>
+                  <button
+                    onClick={() => setActiveSection('create')}
+                    className="mt-4 px-6 py-3 arcade-button text-xs tracking-wide"
+                    style={{
+                      fontFamily: 'Press Start 2P, monospace',
+                      borderRadius: '12px'
+                    }}
+                  >
+                    CREATE YODHA
+                  </button>
+                </div>
+              ) : (
+                <div className="col-span-full text-center py-12">
+                  <p 
+                    className="text-gray-400 text-sm"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    CONNECT WALLET TO VIEW YOUR NFTS
                   </p>
                 </div>
               )}
@@ -1075,11 +1291,9 @@ export default function ChaavaniPage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div>
                   <div className="w-48 h-48 mx-auto mb-6 border-2 border-orange-600 rounded-2xl overflow-hidden">
-                    <Image 
+                    <YodhaImage 
                       src={selectedYodha.image} 
                       alt={selectedYodha.name}
-                      width={192}
-                      height={192}
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -1315,6 +1529,88 @@ export default function ChaavaniPage() {
           </div>
         )}
 
+        {/* Image Cropper Modal */}
+        {showCropper && cropImageSrc && (
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-900 border-2 border-orange-600 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-auto">
+              <h3 
+                className="text-orange-400 text-lg mb-4 text-center"
+                style={{fontFamily: 'Press Start 2P, monospace'}}
+              >
+                CROP YOUR IMAGE TO SQUARE
+              </h3>
+              
+              <p 
+                className="text-gray-400 text-xs mb-6 text-center"
+                style={{fontFamily: 'Press Start 2P, monospace'}}
+              >
+                DRAG THE CORNERS TO ADJUST THE CROP AREA
+              </p>
+
+              <div className="flex justify-center mb-6">
+                <ReactCrop
+                  crop={crop}
+                  onChange={(_, percentCrop) => setCrop(percentCrop)}
+                  onComplete={(c) => setCompletedCrop(c)}
+                  aspect={1} // Force 1:1 aspect ratio
+                  className="max-w-full max-h-96"
+                >
+                  <img
+                    ref={imgRef}
+                    src={cropImageSrc}
+                    alt="Crop preview"
+                    style={{ maxWidth: '100%', maxHeight: '400px' }}
+                    onLoad={(e) => {
+                      const { naturalWidth, naturalHeight } = e.currentTarget;
+                      const { width: displayWidth, height: displayHeight } = e.currentTarget;
+                      
+                      // Calculate crop in percentage terms for the displayed image
+                      const minDimension = Math.min(naturalWidth, naturalHeight);
+                      const cropSizeNatural = Math.min(minDimension, Math.min(naturalWidth, naturalHeight) * 0.8);
+                      
+                      // Convert to percentage of displayed image
+                      const cropSizePercent = (cropSizeNatural / Math.max(naturalWidth, naturalHeight)) * 100;
+                      
+                      const newCrop = {
+                        unit: '%' as const,
+                        width: cropSizePercent,
+                        height: cropSizePercent,
+                        x: (100 - cropSizePercent) / 2,
+                        y: (100 - cropSizePercent) / 2,
+                      };
+                      
+                      console.log('Setting initial crop:', newCrop);
+                      setCrop(newCrop);
+                    }}
+                  />
+                </ReactCrop>
+              </div>
+
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={handleCropCancel}
+                  className="arcade-button px-6 py-3 text-xs bg-red-600 hover:bg-red-700 border-red-500"
+                  style={{fontFamily: 'Press Start 2P, monospace'}}
+                >
+                  CANCEL
+                </button>
+                <button
+                  onClick={handleCropComplete}
+                  disabled={!completedCrop}
+                  className={`arcade-button px-6 py-3 text-xs ${
+                    completedCrop 
+                      ? 'bg-green-600 hover:bg-green-700 border-green-500' 
+                      : 'bg-gray-600 border-gray-500 opacity-50 cursor-not-allowed'
+                  }`}
+                  style={{fontFamily: 'Press Start 2P, monospace'}}
+                >
+                  CROP & USE
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Back to Home */}
         <div className="text-center mt-12">
           <Link 
@@ -1331,4 +1627,6 @@ export default function ChaavaniPage() {
       </div>
     </div>
   );
-}
+});
+
+export default ChaavaniPage;
