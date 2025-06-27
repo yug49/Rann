@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
+import { useWriteContract, useWaitForTransactionReceipt, useAccount, useChainId, useReadContract } from 'wagmi';
+import { parseEther, formatEther } from 'viem';
 import '../home-glass.css';
+import { chainsToTSender, yodhaNFTAbi, BazaarAbi, rannTokenAbi } from '../../constants';
+import { useUserNFTs } from '../../hooks/useUserNFTs';
 
 interface YodhaTraits {
   strength: number;
@@ -35,102 +39,444 @@ export default function BazaarPage() {
   const [newListingPrice, setNewListingPrice] = useState('');
   const [selectedYodha, setSelectedYodha] = useState<YodhaListing | null>(null);
   const [isListing, setIsListing] = useState(false);
+  const [marketListings, setMarketListings] = useState<YodhaListing[]>([]);
+  const [userListings, setUserListings] = useState<YodhaListing[]>([]);
+  const [isLoadingMarket, setIsLoadingMarket] = useState(false);
+  const [newPrice, setNewPrice] = useState('');
+  const [isChangingPrice, setIsChangingPrice] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  // Mock data for marketplace listings
-  const marketListings: YodhaListing[] = [
-    {
-      id: 1,
-      tokenId: 101,
-      name: "Arjuna the Strategist",
-      bio: "A legendary warrior with unmatched archery skills and strategic mind",
-      life_history: "Born in the ancient kingdom of Hastinapura, trained by the greatest masters of warfare and divine knowledge",
-      adjectives: "Visionary, Ambitious, Perfectionistic, Risk-taking, Intellectually curious",
-      knowledge_areas: "Military strategy, Archery mastery, Divine weapons, Leadership, Ancient wisdom",
-      traits: { strength: 85.67, wit: 92.34, charisma: 78.12, defence: 88.45, luck: 76.89 },
-      price: 2.5,
-      seller: "0x742d...35A2",
-      image: "/lazered.png",
-      isOwner: false,
-      rank: 'gold',
-      totalWinnings: 15.7
-    },
-    {
-      id: 2,
-      tokenId: 102,
-      name: "Bhima the Destroyer",
-      bio: "A mighty warrior with incredible physical strength and fierce determination",
-      life_history: "Second of the Pandava brothers, known for his immense strength and loyalty to his family",
-      adjectives: "Powerful, Determined, Loyal, Aggressive, Protective",
-      knowledge_areas: "Physical combat, Mace warfare, Endurance training, Battle tactics, Brotherhood",
-      traits: { strength: 98.23, wit: 65.78, charisma: 82.45, defence: 94.12, luck: 71.56 },
-      price: 3.2,
-      seller: "0x8A3b...7F91",
-      image: "/lazered.png",
-      isOwner: false,
-      rank: 'platinum',
-      totalWinnings: 28.4
-    },
-    {
-      id: 3,
-      tokenId: 103,
-      name: "Nakula the Swift",
-      bio: "A skilled swordsman known for his speed and expertise with horses",
-      life_history: "Twin brother of Sahadeva, master of sword fighting and horse management",
-      adjectives: "Swift, Elegant, Skilled, Graceful, Knowledgeable",
-      knowledge_areas: "Swordsmanship, Horse training, Speed combat, Veterinary science, Twin coordination",
-      traits: { strength: 78.91, wit: 84.33, charisma: 89.67, defence: 81.24, luck: 87.45 },
-      price: 1.8,
-      seller: "0x1C4F...9D82",
-      image: "/lazered.png",
-      isOwner: false,
-      rank: 'silver',
-      totalWinnings: 8.9
-    }
-  ];
+  const { address } = useAccount();
+  const chainId = useChainId();
+  
+  // Contract addresses
+  const bazaarContract = chainsToTSender[chainId]?.Bazaar;
+  const yodhaNFTContract = chainsToTSender[chainId]?.yodhaNFT;
+  const rannTokenContract = chainsToTSender[chainId]?.rannToken;
 
-  // Mock data for user's own listings
-  const userListings: YodhaListing[] = [
-    {
-      id: 4,
-      tokenId: 201,
-      name: "Sahadeva the Wise",
-      bio: "The youngest Pandava, known for his wisdom and knowledge of astronomy",
-      life_history: "Master of astrology and mathematics, advisor to his brothers in matters of strategy",
-      adjectives: "Wise, Analytical, Patient, Observant, Scholarly",
-      knowledge_areas: "Astronomy, Mathematics, Astrology, Strategic planning, Ancient texts",
-      traits: { strength: 72.45, wit: 96.78, charisma: 85.23, defence: 79.67, luck: 91.34 },
-      price: 2.1,
-      seller: "You",
-      image: "/lazered.png",
-      isOwner: true,
-      rank: 'bronze',
-      totalWinnings: 4.2
+  // Contract write hooks
+  const { writeContract: writeBazaar, data: bazaarHash, isPending: isBazaarPending } = useWriteContract();
+  const { writeContract: writeYodhaNFT, data: yodhaHash, isPending: isYodhaPending } = useWriteContract();
+  const { writeContract: writeRannToken, data: rannHash, isPending: isRannPending } = useWriteContract();
+
+  // Transaction receipt hooks
+  const { isLoading: isBazaarConfirming, isSuccess: isBazaarSuccess } = useWaitForTransactionReceipt({ hash: bazaarHash });
+  const { isLoading: isYodhaConfirming, isSuccess: isYodhaSuccess } = useWaitForTransactionReceipt({ hash: yodhaHash });
+  const { isLoading: isRannConfirming, isSuccess: isRannSuccess } = useWaitForTransactionReceipt({ hash: rannHash });
+
+  // Get token IDs on sale from Bazaar contract
+  const { data: tokenIdsOnSale, refetch: refetchTokenIds } = useReadContract({
+    address: bazaarContract as `0x${string}`,
+    abi: BazaarAbi,
+    functionName: 'getYodhaIdsOnSale',
+    query: {
+      enabled: !!bazaarContract,
+    },
+  });
+
+  // Get user's RANN token balance
+  const { data: userRannBalance } = useReadContract({
+    address: rannTokenContract as `0x${string}`,
+    abi: rannTokenAbi,
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
+    query: {
+      enabled: !!address && !!rannTokenContract,
+    },
+  });
+  
+  // Get user's NFTs for manage section
+  const { userNFTs, isLoadingNFTs } = useUserNFTs(!!address, chainId);
+
+  // Force refresh function
+  const refreshData = useCallback(() => {
+    setRefreshKey(prev => prev + 1);
+    // Refetch the token IDs which will trigger market listings refresh
+    if (refetchTokenIds) {
+      refetchTokenIds();
     }
-  ];
+  }, [refetchTokenIds]);
+
+  // Refresh userNFTs when refreshKey changes
+  useEffect(() => {
+    if (refreshKey > 0) {
+      // Force re-render by triggering a state change that affects the dependency
+      // This will cause the tokenIdsOnSale to be re-fetched, which will trigger market listings refresh
+      console.log('Refreshing data...', refreshKey);
+      // Small delay to ensure transaction is fully processed on blockchain
+      setTimeout(() => {
+        if (refetchTokenIds) {
+          refetchTokenIds();
+        }
+      }, 500);
+    }
+  }, [refreshKey, refetchTokenIds]);
+
+  // Auto-refresh when transactions complete successfully
+  useEffect(() => {
+    if (isBazaarSuccess) {
+      // Small delay to ensure blockchain state has updated
+      setTimeout(() => {
+        refreshData();
+      }, 3000);
+    }
+  }, [isBazaarSuccess, refreshData]);
+
+  useEffect(() => {
+    if (isYodhaSuccess) {
+      // Small delay to ensure blockchain state has updated
+      setTimeout(() => {
+        refreshData();
+      }, 3000);
+    }
+  }, [isYodhaSuccess, refreshData]);
+
+  useEffect(() => {
+    if (isRannSuccess) {
+      // Small delay to ensure blockchain state has updated
+      setTimeout(() => {
+        refreshData();
+      }, 3000);
+    }
+  }, [isRannSuccess, refreshData]);
+
+  // Fetch market listings when tokenIdsOnSale changes
+  useEffect(() => {
+    const fetchMarketListings = async () => {
+      if (!tokenIdsOnSale || !Array.isArray(tokenIdsOnSale) || tokenIdsOnSale.length === 0) {
+        setMarketListings([]);
+        return;
+      }
+
+      setIsLoadingMarket(true);
+      try {
+        const listings = await Promise.all(
+          tokenIdsOnSale.map(async (tokenId: bigint, index: number) => {
+            try {
+              // Get price and owner from Bazaar contract
+              const [priceResponse, ownerResponse, tokenURIResponse, traitsResponse, rankingResponse, winningsResponse] = 
+                await Promise.allSettled([
+                  fetch('/api/contract/read', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      contractAddress: bazaarContract,
+                      abi: BazaarAbi,
+                      functionName: 'getYodhaPrice',
+                      args: [tokenId.toString()],
+                      chainId: chainId
+                    })
+                  }).then(res => res.json()),
+                  
+                  fetch('/api/contract/read', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      contractAddress: bazaarContract,
+                      abi: BazaarAbi,
+                      functionName: 'getYodhaOwner',
+                      args: [tokenId.toString()],
+                      chainId: chainId
+                    })
+                  }).then(res => res.json()),
+
+                  // Get NFT metadata
+                  fetch('/api/contract/read', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      contractAddress: yodhaNFTContract,
+                      abi: yodhaNFTAbi,
+                      functionName: 'tokenURI',
+                      args: [tokenId.toString()],
+                      chainId: chainId
+                    })
+                  }).then(res => res.json()),
+
+                  fetch('/api/contract/read', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      contractAddress: yodhaNFTContract,
+                      abi: yodhaNFTAbi,
+                      functionName: 'getTraits',
+                      args: [tokenId.toString()],
+                      chainId: chainId
+                    })
+                  }).then(res => res.json()),
+
+                  fetch('/api/contract/read', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      contractAddress: yodhaNFTContract,
+                      abi: yodhaNFTAbi,
+                      functionName: 'getRanking',
+                      args: [tokenId.toString()],
+                      chainId: chainId
+                    })
+                  }).then(res => res.json()),
+
+                  fetch('/api/contract/read', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      contractAddress: yodhaNFTContract,
+                      abi: yodhaNFTAbi,
+                      functionName: 'getWinnings',
+                      args: [tokenId.toString()],
+                      chainId: chainId
+                    })
+                  }).then(res => res.json())
+                ]);
+
+              const price = priceResponse.status === 'fulfilled' ? priceResponse.value : '0';
+              const owner = ownerResponse.status === 'fulfilled' ? ownerResponse.value : '';
+              const tokenURI = tokenURIResponse.status === 'fulfilled' ? tokenURIResponse.value : '';
+              const contractTraits = traitsResponse.status === 'fulfilled' ? traitsResponse.value : null;
+              const ranking = rankingResponse.status === 'fulfilled' ? rankingResponse.value : 0;
+              const winnings = winningsResponse.status === 'fulfilled' ? winningsResponse.value : '0';
+
+              console.log(`Token ${tokenId} data:`, { price, owner, tokenURI, contractTraits, ranking, winnings });
+
+              // Fetch metadata from IPFS (using the same logic as useUserNFTs)
+              let metadata = { 
+                name: `Warrior #${tokenId}`, 
+                image: '/lazered.png',
+                bio: 'Warrior available for purchase',
+                life_history: 'A legendary fighter seeking a new master',
+                personality: ['Powerful', 'Skilled'],
+                knowledge_areas: ['Combat', 'Strategy']
+              };
+              
+              if (tokenURI && tokenURI.startsWith('ipfs://')) {
+                try {
+                  const cid = tokenURI.replace('ipfs://', '');
+                  const gateways = [
+                    'https://ipfs.io/ipfs/',
+                    'https://dweb.link/ipfs/',
+                    'https://cloudflare-ipfs.com/ipfs/',
+                  ];
+                  
+                  for (const gateway of gateways) {
+                    try {
+                      const response = await fetch(`${gateway}${cid}`, {
+                        headers: { 'Accept': 'application/json' },
+                        signal: AbortSignal.timeout(8000)
+                      });
+                      
+                      if (response.ok) {
+                        const ipfsMetadata = await response.json();
+                        console.log(`Token ${tokenId} IPFS metadata:`, ipfsMetadata);
+                        metadata = {
+                          name: ipfsMetadata.name || `Warrior #${tokenId}`,
+                          image: ipfsMetadata.image ? 
+                            (ipfsMetadata.image.startsWith('ipfs://') ? 
+                              `https://ipfs.io/ipfs/${ipfsMetadata.image.replace('ipfs://', '')}` : 
+                              ipfsMetadata.image) : '/lazered.png',
+                          bio: ipfsMetadata.bio || ipfsMetadata.description || 'Warrior available for purchase',
+                          life_history: ipfsMetadata.life_history || 'A legendary fighter seeking a new master',
+                          personality: Array.isArray(ipfsMetadata.personality) ? ipfsMetadata.personality : 
+                                     (ipfsMetadata.adjectives ? ipfsMetadata.adjectives.split(', ') : ['Powerful', 'Skilled']),
+                          knowledge_areas: Array.isArray(ipfsMetadata.knowledge_areas) ? ipfsMetadata.knowledge_areas :
+                                         (ipfsMetadata.knowledge_areas ? ipfsMetadata.knowledge_areas.split(', ') : ['Combat', 'Strategy'])
+                        };
+                        break;
+                      }
+                    } catch (error) {
+                      console.warn(`Gateway ${gateway} failed:`, error);
+                      continue;
+                    }
+                  }
+                } catch (error) {
+                  console.error(`Error fetching IPFS metadata for token ${tokenId}:`, error);
+                }
+              }
+              
+              // Parse traits
+              let traits: YodhaTraits = {
+                strength: 50.0,
+                wit: 50.0,
+                charisma: 50.0,
+                defence: 50.0,
+                luck: 50.0
+              };
+
+              if (contractTraits) {
+                traits = {
+                  strength: Number(contractTraits.strength) / 100,
+                  wit: Number(contractTraits.wit) / 100,
+                  charisma: Number(contractTraits.charisma) / 100,
+                  defence: Number(contractTraits.defence) / 100,
+                  luck: Number(contractTraits.luck) / 100
+                };
+              }
+
+              const rankingToString = (rank: number): 'unranked' | 'bronze' | 'silver' | 'gold' | 'platinum' => {
+                switch (rank) {
+                  case 0: return 'unranked';
+                  case 1: return 'bronze';
+                  case 2: return 'silver';
+                  case 3: return 'gold';
+                  case 4: return 'platinum';
+                  default: return 'unranked';
+                }
+              };
+
+              const finalListing = {
+                id: index + 1,
+                tokenId: Number(tokenId),
+                name: metadata.name,
+                bio: metadata.bio,
+                life_history: metadata.life_history,
+                adjectives: Array.isArray(metadata.personality) ? metadata.personality.join(', ') : 
+                           (typeof metadata.personality === 'string' ? metadata.personality : 'Powerful, Skilled'),
+                knowledge_areas: Array.isArray(metadata.knowledge_areas) ? metadata.knowledge_areas.join(', ') :
+                               (typeof metadata.knowledge_areas === 'string' ? metadata.knowledge_areas : 'Combat, Strategy'),
+                traits,
+                price: Number(formatEther(BigInt(price))),
+                seller: `${owner.slice(0, 6)}...${owner.slice(-4)}`,
+                image: metadata.image,
+                isOwner: address?.toLowerCase() === owner.toLowerCase(),
+                rank: rankingToString(ranking),
+                totalWinnings: Number(winnings) / 1e18
+              } as YodhaListing;
+
+              console.log(`Final listing for token ${tokenId}:`, finalListing);
+              return finalListing;
+
+            } catch (error) {
+              console.error(`Error fetching listing for token ${tokenId}:`, error);
+              return null;
+            }
+          })
+        );
+
+        setMarketListings(listings.filter(listing => listing !== null) as YodhaListing[]);
+      } catch (error) {
+        console.error('Error fetching market listings:', error);
+        setMarketListings([]);
+      } finally {
+        setIsLoadingMarket(false);
+      }
+    };
+
+    fetchMarketListings();
+  }, [tokenIdsOnSale, address, bazaarContract, yodhaNFTContract, chainId, refreshKey]);
+
+  // Update user listings when user NFTs change
+  useEffect(() => {
+    if (!address || !tokenIdsOnSale) {
+      setUserListings([]);
+      return;
+    }
+
+    const userTokenIdsOnSale = Array.isArray(tokenIdsOnSale) ? tokenIdsOnSale.map(id => Number(id)) : [];
+    const userOwnedListings = marketListings.filter(listing => 
+      listing.isOwner && userTokenIdsOnSale.includes(listing.tokenId)
+    );
+    
+    setUserListings(userOwnedListings);
+  }, [marketListings, address, tokenIdsOnSale]);
 
   const handleCreateListing = async () => {
-    if (!newListingTokenId || !newListingPrice) return;
+    if (!newListingTokenId || !newListingPrice || !address) return;
     
     setIsListing(true);
-    // Simulate listing creation
-    setTimeout(() => {
+    try {
+      // First approve the Bazaar contract to transfer the NFT
+      await writeYodhaNFT({
+        address: yodhaNFTContract as `0x${string}`,
+        abi: yodhaNFTAbi,
+        functionName: 'approve',
+        args: [bazaarContract, BigInt(newListingTokenId)]
+      });
+
+      // Wait for approval, then list the NFT
+      // Note: In a production app, you'd want to wait for the approval transaction to complete
+      // before calling putYourYodhaForSale
+      setTimeout(async () => {
+        await writeBazaar({
+          address: bazaarContract as `0x${string}`,
+          abi: BazaarAbi,
+          functionName: 'putYourYodhaForSale',
+          args: [BigInt(newListingTokenId), parseEther(newListingPrice)]
+        });
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error creating listing:', error);
+    } finally {
       setIsListing(false);
       setNewListingTokenId('');
       setNewListingPrice('');
-      // In real app, would refresh listings
-    }, 2000);
+    }
   };
 
   const handleBuyYodha = async (listing: YodhaListing) => {
-    // Simulate purchase
-    console.log(`Buying ${listing.name} for ${listing.price} RANN`);
+    if (!address) return;
+
+    try {
+      // First approve RANN tokens for the purchase
+      await writeRannToken({
+        address: rannTokenContract as `0x${string}`,
+        abi: rannTokenAbi,
+        functionName: 'approve',
+        args: [bazaarContract, parseEther(listing.price.toString())]
+      });
+
+      // Wait for approval, then buy the NFT
+      setTimeout(async () => {
+        await writeBazaar({
+          address: bazaarContract as `0x${string}`,
+          abi: BazaarAbi,
+          functionName: 'buyYodha',
+          args: [BigInt(listing.tokenId)]
+        });
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error buying Yodha:', error);
+    }
+    
     setSelectedYodha(null);
   };
 
   const handleRemoveListing = async (listing: YodhaListing) => {
-    // Simulate removing listing
-    console.log(`Removing listing for ${listing.name}`);
+    if (!address) return;
+
+    try {
+      await writeBazaar({
+        address: bazaarContract as `0x${string}`,
+        abi: BazaarAbi,
+        functionName: 'retrieveYodhaOnSale',
+        args: [BigInt(listing.tokenId)]
+      });
+    } catch (error) {
+      console.error('Error removing listing:', error);
+    }
+    
     setSelectedYodha(null);
+  };
+
+  const handleChangePrice = async (listing: YodhaListing) => {
+    if (!address || !newPrice) return;
+
+    setIsChangingPrice(true);
+    try {
+      await writeBazaar({
+        address: bazaarContract as `0x${string}`,
+        abi: BazaarAbi,
+        functionName: 'changePriceOfYodhaAlreadyOnSale',
+        args: [BigInt(listing.tokenId), parseEther(newPrice)]
+      });
+    } catch (error) {
+      console.error('Error changing price:', error);
+    } finally {
+      setIsChangingPrice(false);
+      setNewPrice('');
+      setSelectedYodha(null);
+    }
   };
 
   const getRankColor = (rank: string) => {
@@ -379,13 +725,48 @@ export default function BazaarPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {marketListings.map((listing) => (
-                <YodhaCard 
-                  key={listing.id} 
-                  listing={listing} 
-                  onClick={() => setSelectedYodha(listing)}
-                />
-              ))}
+              {isLoadingMarket ? (
+                // Loading state
+                Array.from({ length: 6 }).map((_, index) => (
+                  <div 
+                    key={index}
+                    className="arcade-card p-6 animate-pulse"
+                    style={{
+                      background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+                      border: '3px solid #ff8c00',
+                      backdropFilter: 'blur(20px)',
+                      WebkitBackdropFilter: 'blur(20px)',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+                      borderRadius: '24px'
+                    }}
+                  >
+                    <div className="w-full h-64 mb-4 bg-gray-600 rounded-lg"></div>
+                    <div className="h-4 bg-gray-600 rounded mb-4"></div>
+                    <div className="space-y-2">
+                      <div className="h-3 bg-gray-700 rounded"></div>
+                      <div className="h-3 bg-gray-700 rounded"></div>
+                      <div className="h-3 bg-gray-700 rounded"></div>
+                    </div>
+                  </div>
+                ))
+              ) : marketListings.length === 0 ? (
+                <div className="col-span-full text-center py-12">
+                  <span 
+                    className="text-gray-500 text-sm"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    NO WARRIORS FOR SALE
+                  </span>
+                </div>
+              ) : (
+                marketListings.map((listing) => (
+                  <YodhaCard 
+                    key={listing.id} 
+                    listing={listing} 
+                    onClick={() => setSelectedYodha(listing)}
+                  />
+                ))
+              )}
             </div>
           </div>
         ) : (
@@ -423,16 +804,30 @@ export default function BazaarPage() {
                       className="block text-orange-400 text-xs mb-2 tracking-wide"
                       style={{fontFamily: 'Press Start 2P, monospace'}}
                     >
-                      NFT TOKEN ID
+                      SELECT YOUR NFT
                     </label>
-                    <input
-                      type="number"
+                    <select
                       value={newListingTokenId}
                       onChange={(e) => setNewListingTokenId(e.target.value)}
-                      placeholder="Enter token ID..."
+                      disabled={isLoadingNFTs}
                       className="w-full bg-gray-900 border-2 border-gray-600 text-gray-300 p-3 text-xs focus:border-orange-600 focus:outline-none transition-colors"
                       style={{fontFamily: 'Press Start 2P, monospace'}}
-                    />
+                    >
+                      <option value="">
+                        {isLoadingNFTs ? 'Loading warriors...' : 'Select a warrior...'}
+                      </option>
+                      {!isLoadingNFTs && userNFTs
+                        .filter((nft) => {
+                          // Filter out NFTs that are already listed for sale
+                          const tokenIdsOnSaleArray = Array.isArray(tokenIdsOnSale) ? tokenIdsOnSale.map(id => Number(id)) : [];
+                          return !tokenIdsOnSaleArray.includes(nft.tokenId);
+                        })
+                        .map((nft) => (
+                          <option key={nft.tokenId} value={nft.tokenId}>
+                            #{nft.tokenId} - {nft.name}
+                          </option>
+                        ))}
+                    </select>
                   </div>
 
                   <div>
@@ -453,18 +848,22 @@ export default function BazaarPage() {
                     />
                   </div>
 
+                  <div className="text-xs text-gray-400" style={{fontFamily: 'Press Start 2P, monospace'}}>
+                    YOUR RANN BALANCE: {userRannBalance ? formatEther(userRannBalance as bigint) : '0'} RANN
+                  </div>
+
                   <button
                     onClick={handleCreateListing}
-                    disabled={!newListingTokenId || !newListingPrice || isListing}
+                    disabled={!newListingTokenId || !newListingPrice || isListing || isBazaarPending || isYodhaPending}
                     className={`w-full arcade-button py-4 text-xs tracking-wide ${
-                      (!newListingTokenId || !newListingPrice || isListing) ? 'opacity-50 cursor-not-allowed' : ''
+                      (!newListingTokenId || !newListingPrice || isListing || isBazaarPending || isYodhaPending) ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                     style={{
                       fontFamily: 'Press Start 2P, monospace',
                       borderRadius: '12px'
                     }}
                   >
-                    {isListing ? 'LISTING WARRIOR...' : 'CREATE LISTING'}
+                    {isListing || isBazaarPending || isYodhaPending ? 'LISTING...' : 'LIST FOR SALE'}
                   </button>
                 </div>
               </div>
@@ -481,48 +880,52 @@ export default function BazaarPage() {
                   borderRadius: '24px'
                 }}
               >
-                <h2 
-                  className="text-2xl text-orange-400 text-center mb-6 tracking-wider arcade-glow"
-                  style={{fontFamily: 'Press Start 2P, monospace'}}
-                >
-                  YOUR LISTINGS
-                </h2>
+                <div className="text-center mb-6">
+                  <div className="weapon-container w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4">
+                    <span className="text-2xl">📋</span>
+                  </div>
+                  <h2 
+                    className="text-2xl text-orange-400 mb-4 tracking-wider arcade-glow"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    YOUR LISTINGS
+                  </h2>
+                </div>
 
-                <div className="space-y-6">
-                  {userListings.length > 0 ? (
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {userListings.length === 0 ? (
+                    <div className="text-center py-8">
+                      <span 
+                        className="text-gray-500 text-xs"
+                        style={{fontFamily: 'Press Start 2P, monospace'}}
+                      >
+                        NO ACTIVE LISTINGS
+                      </span>
+                    </div>
+                  ) : (
                     userListings.map((listing) => (
                       <div 
-                        key={listing.id} 
-                        className="border border-orange-600 p-4 cursor-pointer hover:border-orange-500 transition-colors"
+                        key={listing.id}
+                        className="border border-gray-600 p-4 rounded-lg bg-gray-800/50 cursor-pointer hover:border-orange-600 transition-all"
                         onClick={() => setSelectedYodha(listing)}
                       >
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 border border-orange-600 rounded overflow-hidden">
-                            <Image 
-                              src={listing.image} 
-                              alt={listing.name}
-                              width={48}
-                              height={48}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
+                        <div className="flex items-center space-x-4">
+                          <Image 
+                            src={listing.image} 
+                            alt={listing.name}
+                            width={60}
+                            height={60}
+                            className="rounded-lg border border-orange-600"
+                          />
                           <div className="flex-1">
                             <h3 
-                              className="text-sm text-orange-400 mb-1"
+                              className="text-orange-400 text-xs mb-1"
                               style={{fontFamily: 'Press Start 2P, monospace'}}
                             >
                               {listing.name}
                             </h3>
                             <p 
-                              className="text-xs text-orange-300"
-                              style={{fontFamily: 'Press Start 2P, monospace'}}
-                            >
-                              #{listing.tokenId}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p 
-                              className="text-lg text-yellow-400 arcade-glow"
+                              className="text-yellow-400 text-xs"
                               style={{fontFamily: 'Press Start 2P, monospace'}}
                             >
                               {listing.price} RANN
@@ -531,15 +934,6 @@ export default function BazaarPage() {
                         </div>
                       </div>
                     ))
-                  ) : (
-                    <div className="text-center">
-                      <p 
-                        className="text-gray-400 text-xs leading-relaxed"
-                        style={{fontFamily: 'Press Start 2P, monospace'}}
-                      >
-                        NO ACTIVE LISTINGS
-                      </p>
-                    </div>
                   )}
                 </div>
               </div>
@@ -711,27 +1105,66 @@ export default function BazaarPage() {
                     {!selectedYodha.isOwner && (
                       <button
                         onClick={() => handleBuyYodha(selectedYodha)}
-                        className="w-full arcade-button py-4 text-sm tracking-wide"
+                        disabled={isBazaarPending || isRannPending}
+                        className={`w-full arcade-button py-4 text-sm tracking-wide ${
+                          (isBazaarPending || isRannPending) ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
                         style={{
                           fontFamily: 'Press Start 2P, monospace',
                           borderRadius: '12px'
                         }}
                       >
-                        BUY WARRIOR
+                        {isBazaarPending || isRannPending ? 'BUYING...' : 'BUY WARRIOR'}
                       </button>
                     )}
                     
                     {selectedYodha.isOwner && (
-                      <button
-                        onClick={() => handleRemoveListing(selectedYodha)}
-                        className="w-full bg-red-800 hover:bg-red-700 border-2 border-red-600 text-red-300 py-4 text-sm tracking-wide transition-colors"
-                        style={{
-                          fontFamily: 'Press Start 2P, monospace',
-                          borderRadius: '12px'
-                        }}
-                      >
-                        REMOVE LISTING
-                      </button>
+                      <div className="space-y-4">
+                        <div>
+                          <label 
+                            className="block text-orange-400 text-xs mb-2 tracking-wide"
+                            style={{fontFamily: 'Press Start 2P, monospace'}}
+                          >
+                            CHANGE PRICE (RANN)
+                          </label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={newPrice}
+                            onChange={(e) => setNewPrice(e.target.value)}
+                            placeholder="Enter new price..."
+                            className="w-full bg-gray-900 border-2 border-gray-600 text-gray-300 p-3 text-xs focus:border-orange-600 focus:outline-none transition-colors mb-4"
+                            style={{fontFamily: 'Press Start 2P, monospace'}}
+                          />
+                          <button
+                            onClick={() => handleChangePrice(selectedYodha)}
+                            disabled={!newPrice || isChangingPrice || isBazaarPending}
+                            className={`w-full arcade-button py-3 text-xs tracking-wide mb-4 ${
+                              (!newPrice || isChangingPrice || isBazaarPending) ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                            style={{
+                              fontFamily: 'Press Start 2P, monospace',
+                              borderRadius: '12px'
+                            }}
+                          >
+                            {isChangingPrice || isBazaarPending ? 'UPDATING...' : 'UPDATE PRICE'}
+                          </button>
+                        </div>
+                        
+                        <button
+                          onClick={() => handleRemoveListing(selectedYodha)}
+                          disabled={isBazaarPending}
+                          className={`w-full bg-red-800 hover:bg-red-700 border-2 border-red-600 text-red-300 py-4 text-sm tracking-wide transition-colors ${
+                            isBazaarPending ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                          style={{
+                            fontFamily: 'Press Start 2P, monospace',
+                            borderRadius: '12px'
+                          }}
+                        >
+                          {isBazaarPending ? 'REMOVING...' : 'REMOVE LISTING'}
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
