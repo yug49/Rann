@@ -1,6 +1,6 @@
 // near assistant ids
-
 export const chaavani_attributes_generator_assistant_id : string = "samkitsoni.near/attributes-generator/latest";
+export const near_agent_traits_generator_id : string = "samkitsoni.near/traits-generator/latest";
 
 // IPFS Configuration
 export const PINATA_GATEWAY_URL = "https://gateway.pinata.cloud/ipfs/";
@@ -8,7 +8,6 @@ export const IPFS_UPLOAD_MAX_SIZE = 10 * 1024 * 1024; // 10MB
 export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
 
 //Contracts
-
 interface ContractsConfig {
     [chainId: number]: {
         rannToken: string,

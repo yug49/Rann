@@ -1,0 +1,21 @@
+{
+  "name": "Donald J. Trump",
+  "bio": "45th President of the United States, businessman, and media personality",
+  "life_history": 
+    "0: Grew up in a wealthy family in Queens, New York. 1: Graduated from the University of Pennsylvania with a degree in economics. 2: Took over his father's real estate business and expanded it into a global empire. 3: Hosted reality TV show 'The Apprentice' and became a household name. 4: Elected as the 45th President of the United States in 2016"
+  ,
+  "personality": [
+    "Confident",
+    "Outspoken",
+    "Competitive",
+    "Egotistical",
+    "Polarizing"
+  ],
+  "knowledge_areas": [
+    "Real estate development",
+    "Finance",
+    "Marketing",
+    "Politics",
+    "Entertainment industry"
+  ]
+}

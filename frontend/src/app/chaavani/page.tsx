@@ -362,6 +362,56 @@ const ChaavaniPage = memo(function ChaavaniPage() {
     setSelectedYodha(null);
   };
 
+  const handleActivateYodha = async (yodha: UserYodha) => {
+    try {
+      console.log(`Activating ${yodha.name}...`);
+      
+      // Create JSON similar to traitsGenerator.json
+      const yodhaData = {
+        name: yodha.name,
+        bio: yodha.bio,
+        life_history: yodha.life_history,
+        adjectives: yodha.adjectives,
+        knowledge_areas: yodha.knowledge_areas
+      };
+
+      console.log("Sending yodha data to NEAR AI traits generator:", yodhaData);
+
+      // Call the backend API to generate traits
+      const response = await fetch('/api/activate-yodha', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          yodhaData
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to activate yodha');
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        // Log the AI response to console as requested
+        console.log("NEAR AI Traits Generator Response:", result.response);
+        
+        // You can add additional logic here to parse and apply the traits
+        // For now, we're just logging the response as requested
+        alert(`Yodha ${yodha.name} activation initiated! Check console for AI response.`);
+      } else {
+        throw new Error('Failed to get valid response from AI');
+      }
+
+    } catch (error) {
+      console.error('Error activating yodha:', error);
+      alert(`Failed to activate ${yodha.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
   // Helper function to check if a Yodha is inactive (all traits are zero)
   const isYodhaInactive = (traits: YodhaTraits) => {
     return traits.strength === 0 && 
@@ -1548,11 +1598,7 @@ const ChaavaniPage = memo(function ChaavaniPage() {
                               fontFamily: 'Press Start 2P, monospace',
                               borderRadius: '12px'
                             }}
-                            onClick={() => {
-                              // TODO: Implement actual activation logic
-                              console.log(`Activating ${selectedYodha.name}`);
-                              alert('Activate Yodha functionality coming soon!');
-                            }}
+                            onClick={() => handleActivateYodha(selectedYodha)}
                           >
                             🌟 ACTIVATE YODHA
                           </button>
