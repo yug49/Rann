@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No file received" }, { status: 400 });
     }
 
-    console.log("Uploading file to Pinata:", file.name, `(${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+    console.log("Uploading file to Pinata:", file.name, "(" + (file.size / 1024 / 1024).toFixed(2) + " MB)");
     
     // Step 1: Upload image to Pinata IPFS
     const { cid: imageCid } = await pinata.upload.public.file(file);
@@ -30,16 +30,13 @@ export async function POST(request: NextRequest) {
       life_history: life_history || "History unknown",
       personality: adjectives ? adjectives.split(', ').map(trait => trait.trim()) : ["Brave", "Skilled"],
       knowledge_areas: knowledge_areas ? knowledge_areas.split(', ').map(area => area.trim()) : ["Combat", "Strategy"],
-      image: `ipfs://${imageCid}`
+      image: "ipfs://" + imageCid
     };
     
     console.log("Created metadata JSON:", metadata);
     
     // Step 3: Upload JSON metadata to IPFS
-    const metadataBlob = new Blob([JSON.stringify(metadata, null, 2)], { type: 'application/json' });
-    const metadataFile = new File([metadataBlob], 'metadata.json', { type: 'application/json' });
-    
-    const { cid: metadataCid } = await pinata.upload.public.file(metadataFile);
+    const { cid: metadataCid } = await pinata.upload.public.json(metadata);
     console.log("Metadata JSON uploaded successfully. CID:", metadataCid);
     
     // Get the gateway URLs
