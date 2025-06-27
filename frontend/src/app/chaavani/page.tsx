@@ -83,7 +83,7 @@ const ChaavaniPage = memo(function ChaavaniPage() {
   });
 
   // Custom hook to manage user NFTs
-  const { userNFTs, isLoadingNFTs, hasError: tokenIdsError } = useUserNFTs(activeSection === 'manage', chainId);
+  const { userNFTs, isLoadingNFTs, hasError: tokenIdsError, clearCache, debugState } = useUserNFTs(activeSection === 'manage', chainId);
 
   // Check NEAR wallet connection status
   const checkNearWalletConnection = useCallback(() => {
@@ -393,28 +393,90 @@ const ChaavaniPage = memo(function ChaavaniPage() {
     }
   };
 
+  // Global cache for successfully loaded image URLs
+  const imageUrlCache = useRef<Map<string, string>>(new Map());
+
   // Custom image component with fallback
   const YodhaImage = memo(({ src, alt, className }: { src: string; alt: string; className: string }) => {
-    const [imageSrc, setImageSrc] = useState(src);
+    const [imageSrc, setImageSrc] = useState(() => {
+      // Check if we have a cached working URL for this image
+      return imageUrlCache.current.get(src) || src;
+    });
     const [hasError, setHasError] = useState(false);
     const [useRegularImg, setUseRegularImg] = useState(false);
+    const [gatewayIndex, setGatewayIndex] = useState(0);
+
+    // IPFS gateways to try in order
+    const ipfsGateways = [
+      'https://ipfs.io/ipfs/',
+      'https://gateway.pinata.cloud/ipfs/',
+      'https://cloudflare-ipfs.com/ipfs/',
+      'https://dweb.link/ipfs/'
+    ];
+
+    const getIpfsHash = (url: string) => {
+      if (url.includes('ipfs://')) {
+        return url.replace('ipfs://', '');
+      }
+      const match = url.match(/\/ipfs\/([^/?]+)/);
+      return match ? match[1] : null;
+    };
+
+    const tryNextGateway = useCallback(() => {
+      const hash = getIpfsHash(src);
+      if (hash && gatewayIndex < ipfsGateways.length - 1) {
+        const nextIndex = gatewayIndex + 1;
+        const nextUrl = `${ipfsGateways[nextIndex]}${hash}`;
+        console.log(`🔄 Trying next IPFS gateway: ${nextUrl}`);
+        setImageSrc(nextUrl);
+        setGatewayIndex(nextIndex);
+        setHasError(false);
+        return true;
+      }
+      return false;
+    }, [src, gatewayIndex, ipfsGateways]);
 
     useEffect(() => {
-      console.log(`🖼️ YodhaImage: Setting image src to: ${src}`);
-      setImageSrc(src);
-      setHasError(false);
+      // Check if we have a cached working URL for this image
+      const cachedUrl = imageUrlCache.current.get(src);
+      if (cachedUrl && cachedUrl !== src) {
+        console.log(`🖼️ YodhaImage: Using cached URL for ${src}: ${cachedUrl}`);
+        setImageSrc(cachedUrl);
+        setHasError(false);
+        setGatewayIndex(0);
+      } else {
+        console.log(`🖼️ YodhaImage: Setting image src to: ${src}`);
+        setImageSrc(src);
+        setHasError(false);
+        setGatewayIndex(0);
+      }
+      
       // Use regular img tag for IPFS URLs to avoid Next.js restrictions
-      setUseRegularImg(src.includes('ipfs.io') || src.includes('dweb.link') || src.includes('cloudflare-ipfs.com'));
+      setUseRegularImg(src.includes('ipfs.io') || src.includes('dweb.link') || src.includes('cloudflare-ipfs.com') || src.includes('gateway.pinata.cloud') || src.includes('ipfs://'));
     }, [src]);
 
     const handleError = useCallback(() => {
       if (!hasError) {
-        console.log(`🖼️ Image failed to load: ${imageSrc}, falling back to lazered.png`);
+        // Try next IPFS gateway first
+        if (tryNextGateway()) {
+          return;
+        }
+        
+        // All gateways failed, use fallback
+        console.log(`🖼️ All IPFS gateways failed for: ${src}, falling back to lazered.png`);
         setImageSrc('/lazered.png');
         setHasError(true);
         setUseRegularImg(false); // Use Next.js Image for local fallback
       }
-    }, [imageSrc, hasError]);
+    }, [imageSrc, hasError, tryNextGateway, src]);
+
+    const handleLoad = useCallback(() => {
+      // Cache the successful URL for future use
+      if (imageSrc !== src && !hasError) {
+        console.log(`🖼️ Caching successful URL for ${src}: ${imageSrc}`);
+        imageUrlCache.current.set(src, imageSrc);
+      }
+    }, [src, imageSrc, hasError]);
 
     if (useRegularImg) {
       return (
@@ -423,6 +485,7 @@ const ChaavaniPage = memo(function ChaavaniPage() {
           alt={alt}
           className={className}
           onError={handleError}
+          onLoad={handleLoad}
           style={{ objectFit: 'cover' }}
         />
       );
@@ -436,6 +499,7 @@ const ChaavaniPage = memo(function ChaavaniPage() {
         height={256}
         className={className}
         onError={handleError}
+        onLoad={handleLoad}
       />
     );
   });
@@ -1193,6 +1257,33 @@ const ChaavaniPage = memo(function ChaavaniPage() {
               >
                 MANAGE AND PROMOTE YOUR LEGENDARY FIGHTERS
               </p>
+              
+              {/* Debug tools (only show in development) */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mt-4 flex gap-2 justify-center">
+                  <button
+                    onClick={() => {
+                      clearCache();
+                      alert('IPFS metadata cache cleared! Refresh will reload all NFT data.');
+                    }}
+                    className="px-4 py-2 bg-purple-600 border border-purple-400 text-purple-200 text-xs rounded-lg hover:bg-purple-700 transition-colors"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    🗑️ CLEAR CACHE
+                  </button>
+                  <button
+                    onClick={() => {
+                      debugState();
+                      alert('Check console for debug info!');
+                    }}
+                    className="px-4 py-2 bg-blue-600 border border-blue-400 text-blue-200 text-xs rounded-lg hover:bg-blue-700 transition-colors"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    🐛 DEBUG STATE
+                  </button>
+                </div>
+              )}
+              
               {!connectedAddress && (
                 <div className="mt-4 p-4 bg-red-900/50 border border-red-500 rounded-lg">
                   <p 
@@ -1220,10 +1311,22 @@ const ChaavaniPage = memo(function ChaavaniPage() {
                 <div className="col-span-full text-center py-12">
                   <div className="loading-spinner mx-auto mb-4"></div>
                   <p 
-                    className="text-yellow-400 text-sm animate-pulse"
+                    className="text-yellow-400 text-sm animate-pulse mb-2"
                     style={{fontFamily: 'Press Start 2P, monospace'}}
                   >
                     LOADING YOUR WARRIORS...
+                  </p>
+                  <p 
+                    className="text-gray-400 text-xs"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    FETCHING DATA FROM BLOCKCHAIN & IPFS...
+                  </p>
+                  <p 
+                    className="text-blue-400 text-xs mt-2"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    THIS MAY TAKE A MOMENT FOR MULTIPLE NFTS
                   </p>
                 </div>
               ) : tokenIdsError ? (
