@@ -248,40 +248,6 @@ export default function HomePage() {
           >
             RANN
           </h1>
-          <div 
-            className="arcade-border p-6 mx-auto max-w-4xl"
-            style={{
-              background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
-              border: '2px solid #2d5a27',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(45, 90, 39, 0.2)',
-              borderRadius: '12px'
-            }}
-          >
-            <p 
-              className="text-yellow-400 text-lg md:text-xl tracking-wide metal-text"
-              style={{
-                fontFamily: 'Press Start 2P, monospace',
-                color: '#2d5a27',
-                background: 'none',
-                WebkitTextFillColor: '#2d5a27',
-                textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8), 0 0 3px rgba(255, 255, 255, 0.6)'
-              }}
-            >
-              ENTER THE ULTIMATE BATTLEGROUND
-            </p>
-            <p 
-              className="text-red-400 text-sm mt-4 arcade-glow"
-              style={{
-                fontFamily: 'Press Start 2P, monospace',
-                color: '#c53030',
-                textShadow: '1px 1px 2px rgba(255, 255, 255, 0.8), 0 0 2px rgba(255, 255, 255, 0.4)'
-              }}
-            >
-              WHERE LEGENDS ARE FORGED IN COMBAT
-            </p>
-          </div>
         </div>
 
         {/* Wallet Connection Warning */}
