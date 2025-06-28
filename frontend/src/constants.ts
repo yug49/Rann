@@ -1,6 +1,7 @@
 // near assistant ids
 
 export const chaavani_attributes_generator_assistant_id : string = "samkitsoni.near/attributes-generator/latest";
+export const near_agent_traits_generator_id : string = "samkitsoni.near/traits-generator/latest";
 
 // IPFS Configuration
 export const PINATA_GATEWAY_URL = "https://gateway.pinata.cloud/ipfs/";
@@ -18,6 +19,12 @@ interface ContractsConfig {
 }
 
 export const chainsToTSender: ContractsConfig = {
+    // Local development (Anvil/Hardhat)
+    31337: {
+        rannToken: "0x5FbDB2315678afecb367f032d93F642f64180aa3", // Default first contract on local anvil
+        yodhaNFT: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"  // Default second contract on local anvil
+    },
+    // Production/Testnet
     545: {
         rannToken: "0x7465365aEeE1bD38ce6d80EaeDc530fCDEF691dC",
         yodhaNFT: "0x96A00495635e6d4691268d6f8EA9e673a513CAC7",

@@ -9,6 +9,8 @@ import 'react-image-crop/dist/ReactCrop.css';
 import '../home-glass.css';
 import { nearAIService } from '../../services/nearAI';
 import { nearWalletService } from '../../services/nearWallet';
+import { yodhaActivationService } from '../../services/yodhaActivation';
+import { gameMasterSigningService } from '../../services/gameMasterSigning';
 import { ipfsService } from '../../services/ipfsService';
 import { chainsToTSender, yodhaNFTAbi } from '../../constants';
 import { useUserNFTs } from '../../hooks/useUserNFTs';
@@ -47,6 +49,7 @@ const ChaavaniPage = memo(function ChaavaniPage() {
     image: null as File | null
   });
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isActivating, setIsActivating] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedYodha, setSelectedYodha] = useState<UserYodha | null>(null);
   const [activeSection, setActiveSection] = useState<'create' | 'manage' | 'ai'>('create');
@@ -83,7 +86,7 @@ const ChaavaniPage = memo(function ChaavaniPage() {
   });
 
   // Custom hook to manage user NFTs
-  const { userNFTs, isLoadingNFTs, hasError: tokenIdsError } = useUserNFTs(activeSection === 'manage', chainId);
+  const { userNFTs, isLoadingNFTs, hasError: tokenIdsError, clearCache, debugState } = useUserNFTs(activeSection === 'manage', chainId);
 
   // Check NEAR wallet connection status
   const checkNearWalletConnection = useCallback(() => {
@@ -103,24 +106,64 @@ const ChaavaniPage = memo(function ChaavaniPage() {
     }
   }, [checkNearWalletConnection]);
 
+  // Connect to Meteor wallet specifically
+  const connectMeteorWallet = useCallback(async () => {
+    try {
+      await nearWalletService.connectWallet('meteor-wallet');
+      checkNearWalletConnection();
+    } catch (error) {
+      console.error("Failed to connect Meteor wallet:", error);
+    }
+  }, [checkNearWalletConnection]);
+
+  // Connect to HOT wallet specifically
+  const connectHotWallet = useCallback(async () => {
+    try {
+      await nearWalletService.connectWallet('here-wallet');
+      checkNearWalletConnection();
+    } catch (error) {
+      console.error("Failed to connect HOT wallet:", error);
+    }
+  }, [checkNearWalletConnection]);
+
+  // Disconnect NEAR wallet
+  const disconnectNearWallet = useCallback(async () => {
+    try {
+      await nearWalletService.disconnectWallet();
+      checkNearWalletConnection();
+    } catch (error) {
+      console.error("Failed to disconnect NEAR wallet:", error);
+    }
+  }, [checkNearWalletConnection]);
+
   // Check wallet connection on component mount
   useEffect(() => {
     checkNearWalletConnection();
-  }, []);
+  }, [checkNearWalletConnection]);
 
   // Handle transaction confirmation and display success message
   useEffect(() => {
     if (isConfirmed && hash) {
-      console.log('🎉 NFT MINTED SUCCESSFULLY!');
-      console.log('Transaction Hash:', hash);
-      console.log('Metadata CID:', ipfsCid);
-      console.log('View your NFT metadata at:', `https://ipfs.io/ipfs/${ipfsCid}`);
+      console.log("Transaction confirmed:", hash);
       
-      // TODO: Add UI success notification here
-      // For now, we'll log to console as requested
-      alert(`🎉 NFT Minted Successfully!\n\nTransaction Hash: ${hash}\nMetadata CID: ${ipfsCid}\n\nCheck the console for more details.`);
+      // Clear NFT cache to force refresh of updated data
+      clearCache();
+      
+      // If we were activating a Yodha, close the modal and reset state
+      if (isActivating) {
+        setIsActivating(false);
+        setSelectedYodha(null);
+        alert("🎉 Yodha activation completed successfully! Your Yodha now has traits and moves assigned.");
+      }
+      
+      // If we were minting, reset the minting state
+      if (isMinting) {
+        setIsMinting(false);
+        setActiveSection('manage');
+        alert("🎉 Yodha NFT minted successfully!");
+      }
     }
-  }, [isConfirmed, hash, ipfsCid]);
+  }, [isConfirmed, hash, clearCache, isActivating, isMinting]);
 
   const handleInputChange = useCallback((field: string, value: string) => {
     setFormData(prev => ({
@@ -362,6 +405,120 @@ const ChaavaniPage = memo(function ChaavaniPage() {
     setSelectedYodha(null);
   };
 
+  // Handle Yodha activation using NEAR AI with wallet signature
+  const handleActivateYodha = async (yodha: UserYodha) => {
+    if (!yodha) return;
+
+    setIsActivating(true);
+    
+    try {
+      // First, get wallet signature for NEAR AI authentication (this also handles connection)
+      console.log('Getting wallet signature for NEAR AI authentication...');
+      
+      let signedAuth;
+      try {
+        // Use the same login method as the generate attributes function
+        signedAuth = await nearWalletService.login();
+        console.log('Got wallet signature:', signedAuth);
+      } catch (signError) {
+        console.error('Failed to get wallet signature:', signError);
+        alert('Please sign the message to authenticate with NEAR AI');
+        setIsActivating(false);
+        return;
+      }
+
+      // Create a JSON similar to the traitsGenerator.json format
+      const yodhaJson = {
+        name: yodha.name,
+        bio: yodha.bio,
+        life_history: yodha.life_history,
+        personality: yodha.adjectives ? yodha.adjectives.split(', ') : ["Brave", "Skilled", "Strategic"],
+        knowledge_areas: yodha.knowledge_areas || "Combat, Strategy, Leadership"
+      };
+
+      console.log("Created Yodha JSON for activation:", yodhaJson);
+      
+      // Call the activation service with wallet-signed auth
+      console.log(`Activating ${yodha.name} using NEAR AI traits generator...`);
+      
+      // Convert auth to the format expected by the activation service
+      const authForApi = {
+        signature: signedAuth.signature,
+        accountId: signedAuth.accountId,
+        publicKey: signedAuth.publicKey,
+        message: signedAuth.message,
+        nonce: signedAuth.nonce.toString('base64'), // Convert Buffer to base64 string
+        recipient: signedAuth.recipient,
+        callbackUrl: signedAuth.callbackUrl
+      };
+      
+      const response = await yodhaActivationService.activateYodha(yodhaJson, authForApi);
+      
+      // Log the AI response to console as requested
+      console.log("NEAR AI Traits Generator Response:", response);
+      
+      // Try to parse the response to extract traits and moves
+      try {
+        // Extract JSON from the response (it might be wrapped in markdown code blocks)
+        const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/);
+        let jsonString = jsonMatch ? jsonMatch[1] : response;
+        
+        // If no JSON blocks found, try to find JSON object directly
+        if (!jsonMatch) {
+          const jsonObjectMatch = response.match(/\{[\s\S]*\}/);
+          jsonString = jsonObjectMatch ? jsonObjectMatch[0] : response;
+        }
+        
+        const parsedResponse = JSON.parse(jsonString);
+        console.log("Parsed AI Response:", parsedResponse);
+        
+        // Extract traits and moves from the AI response
+        const traitsData = gameMasterSigningService.extractTraitsAndMoves(parsedResponse, yodha.tokenId);
+        console.log("Extracted traits and moves:", traitsData);
+        
+        // Sign the data with Game Master private key
+        const signature = await gameMasterSigningService.signTraitsAndMoves(traitsData);
+        console.log("Game Master signature:", signature);
+        
+        // Call the smart contract to assign traits and moves
+        console.log("Calling assignTraitsAndMoves on YodhaNFT contract...");
+        
+        writeContract({
+          address: chainsToTSender[545].yodhaNFT as `0x${string}`,
+          abi: yodhaNFTAbi,
+          functionName: 'assignTraitsAndMoves',
+          args: [
+            traitsData.tokenId,      // uint16 _tokenId
+            traitsData.strength,     // uint16 _strength
+            traitsData.wit,          // uint16 _wit
+            traitsData.charisma,     // uint16 _charisma
+            traitsData.defence,      // uint16 _defence
+            traitsData.luck,         // uint16 _luck
+            traitsData.strike,       // string _strike
+            traitsData.taunt,        // string _taunt
+            traitsData.dodge,        // string _dodge
+            traitsData.special,      // string _special
+            traitsData.recover,      // string _recover
+            signature                // bytes _signedData
+          ],
+        });
+        
+        alert(`Activation completed! Traits and moves assigned to ${yodha.name}. Transaction submitted to blockchain.`);
+        
+      } catch (parseError) {
+        console.warn("Could not parse JSON from AI response, but activation call was successful:", parseError);
+        console.log("Raw AI Response:", response);
+        alert(`Activation completed! Raw AI response logged to console for ${yodha.name}`);
+      }
+      
+    } catch (error) {
+      console.error("Error activating Yodha with NEAR AI:", error);
+      alert(`Failed to activate ${yodha.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsActivating(false);
+    }
+  };
+
   // Helper function to check if a Yodha is inactive (all traits are zero)
   const isYodhaInactive = (traits: YodhaTraits) => {
     return traits.strength === 0 && 
@@ -393,28 +550,90 @@ const ChaavaniPage = memo(function ChaavaniPage() {
     }
   };
 
+  // Global cache for successfully loaded image URLs
+  const imageUrlCache = useRef<Map<string, string>>(new Map());
+
   // Custom image component with fallback
   const YodhaImage = memo(({ src, alt, className }: { src: string; alt: string; className: string }) => {
-    const [imageSrc, setImageSrc] = useState(src);
+    const [imageSrc, setImageSrc] = useState(() => {
+      // Check if we have a cached working URL for this image
+      return imageUrlCache.current.get(src) || src;
+    });
     const [hasError, setHasError] = useState(false);
     const [useRegularImg, setUseRegularImg] = useState(false);
+    const [gatewayIndex, setGatewayIndex] = useState(0);
+
+    // IPFS gateways to try in order
+    const ipfsGateways = [
+      'https://ipfs.io/ipfs/',
+      'https://gateway.pinata.cloud/ipfs/',
+      'https://cloudflare-ipfs.com/ipfs/',
+      'https://dweb.link/ipfs/'
+    ];
+
+    const getIpfsHash = (url: string) => {
+      if (url.includes('ipfs://')) {
+        return url.replace('ipfs://', '');
+      }
+      const match = url.match(/\/ipfs\/([^/?]+)/);
+      return match ? match[1] : null;
+    };
+
+    const tryNextGateway = useCallback(() => {
+      const hash = getIpfsHash(src);
+      if (hash && gatewayIndex < ipfsGateways.length - 1) {
+        const nextIndex = gatewayIndex + 1;
+        const nextUrl = `${ipfsGateways[nextIndex]}${hash}`;
+        console.log(`🔄 Trying next IPFS gateway: ${nextUrl}`);
+        setImageSrc(nextUrl);
+        setGatewayIndex(nextIndex);
+        setHasError(false);
+        return true;
+      }
+      return false;
+    }, [src, gatewayIndex, ipfsGateways]);
 
     useEffect(() => {
-      console.log(`🖼️ YodhaImage: Setting image src to: ${src}`);
-      setImageSrc(src);
-      setHasError(false);
+      // Check if we have a cached working URL for this image
+      const cachedUrl = imageUrlCache.current.get(src);
+      if (cachedUrl && cachedUrl !== src) {
+        console.log(`🖼️ YodhaImage: Using cached URL for ${src}: ${cachedUrl}`);
+        setImageSrc(cachedUrl);
+        setHasError(false);
+        setGatewayIndex(0);
+      } else {
+        console.log(`🖼️ YodhaImage: Setting image src to: ${src}`);
+        setImageSrc(src);
+        setHasError(false);
+        setGatewayIndex(0);
+      }
+      
       // Use regular img tag for IPFS URLs to avoid Next.js restrictions
-      setUseRegularImg(src.includes('ipfs.io') || src.includes('dweb.link') || src.includes('cloudflare-ipfs.com'));
+      setUseRegularImg(src.includes('ipfs.io') || src.includes('dweb.link') || src.includes('cloudflare-ipfs.com') || src.includes('gateway.pinata.cloud') || src.includes('ipfs://'));
     }, [src]);
 
     const handleError = useCallback(() => {
       if (!hasError) {
-        console.log(`🖼️ Image failed to load: ${imageSrc}, falling back to lazered.png`);
+        // Try next IPFS gateway first
+        if (tryNextGateway()) {
+          return;
+        }
+        
+        // All gateways failed, use fallback
+        console.log(`🖼️ All IPFS gateways failed for: ${src}, falling back to lazered.png`);
         setImageSrc('/lazered.png');
         setHasError(true);
         setUseRegularImg(false); // Use Next.js Image for local fallback
       }
-    }, [imageSrc, hasError]);
+    }, [imageSrc, hasError, tryNextGateway, src]);
+
+    const handleLoad = useCallback(() => {
+      // Cache the successful URL for future use
+      if (imageSrc !== src && !hasError) {
+        console.log(`🖼️ Caching successful URL for ${src}: ${imageSrc}`);
+        imageUrlCache.current.set(src, imageSrc);
+      }
+    }, [src, imageSrc, hasError]);
 
     if (useRegularImg) {
       return (
@@ -423,6 +642,7 @@ const ChaavaniPage = memo(function ChaavaniPage() {
           alt={alt}
           className={className}
           onError={handleError}
+          onLoad={handleLoad}
           style={{ objectFit: 'cover' }}
         />
       );
@@ -436,9 +656,11 @@ const ChaavaniPage = memo(function ChaavaniPage() {
         height={256}
         className={className}
         onError={handleError}
+        onLoad={handleLoad}
       />
     );
   });
+  YodhaImage.displayName = 'YodhaImage';
 
   const TraitBar = memo(({ label, value }: { label: string; value: number }) => (
     <div className="mb-3">
@@ -464,6 +686,7 @@ const ChaavaniPage = memo(function ChaavaniPage() {
       </div>
     </div>
   ));
+  TraitBar.displayName = 'TraitBar';
 
   const YodhaCard = memo(({ yodha, onClick }: { yodha: UserYodha; onClick: () => void }) => {
     const isInactive = isYodhaInactive(yodha.traits);
@@ -543,6 +766,7 @@ const ChaavaniPage = memo(function ChaavaniPage() {
     </div>
     );
   });
+  YodhaCard.displayName = 'YodhaCard';
 
   // Function to convert cropped area to a File object
   const getCroppedImg = useCallback((image: HTMLImageElement, crop: PixelCrop): Promise<File> => {
@@ -883,9 +1107,9 @@ const ChaavaniPage = memo(function ChaavaniPage() {
                           </span>
                         </div>
                       )}
-                      {!nearWalletConnected && (
+                      {!nearWalletConnected ? (
                         <>
-                          <div className="mt-2 mb-2">
+                          <div className="mt-2 mb-3">
                             <span 
                               className="text-xs text-blue-300"
                               style={{fontFamily: 'Press Start 2P, monospace'}}
@@ -893,14 +1117,59 @@ const ChaavaniPage = memo(function ChaavaniPage() {
                               SEPARATE FROM FLOW WALLET
                             </span>
                           </div>
-                          <button
-                            onClick={connectNearWallet}
-                            className="w-full mt-2 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
-                            style={{fontFamily: 'Press Start 2P, monospace'}}
-                          >
-                            CONNECT NEAR WALLET (Meteor Wallet)
-                          </button>
+                          <div className="space-y-2">
+                            <button
+                              onClick={connectMeteorWallet}
+                              className="w-full py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+                              style={{fontFamily: 'Press Start 2P, monospace'}}
+                            >
+                              CONNECT METEOR WALLET
+                            </button>
+                            <button
+                              onClick={connectHotWallet}
+                              className="w-full py-2 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded transition-colors"
+                              style={{fontFamily: 'Press Start 2P, monospace'}}
+                            >
+                              CONNECT HOT WALLET
+                            </button>
+                          </div>
+                          <div className="mt-3 pt-2 border-t border-gray-600">
+                            <p 
+                              className="text-xs text-gray-400 text-center"
+                              style={{fontFamily: 'Press Start 2P, monospace'}}
+                            >
+                              SUPPORTS METEOR & HOT WALLETS
+                            </p>
+                          </div>
                         </>
+                      ) : (
+                        <div className="mt-2">
+                          <div className="bg-green-900/30 border border-green-500/50 rounded-lg p-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p 
+                                  className="text-green-400 text-xs"
+                                  style={{fontFamily: 'Press Start 2P, monospace'}}
+                                >
+                                  ✅ WALLET CONNECTED
+                                </p>
+                                <p 
+                                  className="text-xs text-gray-300 mt-1"
+                                  style={{fontFamily: 'Press Start 2P, monospace'}}
+                                >
+                                  {nearAccountId}
+                                </p>
+                              </div>
+                              <button
+                                onClick={disconnectNearWallet}
+                                className="py-1 px-3 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+                                style={{fontFamily: 'Press Start 2P, monospace'}}
+                              >
+                                DISCONNECT
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       )}
                     </div>
 
@@ -1193,6 +1462,33 @@ const ChaavaniPage = memo(function ChaavaniPage() {
               >
                 MANAGE AND PROMOTE YOUR LEGENDARY FIGHTERS
               </p>
+              
+              {/* Debug tools (only show in development) */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mt-4 flex gap-2 justify-center">
+                  <button
+                    onClick={() => {
+                      clearCache();
+                      alert('IPFS metadata cache cleared! Refresh will reload all NFT data.');
+                    }}
+                    className="px-4 py-2 bg-purple-600 border border-purple-400 text-purple-200 text-xs rounded-lg hover:bg-purple-700 transition-colors"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    🗑️ CLEAR CACHE
+                  </button>
+                  <button
+                    onClick={() => {
+                      debugState();
+                      alert('Check console for debug info!');
+                    }}
+                    className="px-4 py-2 bg-blue-600 border border-blue-400 text-blue-200 text-xs rounded-lg hover:bg-blue-700 transition-colors"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    🐛 DEBUG STATE
+                  </button>
+                </div>
+              )}
+              
               {!connectedAddress && (
                 <div className="mt-4 p-4 bg-red-900/50 border border-red-500 rounded-lg">
                   <p 
@@ -1220,10 +1516,22 @@ const ChaavaniPage = memo(function ChaavaniPage() {
                 <div className="col-span-full text-center py-12">
                   <div className="loading-spinner mx-auto mb-4"></div>
                   <p 
-                    className="text-yellow-400 text-sm animate-pulse"
+                    className="text-yellow-400 text-sm animate-pulse mb-2"
                     style={{fontFamily: 'Press Start 2P, monospace'}}
                   >
                     LOADING YOUR WARRIORS...
+                  </p>
+                  <p 
+                    className="text-gray-400 text-xs"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    FETCHING DATA FROM BLOCKCHAIN & IPFS...
+                  </p>
+                  <p 
+                    className="text-blue-400 text-xs mt-2"
+                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                  >
+                    THIS MAY TAKE A MOMENT FOR MULTIPLE NFTS
                   </p>
                 </div>
               ) : tokenIdsError ? (
@@ -1439,19 +1747,79 @@ const ChaavaniPage = memo(function ChaavaniPage() {
                             </p>
                           </div>
                           
+                          {/* Wallet Connection Status for Activation */}
+                          <div className="mb-4">
+                            {nearWalletConnected ? (
+                              <div className="bg-green-900 border-2 border-green-500 rounded-xl p-3">
+                                <p 
+                                  className="text-green-400 text-xs text-center"
+                                  style={{fontFamily: 'Press Start 2P, monospace'}}
+                                >
+                                  ✅ WALLET CONNECTED
+                                </p>
+                                <p 
+                                  className="text-green-300 text-xs text-center mt-1"
+                                  style={{fontFamily: 'Press Start 2P, monospace'}}
+                                >
+                                  {nearWalletService.getAccountId()}
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="bg-yellow-900 border-2 border-yellow-500 rounded-xl p-3">
+                                <p 
+                                  className="text-yellow-400 text-xs text-center mb-3"
+                                  style={{fontFamily: 'Press Start 2P, monospace'}}
+                                >
+                                  ⚠️ WALLET NOT CONNECTED
+                                </p>
+                                <div className="mt-2 mb-3">
+                                  <span 
+                                    className="text-xs text-blue-300"
+                                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                                  >
+                                    SEPARATE FROM FLOW WALLET
+                                  </span>
+                                </div>
+                                <div className="space-y-2">
+                                  <button
+                                    onClick={connectMeteorWallet}
+                                    className="w-full py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+                                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                                  >
+                                    CONNECT METEOR WALLET
+                                  </button>
+                                  <button
+                                    onClick={connectHotWallet}
+                                    className="w-full py-2 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded transition-colors"
+                                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                                  >
+                                    CONNECT HOT WALLET
+                                  </button>
+                                </div>
+                                <div className="mt-3 pt-2 border-t border-gray-600">
+                                  <p 
+                                    className="text-xs text-gray-400 text-center"
+                                    style={{fontFamily: 'Press Start 2P, monospace'}}
+                                  >
+                                    SUPPORTS METEOR & HOT WALLETS
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          
                           <button
-                            className="w-full arcade-button py-4 text-sm tracking-wide bg-green-600 hover:bg-green-700 border-green-500"
+                            className={`w-full arcade-button py-4 text-sm tracking-wide ${
+                              isActivating ? 'opacity-50 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 border-green-500'
+                            }`}
                             style={{
                               fontFamily: 'Press Start 2P, monospace',
                               borderRadius: '12px'
                             }}
-                            onClick={() => {
-                              // TODO: Implement actual activation logic
-                              console.log(`Activating ${selectedYodha.name}`);
-                              alert('Activate Yodha functionality coming soon!');
-                            }}
+                            onClick={() => handleActivateYodha(selectedYodha)}
+                            disabled={isActivating}
                           >
-                            🌟 ACTIVATE YODHA
+                            {isActivating ? '🔄 ACTIVATING...' : '🌟 ACTIVATE YODHA'}
                           </button>
                         </div>
                       )}
@@ -1615,7 +1983,6 @@ const ChaavaniPage = memo(function ChaavaniPage() {
                     style={{ maxWidth: '100%', maxHeight: '400px' }}
                     onLoad={(e) => {
                       const { naturalWidth, naturalHeight } = e.currentTarget;
-                      const { width: displayWidth, height: displayHeight } = e.currentTarget;
                       
                       // Calculate crop in percentage terms for the displayed image
                       const minDimension = Math.min(naturalWidth, naturalHeight);

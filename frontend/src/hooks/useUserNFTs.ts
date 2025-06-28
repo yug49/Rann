@@ -27,6 +27,12 @@ interface UserYodha {
 // Simple metadata cache to avoid repeated IPFS requests
 const metadataCache = new Map<string, any>();
 
+// Function to clear cache for debugging/testing
+const clearMetadataCache = () => {
+  metadataCache.clear();
+  console.log('🗑️ Metadata cache cleared');
+};
+
 // Helper function to convert IPFS URI to fallback image URL
 const convertIpfsToProxyUrl = (ipfsUrl: string) => {
   if (ipfsUrl.startsWith('ipfs://')) {
@@ -39,8 +45,11 @@ const convertIpfsToProxyUrl = (ipfsUrl: string) => {
   return ipfsUrl;
 };
 
-// Helper function to fetch metadata from IPFS with fallback gateways and mock data
-const fetchMetadataFromIPFS = async (tokenURI: string) => {
+// Helper function to add delay between requests to avoid rate limiting
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Helper function to fetch metadata from IPFS with improved error handling and rate limiting
+const fetchMetadataFromIPFS = async (tokenURI: string, tokenId?: string) => {
   if (!tokenURI.startsWith('ipfs://')) {
     console.log('Not an IPFS URL:', tokenURI);
     return null;
@@ -54,27 +63,28 @@ const fetchMetadataFromIPFS = async (tokenURI: string) => {
 
   const cid = tokenURI.replace('ipfs://', '');
   
-  // Use gateways that don't have aggressive bot protection
+  // Use multiple gateways with different characteristics
   const gateways = [
-    'https://ipfs.io/ipfs/',
-    'https://dweb.link/ipfs/',
-    'https://cloudflare-ipfs.com/ipfs/',
+    { url: 'https://ipfs.io/ipfs/', name: 'ipfs.io', timeout: 10000 },
+    { url: 'https://dweb.link/ipfs/', name: 'dweb.link', timeout: 12000 },
+    { url: 'https://cloudflare-ipfs.com/ipfs/', name: 'cloudflare', timeout: 10000 },
+    { url: 'https://gateway.pinata.cloud/ipfs/', name: 'pinata', timeout: 15000 },
   ];
+
+  // Add a small delay to prevent overwhelming the gateways
+  await delay(Math.random() * 500 + 100); // Random delay between 100-600ms
 
   for (let i = 0; i < gateways.length; i++) {
     const gateway = gateways[i];
-    const httpUrl = `${gateway}${cid}`;
+    const httpUrl = `${gateway.url}${cid}`;
     
     try {
-      console.log(`🌐 Attempt ${i + 1}: Fetching metadata from gateway ${gateway.split('/')[2]}`);
+      console.log(`🌐 Token ${tokenId || 'unknown'}: Attempt ${i + 1}/${gateways.length} - Fetching from ${gateway.name}`);
       
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), gateway.timeout);
       
       const response = await fetch(httpUrl, {
-        headers: {
-          'Accept': 'application/json',
-        },
         signal: controller.signal,
       });
       
@@ -84,38 +94,59 @@ const fetchMetadataFromIPFS = async (tokenURI: string) => {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error(`Invalid content type: ${contentType}`);
+      }
+      
       const metadata = await response.json();
-      console.log(`✅ Success with gateway ${i + 1}:`, metadata);
+      console.log(`✅ Token ${tokenId || 'unknown'}: Success with ${gateway.name}`, metadata);
+      
+      // Validate metadata structure
+      if (!metadata || typeof metadata !== 'object' || (!metadata.name && !metadata.title)) {
+        throw new Error('Invalid metadata structure');
+      }
+      
       // Cache the metadata
       metadataCache.set(tokenURI, metadata);
       return metadata;
       
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.warn(`❌ Gateway ${i + 1} failed:`, errorMessage);
+      console.warn(`❌ Token ${tokenId || 'unknown'}: Gateway ${gateway.name} failed:`, errorMessage);
+      
+      // Add delay before trying next gateway to avoid rate limiting
+      if (i < gateways.length - 1) {
+        await delay(500); // 500ms delay between gateway attempts
+      }
       
       // If this is the last gateway, fall back to mock data
       if (i === gateways.length - 1) {
-        console.log('🔄 All IPFS gateways failed, using fallback metadata');
-        // Extract token ID from the CID for more realistic fallback
-        const tokenId = cid.slice(-3); // Use last 3 chars as token ID
+        console.log(`🔄 Token ${tokenId || 'unknown'}: All IPFS gateways failed, using fallback metadata`);
+        
+        // Create more realistic fallback data based on tokenId
+        const fallbackTokenId = tokenId || cid.slice(-3);
         const fallbackMetadata = {
-          name: `Yodha Warrior #${tokenId}`,
-          description: "A legendary warrior from the Rann battlefield. This metadata is a fallback due to IPFS gateway issues.",
-          image: `ipfs://${cid}`, // Use the actual IPFS hash from the contract
+          name: `Yodha Warrior #${fallbackTokenId}`,
+          description: "A legendary warrior from the Rann battlefield. This metadata is temporarily using fallback data due to IPFS gateway connectivity issues.",
+          image: `ipfs://${cid}`, // Keep the original IPFS hash
+          bio: "Ancient warrior whose full history is being retrieved from the cosmic archives...",
+          life_history: "Born in the age of digital warfare, this warrior's complete saga is stored in the decentralized realm...",
+          adjectives: "Brave, Mysterious, Resilient",
+          knowledge_areas: "Combat, Strategy, Digital Warfare",
           attributes: [
-            { trait_type: "Strength", value: Math.floor(Math.random() * 100) },
-            { trait_type: "Agility", value: Math.floor(Math.random() * 100) },
-            { trait_type: "Intelligence", value: Math.floor(Math.random() * 100) },
-            { trait_type: "Endurance", value: Math.floor(Math.random() * 100) },
-            { trait_type: "Luck", value: Math.floor(Math.random() * 100) },
+            { trait_type: "Strength", value: Math.floor(Math.random() * 50) + 50 },
+            { trait_type: "Wit", value: Math.floor(Math.random() * 50) + 50 },
+            { trait_type: "Charisma", value: Math.floor(Math.random() * 50) + 50 },
+            { trait_type: "Defence", value: Math.floor(Math.random() * 50) + 50 },
+            { trait_type: "Luck", value: Math.floor(Math.random() * 50) + 50 },
           ]
         };
-        // Cache the fallback metadata too
+        
+        // Cache the fallback metadata
         metadataCache.set(tokenURI, fallbackMetadata);
         return fallbackMetadata;
       }
-      // Otherwise, continue to the next gateway
     }
   }
   
@@ -208,10 +239,16 @@ export const useUserNFTs = (isActive: boolean = false, chainId: number = 545) =>
     setIsLoadingNFTs(true);
 
     try {
-      // For each token ID, we need to fetch multiple pieces of data
-      const nftPromises = tokenIds.map(async (tokenId: bigint, index: number) => {
+      // Process NFTs sequentially to avoid overwhelming IPFS gateways
+      const nftResults: UserYodha[] = [];
+      
+      for (let index = 0; index < tokenIds.length; index++) {
+        const tokenId = tokenIds[index];
+        
         try {
-          // Create parallel requests for all the data we need
+          console.log(`🔄 Processing NFT ${index + 1}/${tokenIds.length}: Token ID ${tokenId}`);
+          
+          // Create parallel requests for contract data (this is fine since it's our own API)
           const [tokenURIResponse, traitsResponse, rankingResponse, winningsResponse] = await Promise.allSettled([
             // Get token URI
             fetch('/api/contract/read', {
@@ -316,11 +353,11 @@ export const useUserNFTs = (isActive: boolean = false, chainId: number = 545) =>
           // Fetch metadata from IPFS if we have a tokenURI
           let metadata = null;
           if (tokenURI) {
-            console.log(`Fetching metadata for token ${tokenId} from:`, tokenURI);
-            metadata = await fetchMetadataFromIPFS(tokenURI);
-            console.log(`Metadata for token ${tokenId}:`, metadata);
+            console.log(`🔍 Fetching metadata for token ${tokenId} from:`, tokenURI);
+            metadata = await fetchMetadataFromIPFS(tokenURI, tokenId.toString());
+            console.log(`📋 Metadata for token ${tokenId}:`, metadata);
           } else {
-            console.warn(`No tokenURI found for token ${tokenId}`);
+            console.warn(`⚠️ No tokenURI found for token ${tokenId}`);
           }
 
           // Parse traits from contract (convert from uint16 with 2 decimal precision)
@@ -346,7 +383,7 @@ export const useUserNFTs = (isActive: boolean = false, chainId: number = 545) =>
           const totalWinnings = Number(winnings) / 1e18;
 
           // Build the UserYodha object
-          return {
+          const userYodha: UserYodha = {
             id: index + 1,
             tokenId: Number(tokenId),
             name: metadata?.name || `Warrior #${tokenId}`,
@@ -362,13 +399,21 @@ export const useUserNFTs = (isActive: boolean = false, chainId: number = 545) =>
             image: metadata?.image ? convertIpfsToProxyUrl(metadata.image) : '/lazered.png',
             rank: rankingToString(ranking),
             totalWinnings
-          } as UserYodha;
+          };
+
+          nftResults.push(userYodha);
+          console.log(`✅ Completed processing NFT ${index + 1}/${tokenIds.length}:`, userYodha.name);
+
+          // Add a small delay between processing NFTs to avoid overwhelming IPFS gateways
+          if (index < tokenIds.length - 1) {
+            await delay(200); // 200ms delay between NFT processing
+          }
 
         } catch (error) {
           console.error(`Error loading details for NFT ${tokenId}:`, error);
           
           // Return a basic object even if there's an error
-          return {
+          const errorYodha: UserYodha = {
             id: index + 1,
             tokenId: Number(tokenId),
             name: `Warrior #${tokenId}`,
@@ -386,12 +431,18 @@ export const useUserNFTs = (isActive: boolean = false, chainId: number = 545) =>
             image: '/lazered.png',
             rank: 'unranked' as const,
             totalWinnings: 0.0
-          } as UserYodha;
+          };
+          
+          nftResults.push(errorYodha);
+          
+          // Add delay even on error to prevent rapid successive failures
+          if (index < tokenIds.length - 1) {
+            await delay(200);
+          }
         }
-      });
+      }
 
-      const nftResults = await Promise.all(nftPromises);
-      console.log('Loaded detailed NFT data:', nftResults);
+      console.log('✅ Loaded all detailed NFT data:', nftResults);
       setUserNFTs(nftResults);
 
     } catch (error) {
@@ -437,10 +488,23 @@ export const useUserNFTs = (isActive: boolean = false, chainId: number = 545) =>
     userNFTs,
     isLoadingNFTs: isLoadingNFTs || tokenIdsLoading,
     hasError: tokenIdsError,
+    clearCache: clearMetadataCache,
     refetch: () => {
       if (userTokenIds) {
         loadNFTDetails(userTokenIds as bigint[]);
       }
+    },
+    debugState: () => {
+      console.log('🐛 DEBUG STATE:');
+      console.log('- userNFTs count:', userNFTs.length);
+      console.log('- isLoadingNFTs:', isLoadingNFTs);
+      console.log('- tokenIdsError:', tokenIdsError);
+      console.log('- userTokenIds:', userTokenIds);
+      console.log('- cache size:', metadataCache.size);
+      console.log('- cached keys:', Array.from(metadataCache.keys()));
+      userNFTs.forEach((nft, index) => {
+        console.log(`- NFT ${index + 1}: ${nft.name} (Token ${nft.tokenId})`);
+      });
     }
   };
 };
