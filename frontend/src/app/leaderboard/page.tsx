@@ -1,188 +1,82 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount } from 'wagmi';
-import { Badge } from '../../components/ui/badge';
-import { Modal } from '../../components/ui/modal';
+import { useAccount, useChainId } from 'wagmi';
 import Image from 'next/image';
 import './leaderboard-glass.css';
+import { useLeaderboard, type RankCategory, type LeaderboardYodha } from '../../hooks/useLeaderboard';
+import { formatEther } from 'viem';
 
-// Types
-type RankCategory = 'UNRANKED' | 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM';
-
-interface Yodha {
-  id: number;
-  name: string;
-  image: string;
-  rank: RankCategory;
-  strength: number;
-  defence: number;
-  charisma: number;
-  wit: number;
-  luck: number;
-  winnings: number;
+// Enhanced interface that combines leaderboard data with basic additional fields
+interface EnhancedYodha extends LeaderboardYodha {
+  id: number; // For backward compatibility
   bio: string;
   life_history: string;
   adjectives: string;
   knowledge_areas: string;
-  owner: string;
+  isDetailed?: boolean; // Flag to indicate if we have detailed data
 }
 
-// Mock data for leaderboard
-const mockYodhas: Yodha[] = [
-  {
-    id: 1,
-    name: "Arjuna the Mighty",
-    image: "/lazered.png",
-    rank: "GOLD",
-    strength: 85,
-    defence: 70,
-    charisma: 60,
-    wit: 75,
-    luck: 80,
-    winnings: 2500,
-    bio: "The greatest archer of his time, known for his unwavering focus and divine weapons.",
-    life_history: "Third Pandava brother, student of Dronacharya, winner of Draupadi's swayamvara.",
-    adjectives: "Focused, Disciplined, Righteous, Skilled, Devoted",
-    knowledge_areas: "Archery, Divine Weapons, Military Strategy, Music, Dance",
-    owner: "0x742d35Cc6634C0532925a3b8D"
-  },
-  {
-    id: 2,
-    name: "Bhima the Destroyer",
-    image: "/lazered.png", 
-    rank: "GOLD",
-    strength: 95,
-    defence: 85,
-    charisma: 40,
-    wit: 45,
-    luck: 70,
-    winnings: 2200,
-    bio: "The strongest among the Pandavas, known for his incredible physical power and appetite.",
-    life_history: "Second Pandava brother, slayer of many demons, master of mace fighting.",
-    adjectives: "Powerful, Fierce, Loyal, Hot-tempered, Protective",
-    knowledge_areas: "Mace Fighting, Wrestling, Cooking, Demon Slaying",
-    owner: "0x742d35Cc6634C0532925a3b8D"
-  },
-  {
-    id: 3,
-    name: "Nakula the Swift",
-    image: "/lazered.png",
-    rank: "SILVER",
-    strength: 70,
-    defence: 65,
-    charisma: 85,
-    wit: 70,
-    luck: 75,
-    winnings: 1800,
-    bio: "Known for his beauty and expertise with horses and swordsmanship.",
-    life_history: "Twin brother of Sahadeva, master of sword fighting and horse management.",
-    adjectives: "Handsome, Swift, Skilled, Gentle, Noble",
-    knowledge_areas: "Swordsmanship, Horse Training, Veterinary Skills, Ayurveda",
-    owner: "0x832f45Cc6634C0532925a3c9E"
-  },
-  {
-    id: 4,
-    name: "Sahadeva the Wise",
-    image: "/lazered.png",
-    rank: "SILVER", 
-    strength: 65,
-    defence: 70,
-    charisma: 75,
-    wit: 90,
-    luck: 80,
-    winnings: 1600,
-    bio: "The wisest among the Pandavas, skilled in astrology and cattle herding.",
-    life_history: "Youngest Pandava, twin of Nakula, keeper of cattle, master of astrology.",
-    adjectives: "Wise, Humble, Intelligent, Calm, Prophetic",
-    knowledge_areas: "Astrology, Cattle Herding, Philosophy, Mathematics, Medicine",
-    owner: "0x952g56Dd7745D0643a36b4f0F"
-  },
-  {
-    id: 5,
-    name: "Yudhishthira the Just",
-    image: "/lazered.png",
-    rank: "PLATINUM",
-    strength: 60,
-    defence: 75,
-    charisma: 95,
-    wit: 85,
-    luck: 90,
-    winnings: 3200,
-    bio: "The eldest Pandava, known for his righteousness and adherence to dharma.",
-    life_history: "King of Indraprastha, never spoke a lie, master of spear fighting and governance.",
-    adjectives: "Righteous, Just, Noble, Truthful, Wise",
-    knowledge_areas: "Governance, Dharma, Spear Fighting, Diplomacy, Law",
-    owner: "0x742d35Cc6634C0532925a3b8D"
-  },
-  {
-    id: 6,
-    name: "Karna the Generous",
-    image: "/lazered.png",
-    rank: "PLATINUM",
-    strength: 90,
-    defence: 80,
-    charisma: 85,
-    wit: 70,
-    luck: 40,
-    winnings: 2800,
-    bio: "The son of Surya, known for his generosity and unmatched archery skills.",
-    life_history: "Adopted son of charioteer, friend of Duryodhana, rival of Arjuna.",
-    adjectives: "Generous, Brave, Loyal, Skilled, Unfortunate",
-    knowledge_areas: "Archery, Divine Weapons, Charity, Leadership, Warfare",
-    owner: "0xa62h67Ee8856E0754b47c5g1G"
-  }
-];
-
-// Utility functions
-const getRankColor = (rank: RankCategory): string => {
-  switch (rank) {
-    case 'UNRANKED': return 'bg-gray-600 text-gray-200';
-    case 'BRONZE': return 'bg-amber-700 text-amber-200';
-    case 'SILVER': return 'bg-gray-400 text-gray-900';
-    case 'GOLD': return 'bg-yellow-500 text-yellow-900';
-    case 'PLATINUM': return 'bg-purple-600 text-purple-200';
-    default: return 'bg-gray-600 text-gray-200';
-  }
-};
-
-const TraitBar = ({ label, value }: { label: string; value: number }) => (
-  <div className="mb-3">
-    <div className="flex justify-between text-xs mb-1">
-      <span className="text-yellow-400">{label}</span>
-      <span className="text-white">{value}</span>
-    </div>
-    <div className="w-full bg-stone-700 rounded-full h-2">
-      <div 
-        className="bg-gradient-to-r from-yellow-600 to-orange-500 h-2 rounded-full transition-all duration-300"
-        style={{ width: `${value}%` }}
-      ></div>
-    </div>
-  </div>
-);
+// Remove duplicate type definition since we're importing it
+// type RankCategory = 'UNRANKED' | 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM';
 
 export default function LeaderboardPage() {
   const { isConnected } = useAccount();
+  const chainId = useChainId();
   const [activeRank, setActiveRank] = useState<RankCategory>('PLATINUM');
-  const [selectedYodha, setSelectedYodha] = useState<Yodha | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [enhancedYodhas, setEnhancedYodhas] = useState<{[key: string]: EnhancedYodha[]}>({
+    UNRANKED: [],
+    BRONZE: [],
+    SILVER: [],
+    GOLD: [],
+    PLATINUM: []
+  });
+
+  // Fetch real leaderboard data from contract
+  const { leaderboardData, isLoading, error } = useLeaderboard();
 
   // Prevent hydration mismatch by waiting for client-side mount
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // Filter and sort yodhas by rank and winnings
-  const getYodhasByRank = (rank: RankCategory) => {
-    return mockYodhas
-      .filter(yodha => yodha.rank === rank)
-      .sort((a, b) => b.winnings - a.winnings);
-  };
+  // Simplify leaderboard data - just use direct data from contract
+  useEffect(() => {
+    if (!leaderboardData || isLoading) return;
 
-  const handleYodhaClick = (yodha: Yodha) => {
-    setSelectedYodha(yodha);
-    setIsModalOpen(true);
+    // Copy the leaderboard data and convert to enhanced format for consistency
+    const enhanced: {[key: string]: EnhancedYodha[]} = {
+      UNRANKED: [],
+      BRONZE: [],
+      SILVER: [],
+      GOLD: [],
+      PLATINUM: []
+    };
+
+    // Process each rank category
+    (Object.keys(leaderboardData) as RankCategory[]).forEach(rank => {
+      enhanced[rank] = leaderboardData[rank].map(yodha => ({
+        ...yodha,
+        id: yodha.tokenId, // For backward compatibility
+        bio: yodha.bio || 'A powerful warrior in the realm of Rann',
+        life_history: 'The warrior\'s history is shrouded in mystery...',
+        adjectives: 'Brave, Skilled, Strategic',
+        knowledge_areas: 'Combat, Strategy, Leadership',
+        isDetailed: false
+      } as EnhancedYodha));
+    });
+
+    setEnhancedYodhas(enhanced);
+  }, [leaderboardData, isLoading]);
+
+  // Filter and sort yodhas by rank and winnings - only real NFTs, top 15 per rank
+  const getYodhasByRank = (rank: RankCategory) => {
+    const yodhas = enhancedYodhas[rank] || [];
+    // Filter out any NFTs with zero winnings (likely mock data) and limit to top 15
+    return yodhas
+      .filter(yodha => yodha.winnings > BigInt(0)) // Only show NFTs with actual winnings
+      .slice(0, 15); // Limit to top 15
   };
 
   // Show loading state until component mounts to prevent hydration mismatch
@@ -288,6 +182,108 @@ export default function LeaderboardPage() {
     );
   }
 
+  // Show loading state while fetching data
+  if (isLoading) {
+    return (
+      <div className="min-h-screen relative overflow-hidden">
+        {/* Background Image */}
+        <div className="fixed inset-0 -z-10">
+          <Image
+            src="/Leaderboard.png"
+            alt="Leaderboard Background"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div 
+            className="absolute inset-0"
+            style={{
+              backgroundColor: 'rgba(0, 0, 0, 0.175)',
+              zIndex: 1
+            }}
+          ></div>
+        </div>
+        
+        <div className="relative z-10 flex items-center justify-center min-h-screen leaderboard-page">
+          <div className="text-center">
+            <div 
+              className="arcade-card p-8 max-w-md"
+              style={{
+                background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+                border: '3px solid #ff8c00',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+                borderRadius: '24px'
+              }}
+            >
+              <h1 className="text-2xl text-orange-400 mb-4 arcade-glow" style={{fontFamily: 'Press Start 2P, monospace'}}>
+                LOADING...
+              </h1>
+              <p className="text-gray-300 mb-6">
+                Fetching warrior data from the blockchain...
+              </p>
+              <div className="text-orange-400 text-sm animate-pulse">
+                Scanning the battlefield...
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if something went wrong
+  if (error) {
+    return (
+      <div className="min-h-screen relative overflow-hidden">
+        {/* Background Image */}
+        <div className="fixed inset-0 -z-10">
+          <Image
+            src="/Leaderboard.png"
+            alt="Leaderboard Background"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div 
+            className="absolute inset-0"
+            style={{
+              backgroundColor: 'rgba(0, 0, 0, 0.175)',
+              zIndex: 1
+            }}
+          ></div>
+        </div>
+        
+        <div className="relative z-10 flex items-center justify-center min-h-screen leaderboard-page">
+          <div className="text-center">
+            <div 
+              className="arcade-card p-8 max-w-md"
+              style={{
+                background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
+                border: '3px solid #ff8c00',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
+                borderRadius: '24px'
+              }}
+            >
+              <h1 className="text-2xl text-orange-400 mb-4 arcade-glow" style={{fontFamily: 'Press Start 2P, monospace'}}>
+                ERROR
+              </h1>
+              <p className="text-gray-300 mb-6">
+                Failed to load leaderboard data. Please try again later.
+              </p>
+              <div className="text-red-400 text-sm">
+                {error}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Background Image */}
@@ -345,7 +341,7 @@ export default function LeaderboardPage() {
                 fontFamily: 'Press Start 2P, monospace'
               }}
             >
-              WITNESS THE GREATEST WARRIORS AND THEIR TRIUMPHS
+              TOP 15 WARRIORS BY RANK AND WINNINGS
             </p>
           </div>
         </div>
@@ -411,9 +407,8 @@ export default function LeaderboardPage() {
           <div className="space-y-4">
             {getYodhasByRank(activeRank).map((yodha, index) => (
               <div 
-                key={yodha.id}
-                className="arcade-card p-4 cursor-pointer hover:scale-105 transition-all duration-300"
-                onClick={() => handleYodhaClick(yodha)}
+                key={yodha.tokenId}
+                className="arcade-card p-4"
                 style={{
                   background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.1), rgba(100, 140, 180, 0.08) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.15) 0%, rgba(100, 140, 180, 0.1) 30%, rgba(120, 160, 200, 0.15) 100%)',
                   border: '2px solid #ff8c00',
@@ -438,21 +433,18 @@ export default function LeaderboardPage() {
                   <div className="w-20 h-20 border-2 border-orange-600 rounded-lg overflow-hidden bg-stone-800">
                     <Image 
                       src={yodha.image} 
-                      alt={yodha.name}
+                      alt={`NFT #${yodha.tokenId}`}
                       width={80}
                       height={80}
                       className="w-full h-full object-cover"
                     />
                   </div>
 
-                  {/* Yodha Info */}
+                  {/* Owner Info */}
                   <div className="flex-1">
-                    <div className="mb-2">
-                      <h3 className="text-lg text-white font-bold">{yodha.name}</h3>
-                    </div>
-                    <p className="text-sm text-gray-400 mb-2">{yodha.bio}</p>
-                    <div className="text-xs text-gray-500">
-                      Owner: {yodha.owner.slice(0, 6)}...{yodha.owner.slice(-4)}
+                    <div className="text-xs text-gray-400 mb-1">NFT #{yodha.tokenId}</div>
+                    <div className="text-sm text-gray-300">
+                      Owner: {yodha.owner.slice(0, 8)}...{yodha.owner.slice(-6)}
                     </div>
                   </div>
 
@@ -460,7 +452,7 @@ export default function LeaderboardPage() {
                   <div className="text-right">
                     <div className="text-sm text-gray-400">TOTAL WINNINGS</div>
                     <div className="text-2xl text-green-400 font-bold">
-                      {yodha.winnings.toLocaleString()}
+                      {parseFloat(formatEther(yodha.winnings)).toLocaleString()}
                     </div>
                     <div className="text-sm text-gray-400">RANN</div>
                   </div>
@@ -470,174 +462,13 @@ export default function LeaderboardPage() {
 
             {getYodhasByRank(activeRank).length === 0 && (
               <div className="text-center py-12">
-                <div className="text-gray-500 text-lg mb-2">👻</div>
                 <p className="text-gray-400 text-sm">
-                  No warriors found in {activeRank} rank
+                  No warriors with winnings found in {activeRank} rank
                 </p>
               </div>
             )}
           </div>
         </div>
-
-        {/* Yodha Detail Modal */}
-        {selectedYodha && (
-          <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-            <div className="max-w-4xl mx-auto leaderboard-page">
-              <div className="flex justify-between items-center mb-6">
-                <h2 
-                  className="text-2xl text-orange-400 arcade-glow"
-                  style={{fontFamily: 'Press Start 2P, monospace'}}
-                >
-                  {selectedYodha.name}
-                </h2>
-                <button 
-                  onClick={() => setIsModalOpen(false)}
-                  className="text-gray-400 hover:text-white text-2xl"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div>
-                  <div className="w-64 h-64 mx-auto mb-6 border-2 border-orange-600 rounded-lg overflow-hidden">
-                    <Image 
-                      src={selectedYodha.image} 
-                      alt={selectedYodha.name}
-                      width={256}
-                      height={256}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <h3 
-                        className="text-sm text-orange-400 mb-2"
-                        style={{fontFamily: 'Press Start 2P, monospace'}}
-                      >
-                        BIO
-                      </h3>
-                      <p 
-                        className="text-xs text-gray-300 leading-relaxed"
-                        style={{fontFamily: 'Press Start 2P, monospace'}}
-                      >
-                        {selectedYodha.bio}
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 
-                        className="text-sm text-orange-400 mb-2"
-                        style={{fontFamily: 'Press Start 2P, monospace'}}
-                      >
-                        LIFE HISTORY
-                      </h3>
-                      <p 
-                        className="text-xs text-gray-300 leading-relaxed"
-                        style={{fontFamily: 'Press Start 2P, monospace'}}
-                      >
-                        {selectedYodha.life_history}
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 
-                        className="text-sm text-orange-400 mb-2"
-                        style={{fontFamily: 'Press Start 2P, monospace'}}
-                      >
-                        PERSONALITY TRAITS
-                      </h3>
-                      <p 
-                        className="text-xs text-gray-300 leading-relaxed"
-                        style={{fontFamily: 'Press Start 2P, monospace'}}
-                      >
-                        {selectedYodha.adjectives}
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 
-                        className="text-sm text-orange-400 mb-2"
-                        style={{fontFamily: 'Press Start 2P, monospace'}}
-                      >
-                        KNOWLEDGE AREAS
-                      </h3>
-                      <p 
-                        className="text-xs text-gray-300 leading-relaxed"
-                        style={{fontFamily: 'Press Start 2P, monospace'}}
-                      >
-                        {selectedYodha.knowledge_areas}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 
-                    className="text-lg text-orange-400 mb-6 text-center"
-                    style={{fontFamily: 'Press Start 2P, monospace'}}
-                  >
-                    WARRIOR TRAITS
-                  </h3>
-                  
-                  <div className="space-y-4 mb-8">
-                    <TraitBar label="STRENGTH" value={selectedYodha.strength} />
-                    <TraitBar label="WIT" value={selectedYodha.wit} />
-                    <TraitBar label="CHARISMA" value={selectedYodha.charisma} />
-                    <TraitBar label="DEFENCE" value={selectedYodha.defence} />
-                    <TraitBar label="LUCK" value={selectedYodha.luck} />
-                  </div>
-
-                  <div className="border-t border-orange-600 pt-6">
-                    <div className="text-center mb-6">
-                      <div className="flex justify-center items-center gap-4 mb-4">
-                        <Badge className={getRankColor(selectedYodha.rank)}>
-                          <span 
-                            className="text-xs"
-                            style={{fontFamily: 'Press Start 2P, monospace'}}
-                          >
-                            {selectedYodha.rank}
-                          </span>
-                        </Badge>
-                      </div>
-
-                      <div 
-                        className="arcade-card p-4"
-                        style={{
-                          background: 'radial-gradient(circle at top left, rgba(120, 160, 200, 0.15), rgba(100, 140, 180, 0.1) 50%), linear-gradient(135deg, rgba(120, 160, 200, 0.2) 0%, rgba(100, 140, 180, 0.15) 30%, rgba(120, 160, 200, 0.2) 100%)',
-                          border: '2px solid #ff8c00',
-                          backdropFilter: 'blur(20px)',
-                          WebkitBackdropFilter: 'blur(20px)',
-                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 140, 0, 0.3)',
-                          borderRadius: '16px'
-                        }}
-                      >
-                        <h4 
-                          className="text-sm text-orange-400 mb-2"
-                          style={{fontFamily: 'Press Start 2P, monospace'}}
-                        >
-                          TOTAL WINNINGS
-                        </h4>
-                        <div className="text-3xl text-green-400 font-bold mb-1">
-                          {selectedYodha.winnings.toLocaleString()}
-                        </div>
-                        <div className="text-sm text-gray-400">RANN TOKENS</div>
-                      </div>
-
-                      <div className="mt-4 text-xs text-gray-400">
-                        <span>Owner: </span>
-                        <span className="text-orange-400 font-mono">
-                          {selectedYodha.owner}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Modal>
-        )}
 
         {/* Back to Home */}
         <div className="text-center mt-12">

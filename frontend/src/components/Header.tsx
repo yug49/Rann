@@ -87,7 +87,7 @@ const Header: React.FC = () => {
             {isMounted && isConnected && (
               <div className="arcade-card-slate px-4 py-2 bg-slate-900/20 border-slate-500">
                 <div className="flex items-center gap-2">
-                  <span className="text-red-400 text-lg">🪙</span>
+                  <span className="text-red-400 text-lg coin-spin">🪙</span>
                   <div className="text-right">
                     <div className="text-xs text-red-300" style={{fontFamily: 'Press Start 2P, monospace'}}>
                       RANN
