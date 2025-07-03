@@ -1,9 +1,10 @@
-// Frontend service to sync with backend arena automation
+// Frontend service to sync with command-based arena automation
 import { useState, useEffect, useCallback } from 'react';
 
 interface ArenaGameState {
-  battleId: number | null;
-  gameState: 'idle' | 'betting' | 'playing' | 'finished';
+  battleId: string | null;
+  gameState: 'idle' | 'playing' | 'finished';
+  phase: 'startGame' | 'battle';
   timeRemaining: number;
   totalTime: number;
   lastUpdate: number;
@@ -11,6 +12,8 @@ interface ArenaGameState {
   yodha2Id: number | null;
   currentRound: number;
   totalRounds: number;
+  automationEnabled: boolean;
+  type: string;
 }
 
 export const useArenaSync = (battleId: string | null) => {
@@ -18,16 +21,21 @@ export const useArenaSync = (battleId: string | null) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch current game state from backend
+  // Fetch current game state from status endpoint (not commands)
   const fetchGameState = useCallback(async () => {
     if (!battleId) return;
 
     try {
-      const response = await fetch(`/api/arena/${battleId}`);
+      const response = await fetch(`/api/arena/status?battleId=${battleId}`);
       if (response.ok) {
         const data = await response.json();
-        setGameState(data);
-        setError(null);
+        if (data.gameState) {
+          setGameState(data.gameState);
+          setError(null);
+        } else {
+          // No active automation
+          setGameState(null);
+        }
       } else if (response.status === 404) {
         // Battle not found - set to idle state
         setGameState(null);
@@ -40,13 +48,13 @@ export const useArenaSync = (battleId: string | null) => {
     }
   }, [battleId]);
 
-  // Initialize battle on backend
+  // Initialize battle on command-based backend
   const initializeBattle = useCallback(async (yodha1Id: number, yodha2Id: number) => {
     if (!battleId) return;
 
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/arena/${battleId}`, {
+      const response = await fetch(`/api/arena/commands?battleId=${battleId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -65,14 +73,6 @@ export const useArenaSync = (battleId: string | null) => {
         // Enhanced error message with suggestions
         let errorMessage = errorData.error || `HTTP ${response.status}: ${response.statusText}`;
         
-        if (errorData.suggestion) {
-          errorMessage += `\n\n💡 Suggestion: ${errorData.suggestion}`;
-        }
-        
-        if (errorData.simulationMode) {
-          errorMessage += `\n\n🎮 ${errorData.simulationMode}`;
-        }
-        
         console.error('Backend initialization error:', errorData);
         throw new Error(errorMessage);
       }
@@ -80,7 +80,7 @@ export const useArenaSync = (battleId: string | null) => {
       // Fetch updated state
       await fetchGameState();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to initialize battle';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to initialize command-based automation';
       setError(errorMessage);
       console.error('Battle initialization error:', err);
       throw err; // Re-throw so the calling function can handle it
@@ -89,70 +89,30 @@ export const useArenaSync = (battleId: string | null) => {
     }
   }, [battleId, fetchGameState]);
 
-  // Manual start game (override)
+  // Manual start game (not needed in command-based system, but kept for compatibility)
   const manualStartGame = useCallback(async () => {
     if (!battleId) return;
 
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/arena/${battleId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'manual_start',
-        }),
-      });
+    console.log('Manual start game not needed - command-based system handles timing automatically');
+    // In command-based system, the frontend polling handles this automatically
+    return;
+  }, [battleId]);
 
-      if (!response.ok) {
-        throw new Error('Failed to start game manually');
-      }
-
-      await fetchGameState();
-    } catch (err) {
-      setError('Failed to start game manually');
-      console.error('Manual start error:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [battleId, fetchGameState]);
-
-  // Manual next round (override)
+  // Manual next round (not needed in command-based system, but kept for compatibility)
   const manualNextRound = useCallback(async () => {
     if (!battleId) return;
 
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/arena/${battleId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'manual_next_round',
-        }),
-      });
+    console.log('Manual next round not needed - command-based system handles timing automatically');
+    // In command-based system, the frontend polling handles this automatically
+    return;
+  }, [battleId]);
 
-      if (!response.ok) {
-        throw new Error('Failed to call next round manually');
-      }
-
-      await fetchGameState();
-    } catch (err) {
-      setError('Failed to call next round manually');
-      console.error('Manual next round error:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [battleId, fetchGameState]);
-
-  // Cleanup battle
+  // Cleanup battle from command-based system
   const cleanupBattle = useCallback(async () => {
     if (!battleId) return;
 
     try {
-      await fetch(`/api/arena/${battleId}`, {
+      await fetch(`/api/arena/commands?battleId=${battleId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -170,7 +130,8 @@ export const useArenaSync = (battleId: string | null) => {
   useEffect(() => {
     if (!battleId) return;
 
-    const interval = setInterval(fetchGameState, 1000);
+    // Poll status endpoint every 2 seconds for timer updates
+    const interval = setInterval(fetchGameState, 2000);
     
     // Initial fetch
     fetchGameState();

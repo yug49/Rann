@@ -56,7 +56,7 @@ interface Yodha {
   defense: number;
   charisma: number;
   wit: number;
-  personality: number;
+  luck: number;
   owner: string;
   winnings: number;
   // IPFS metadata fields for AI prompts
@@ -507,13 +507,55 @@ export default function KurukshetraPage() {
 
       console.log('Signature:', signature);
 
-      // Call the battle function
-      writeContract({
+      // Create Game Master wallet client for transaction
+      const { createWalletClient, http } = await import('viem');
+      const { defineChain } = await import('viem');
+      
+      const flowTestnet = defineChain({
+        id: 545,
+        name: 'Flow Testnet',
+        network: 'flow-testnet',
+        nativeCurrency: {
+          decimals: 18,
+          name: 'Flow',
+          symbol: 'FLOW',
+        },
+        rpcUrls: {
+          default: {
+            http: ['https://testnet.evm.nodes.onflow.org'],
+          },
+        },
+      });
+
+      const gameMasterWalletClient = createWalletClient({
+        account: gameStandardAccount,
+        chain: flowTestnet,
+        transport: http('https://testnet.evm.nodes.onflow.org'),
+      });
+
+      // Call the battle function using Game Master's wallet client
+      const hash = await gameMasterWalletClient.writeContract({
         address: selectedArena.address as `0x${string}`,
         abi: KurukshetraAbi,
         functionName: 'battle',
         args: [yodhaOneMove, yodhaTwoMove, signature]
       });
+
+      console.log('Battle transaction sent:', hash);
+
+      // Wait for confirmation
+      const { createPublicClient } = await import('viem');
+      const publicClient = createPublicClient({
+        chain: flowTestnet,
+        transport: http('https://testnet.evm.nodes.onflow.org'),
+      });
+
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash: hash as `0x${string}`,
+        timeout: 60000
+      });
+
+      console.log('Battle confirmed in block:', receipt.blockNumber);
 
     } catch (error) {
       console.error('Error executing battle moves:', error);
@@ -571,7 +613,7 @@ export default function KurukshetraPage() {
         defense: details.yodhaOneDetails.traits.defence ?? 50,
         charisma: details.yodhaOneDetails.traits.charisma ?? 50,
         wit: details.yodhaOneDetails.traits.wit ?? 50,
-        personality: details.yodhaOneDetails.traits.luck ?? 50,
+        luck: details.yodhaOneDetails.traits.luck ?? 50,
         owner: '0x000...000',
         winnings: 0,
         adjectives: details.yodhaOneDetails.adjectives,
@@ -587,7 +629,7 @@ export default function KurukshetraPage() {
         defense: details.yodhaTwoDetails.traits.defence ?? 50,
         charisma: details.yodhaTwoDetails.traits.charisma ?? 50,
         wit: details.yodhaTwoDetails.traits.wit ?? 50,
-        personality: details.yodhaTwoDetails.traits.luck ?? 50,
+        luck: details.yodhaTwoDetails.traits.luck ?? 50,
         owner: '0x000...000',
         winnings: 0,
         adjectives: details.yodhaTwoDetails.adjectives,
@@ -622,23 +664,14 @@ export default function KurukshetraPage() {
   // Get arenas for the active rank
   const currentRankArenasWithDetails = arenasWithDetails[activeRank] || [];
 
-  // Manual automation functions
+  // Manual automation functions - updated for command-based system
   const manualStartGame = async () => {
     if (!selectedArena) return;
     
     try {
-      console.log('🤖 Manual start game triggered');
-      const response = await fetch(`/api/arena/${selectedArena.address}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'manual_start' })
-      });
-      
-      if (response.ok) {
-        console.log('✅ Manual start game successful');
-      } else {
-        console.error('❌ Manual start game failed');
-      }
+      console.log('🤖 Manual start game triggered - calling handleStartGame directly');
+      await handleStartGame();
+      console.log('✅ Manual start game successful');
     } catch (error) {
       console.error('❌ Manual start game error:', error);
     }
@@ -648,18 +681,9 @@ export default function KurukshetraPage() {
     if (!selectedArena) return;
     
     try {
-      console.log('⚔️ Manual next round triggered');
-      const response = await fetch(`/api/arena/${selectedArena.address}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'manual_next_round' })
-      });
-      
-      if (response.ok) {
-        console.log('✅ Manual next round successful');
-      } else {
-        console.error('❌ Manual next round failed');
-      }
+      console.log('⚔️ Manual next round triggered - calling handleNextRound directly');
+      await handleNextRound();
+      console.log('✅ Manual next round successful');
     } catch (error) {
       console.error('❌ Manual next round error:', error);
     }
@@ -720,7 +744,7 @@ export default function KurukshetraPage() {
         defense: details.yodhaOneDetails.traits.defence ?? 50,
         charisma: details.yodhaOneDetails.traits.charisma ?? 50,
         wit: details.yodhaOneDetails.traits.wit ?? 50,
-        personality: details.yodhaOneDetails.traits.luck ?? 50, // Using luck as personality
+        luck: details.yodhaOneDetails.traits.luck ?? 50, // Using luck as personality
         owner: '0x000...000', // You may want to fetch actual owner from contract
         winnings: 0, // You may want to fetch actual winnings
         adjectives: details.yodhaOneDetails.adjectives,
@@ -736,7 +760,7 @@ export default function KurukshetraPage() {
         defense: details.yodhaTwoDetails.traits.defence ?? 50,
         charisma: details.yodhaTwoDetails.traits.charisma ?? 50,
         wit: details.yodhaTwoDetails.traits.wit ?? 50,
-        personality: details.yodhaTwoDetails.traits.luck ?? 50, // Using luck as personality
+        luck: details.yodhaTwoDetails.traits.luck ?? 50, // Using luck as personality
         owner: '0x000...000', // You may want to fetch actual owner from contract
         winnings: 0, // You may want to fetch actual winnings
         adjectives: details.yodhaTwoDetails.adjectives,
@@ -752,22 +776,76 @@ export default function KurukshetraPage() {
   // const handleArenaAddressClick = async (arenaAddress: string) => { ... }
   // const handleArenaClick = (arena: Arena) => { ... }
 
-  const handleStartGame = async () => {
+  const handleStartGame = useCallback(async () => {
     if (!selectedArena) return;
 
     try {
-      console.log('Starting battle for arena:', selectedArena.address);
+      console.log('Starting battle for arena using Game Master private key:', selectedArena.address);
 
-      const transactionHash = await arenaService.startGame(selectedArena.address);
-      console.log('Start game transaction sent:', transactionHash);
+      // Get game master private key from environment
+      const gameStandardPrivateKey = process.env.NEXT_PUBLIC_GAME_MASTER_PRIVATE_KEY;
+      if (!gameStandardPrivateKey) {
+        throw new Error('Game master private key not found');
+      }
 
-      // Wait for confirmation
-      await waitForTransactionReceipt(rainbowKitConfig, {
-        hash: transactionHash as `0x${string}`,
-        chainId: 545,
+      // Ensure private key has 0x prefix for viem
+      const formattedPrivateKey = gameStandardPrivateKey.startsWith('0x') 
+        ? gameStandardPrivateKey 
+        : `0x${gameStandardPrivateKey}`;
+
+      // Create Game Master account and wallet client
+      const gameStandardAccount = privateKeyToAccount(formattedPrivateKey as `0x${string}`);
+      
+      const { createWalletClient, http } = await import('viem');
+      const { defineChain } = await import('viem');
+      
+      const flowTestnet = defineChain({
+        id: 545,
+        name: 'Flow Testnet',
+        network: 'flow-testnet',
+        nativeCurrency: {
+          decimals: 18,
+          name: 'Flow',
+          symbol: 'FLOW',
+        },
+        rpcUrls: {
+          default: {
+            http: ['https://testnet.evm.nodes.onflow.org'],
+          },
+        },
       });
 
-      console.log('Game started successfully!');
+      const gameMasterWalletClient = createWalletClient({
+        account: gameStandardAccount,
+        chain: flowTestnet,
+        transport: http('https://testnet.evm.nodes.onflow.org'),
+      });
+
+      console.log(`Using Game Master account: ${gameStandardAccount.address}`);
+
+      // Call startGame using Game Master's wallet client
+      const hash = await gameMasterWalletClient.writeContract({
+        address: selectedArena.address as `0x${string}`,
+        abi: KurukshetraAbi,
+        functionName: 'startGame',
+        args: []
+      });
+
+      console.log('Start game transaction sent:', hash);
+
+      // Wait for confirmation
+      const { createPublicClient } = await import('viem');
+      const publicClient = createPublicClient({
+        chain: flowTestnet,
+        transport: http('https://testnet.evm.nodes.onflow.org'),
+      });
+
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash: hash as `0x${string}`,
+        timeout: 60000
+      });
+
+      console.log('Game started successfully! Block:', receipt.blockNumber);
 
       // Close modal and refresh arena data
       setIsModalOpen(false);
@@ -777,7 +855,7 @@ export default function KurukshetraPage() {
       console.error('Failed to start game:', error);
       // Handle error - maybe show a toast notification
     }
-  };
+  }, [selectedArena]); // Add useCallback dependency array
 
   const handleBet = async (yodha: 'ONE' | 'TWO') => {
     if (!betAmount || !selectedArena || !address) return;
@@ -1032,7 +1110,7 @@ export default function KurukshetraPage() {
           defense: updatedArenaDetails.yodhaOneDetails.traits.defence ?? 50,
           charisma: updatedArenaDetails.yodhaOneDetails.traits.charisma ?? 50,
           wit: updatedArenaDetails.yodhaOneDetails.traits.wit ?? 50,
-          personality: updatedArenaDetails.yodhaOneDetails.traits.luck ?? 50,
+          luck: updatedArenaDetails.yodhaOneDetails.traits.luck ?? 50,
           owner: '0x000...000',
           winnings: 0
         };
@@ -1046,7 +1124,7 @@ export default function KurukshetraPage() {
           defense: updatedArenaDetails.yodhaTwoDetails.traits.defence ?? 50,
           charisma: updatedArenaDetails.yodhaTwoDetails.traits.charisma ?? 50,
           wit: updatedArenaDetails.yodhaTwoDetails.traits.wit ?? 50,
-          personality: updatedArenaDetails.yodhaTwoDetails.traits.luck ?? 50,
+          luck: updatedArenaDetails.yodhaTwoDetails.traits.luck ?? 50,
           owner: '0x000...000',
           winnings: 0
         };
@@ -1101,25 +1179,40 @@ export default function KurukshetraPage() {
     }
   };
 
-  const handleNextRound = async () => {
-    if (!selectedArena || !address) return;
+  const handleNextRound = useCallback(async () => {
+    console.log('🎯 handleNextRound() function called!');
+    
+    if (!selectedArena || !address) {
+      console.log('❌ handleNextRound: Missing selectedArena or address');
+      return;
+    }
 
     try {
-      console.log('Generating next round moves with AI...');
+      console.log('⚔️ Starting next round process...');
+      
+      // Add timeout wrapper to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Next round process timed out')), 180000); // Increased to 180 seconds
+      });
 
-      // Fetch current battle data from contract
-      const currentRound = await arenaService.getCurrentRound(selectedArena.address);
-      const damageOnYodhaOne = await arenaService.getDamageOnYodhaOne(selectedArena.address);
-      const damageOnYodhaTwo = await arenaService.getDamageOnYodhaTwo(selectedArena.address);
+      const nextRoundProcess = async () => {
+        console.log('🤖 Generating next round moves with AI...');
 
-      // Get Yodha details with personality and traits
-      const yodhaOneDetails = selectedArena.yodhaOne;
-      const yodhaTwoDetails = selectedArena.yodhaTwo;
+        // Fetch current battle data from contract
+        const currentRound = await arenaService.getCurrentRound(selectedArena.address);
+        const damageOnYodhaOne = await arenaService.getDamageOnYodhaOne(selectedArena.address);
+        const damageOnYodhaTwo = await arenaService.getDamageOnYodhaTwo(selectedArena.address);
 
-      if (!yodhaOneDetails || !yodhaTwoDetails) {
-        console.error('Missing Yodha details for AI generation');
-        return;
-      }
+        console.log('📊 Battle data:', { currentRound, damageOnYodhaOne, damageOnYodhaTwo });
+
+        // Get Yodha details with personality and traits
+        const yodhaOneDetails = selectedArena.yodhaOne;
+        const yodhaTwoDetails = selectedArena.yodhaTwo;
+
+        if (!yodhaOneDetails || !yodhaTwoDetails) {
+          console.error('Missing Yodha details for AI generation');
+          return;
+        }
 
       // Safely handle adjectives and knowledge_areas - they might be arrays or strings
       const getAdjectives = (yodha: { adjectives?: string | string[] }) => {
@@ -1149,7 +1242,7 @@ export default function KurukshetraPage() {
             Wit: Math.round(yodhaOneDetails.wit * 100),
             Charisma: Math.round(yodhaOneDetails.charisma * 100),
             Defence: Math.round(yodhaOneDetails.defense * 100),
-            Luck: Math.round(yodhaOneDetails.personality * 100) // Using personality as luck
+            Luck: Math.round(yodhaOneDetails.luck * 100) // Using personality as luck
           },
           total_damage_received: damageOnYodhaOne
         },
@@ -1163,7 +1256,7 @@ export default function KurukshetraPage() {
             Wit: Math.round(yodhaTwoDetails.wit * 100),
             Charisma: Math.round(yodhaTwoDetails.charisma * 100),
             Defence: Math.round(yodhaTwoDetails.defense * 100),
-            Luck: Math.round(yodhaTwoDetails.personality * 100) // Using personality as luck
+            Luck: Math.round(yodhaTwoDetails.luck * 100) // Using personality as luck
           },
           total_damage_received: damageOnYodhaTwo
         },
@@ -1208,6 +1301,7 @@ export default function KurukshetraPage() {
       };
 
       // Call our backend API route for NEAR AI move selection
+      console.log('🕐 Starting NEAR AI API call at:', new Date().toLocaleTimeString());
       console.log('Sending request to /api/near-ai-moves with:', {
         auth: authForApi,
         prompt: promptString,
@@ -1226,6 +1320,7 @@ export default function KurukshetraPage() {
         })
       });
 
+      console.log('🕐 NEAR AI API response received at:', new Date().toLocaleTimeString());
       console.log('Response status:', response.status, response.statusText);
 
       if (!response.ok) {
@@ -1303,11 +1398,76 @@ export default function KurukshetraPage() {
         console.error('Failed to parse AI response:', parseError);
         console.log('Raw response that failed to parse:', data.response);
       }
+      };
+
+      // Execute with timeout protection
+      await Promise.race([nextRoundProcess(), timeoutPromise]);
+      console.log('✅ Next round process completed successfully');
 
     } catch (error) {
       console.error('Failed to generate next round moves:', error);
+      // Continue anyway - don't block the automation
     }
-  };
+  }, [selectedArena, address]);
+
+  // Command polling for backend automation - checks for startGame and nextRound commands
+  useEffect(() => {
+    if (!selectedArena) {
+      return;
+    }
+
+    console.log('🎯 Starting command polling for arena:', selectedArena.address);
+
+    const pollForCommands = async () => {
+      try {
+        const response = await fetch(`/api/arena/commands?battleId=${selectedArena.address}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('📡 Poll response:', data);
+          
+          if (data.hasCommand && data.command) {
+            console.log('🤖 Received automation command:', data.command);
+            
+            switch (data.command.action) {
+              case 'startGame':
+                console.log('🎮 Backend triggered START GAME - calling handleStartGame()');
+                await handleStartGame();
+                console.log('✅ handleStartGame() completed');
+                break;
+                
+              case 'nextRound':
+                console.log(`⚔️ Backend triggered NEXT ROUND ${data.command.round} - calling handleNextRound()`);
+                await handleNextRound();
+                console.log('✅ handleNextRound() completed');
+                break;
+                
+              default:
+                console.log('⚠️ Unknown command action:', data.command.action);
+            }
+          } else {
+            console.log('📡 No commands available, current state:', data.gameState);
+          }
+        } else {
+          console.warn('Failed to poll for commands:', response.status, response.statusText);
+        }
+      } catch (error) {
+        console.error('Error polling for commands:', error);
+      }
+    };
+
+    // Poll every 2 seconds when arena is selected
+    const pollInterval = setInterval(pollForCommands, 2000);
+    
+    // Initial poll
+    pollForCommands();
+    
+    // Cleanup on unmount or when arena changes
+    return () => {
+      console.log('🛑 Stopping command polling for arena:', selectedArena.address);
+      clearInterval(pollInterval);
+    };
+  }, [selectedArena, handleStartGame, handleNextRound]);
 
   // Function to execute battle moves with AI-selected moves
 
@@ -1682,7 +1842,7 @@ export default function KurukshetraPage() {
             onBet={ handleBet }
             onInfluence={ handleInfluence }
             onDefluence={ handleDefluence }
-            onInitialize={ handleInitializeArena }
+                       onInitialize={ handleInitializeArena }
             onStartGame={ handleStartGame }
             onNextRound={ handleNextRound }
             betAmount={ betAmount }
@@ -2152,7 +2312,7 @@ const ArenaModal = ({
                   <TraitBar label="Defense" value={ arena.yodhaOne.defense } />
                   <TraitBar label="Charisma" value={ arena.yodhaOne.charisma } />
                   <TraitBar label="Wit" value={ arena.yodhaOne.wit } />
-                  <TraitBar label="Personality" value={ arena.yodhaOne.personality } />
+                  <TraitBar label="Personality" value={ arena.yodhaOne.luck } />
                 </div>
 
                 {/* Action Buttons */}
@@ -2421,7 +2581,7 @@ const ArenaModal = ({
                   <TraitBar label="Defense" value={ arena.yodhaTwo.defense } />
                   <TraitBar label="Charisma" value={ arena.yodhaTwo.charisma } />
                   <TraitBar label="Wit" value={ arena.yodhaTwo.wit } />
-                  <TraitBar label="Personality" value={ arena.yodhaTwo.personality } />
+                  <TraitBar label="Personality" value={ arena.yodhaTwo.luck } />
                 </div>
 
                 {/* Action Buttons */}

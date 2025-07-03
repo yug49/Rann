@@ -1,4 +1,4 @@
-// Test endpoint to initialize automation for debugging
+// Test endpoint for command-based automation debugging
 import { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -7,14 +7,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // Initialize a test battle
+    // Initialize a test battle using command-based system
     const testBattleId = '0x1234567890123456789012345678901234567890';
     
-    console.log(`🧪 TEST: Initializing automation for battle ${testBattleId}`);
+    console.log(`🧪 TEST: Initializing command-based automation for battle ${testBattleId}`);
     
-    // Call our automation API to initialize
+    // Call our command-based automation API to initialize
     const baseURL = req.headers.origin || 'http://localhost:3000';
-    const initResponse = await fetch(`${baseURL}/api/arena/${testBattleId}`, {
+    const initResponse = await fetch(`${baseURL}/api/arena/commands?battleId=${testBattleId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -31,18 +31,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const initData = await initResponse.json();
-    console.log('🧪 TEST: Battle initialized:', initData);
+    console.log('🧪 TEST: Command-based automation initialized:', initData);
 
     // Wait a moment and get the state
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    const stateResponse = await fetch(`${baseURL}/api/arena/${testBattleId}`);
+    const stateResponse = await fetch(`${baseURL}/api/arena/commands?battleId=${testBattleId}`);
     const stateData = await stateResponse.json();
     
     console.log('🧪 TEST: Current state:', stateData);
 
     return res.status(200).json({
-      message: 'Test automation initialized',
+      message: 'Test command-based automation initialized',
       battleId: testBattleId,
       initialState: initData,
       currentState: stateData,
