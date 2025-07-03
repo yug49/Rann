@@ -1,7 +1,7 @@
 {
   "name": "move_choser",
-  "version": "0.0.1",
-  "description": "THe agent will choose the move for both the warriors",
+  "version": "0.0.2",
+  "description": "The agent will choose the move for both the warriors",
   "category": "agent",
   "tags": [],
   "details": {

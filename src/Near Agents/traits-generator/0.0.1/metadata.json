@@ -1,6 +1,6 @@
 {
   "name": "traits-generator",
-  "version": "0.0.2",
+  "version": "0.0.5",
   "description": "Reads the JSON attributes file and return traits values of the character.",
   "category": "agent",
   "tags": [],
