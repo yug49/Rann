@@ -1,10 +1,11 @@
 "use client";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit"
-import { useAccount, useBalance, useReadContract, useEnsName } from "wagmi"
+import { useAccount, useReadContract, useEnsName } from "wagmi"
 import { useState, useEffect } from "react"
 import { chainsToTSender, rannTokenAbi } from "../constants"
 import { formatEther } from "viem"
+import Link from "next/link"
 
 const Header: React.FC = () => {
   const { address, isConnected, chainId } = useAccount();
@@ -43,7 +44,7 @@ const Header: React.FC = () => {
     "0.00";
 
   // Helper function to format display name (ENS or truncated address)
-  const formatDisplayName = (account: any) => {
+  const formatDisplayName = (account: { displayName?: string }) => {
     if (ensName) {
       // Display ENS name with a subtle indicator
       return `${ensName} •`;
@@ -69,11 +70,11 @@ const Header: React.FC = () => {
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-6">
-              <a href="/">
+              <Link href="/">
                 <h1 className="text-2xl text-red-400 tracking-widest arcade-glow" style={{fontFamily: 'Press Start 2P, monospace'}}>
                   RANN
                 </h1>
-              </a>
+              </Link>
               <div className="hidden md:block border-l-2 border-red-500 pl-6">
                 <h5 className="text-xs text-red-300 tracking-wide" style={{fontFamily: 'Press Start 2P, monospace'}}>
                   LEGENDARY ARENA AWAITS

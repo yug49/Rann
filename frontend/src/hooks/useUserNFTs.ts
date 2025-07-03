@@ -24,8 +24,25 @@ interface UserYodha {
   totalWinnings: number;
 }
 
+// Interface for NFT metadata
+interface NFTMetadata {
+  name?: string;
+  title?: string;
+  description?: string;
+  image?: string;
+  bio?: string;
+  life_history?: string;
+  adjectives?: string;
+  knowledge_areas?: string;
+  attributes?: Array<{
+    trait_type: string;
+    value: number | string;
+  }>;
+  [key: string]: unknown; // Allow additional properties
+}
+
 // Simple metadata cache to avoid repeated IPFS requests
-const metadataCache = new Map<string, any>();
+const metadataCache = new Map<string, NFTMetadata>();
 
 // Function to clear cache for debugging/testing
 const clearMetadataCache = () => {

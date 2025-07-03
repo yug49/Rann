@@ -1,9 +1,23 @@
+export interface YodhaNFTMetadata {
+  name: string;
+  description: string;
+  image: string;
+  bio: string;
+  life_history: string;
+  adjectives: string;
+  knowledge_areas: string;
+  attributes: Array<{
+    trait_type: string;
+    value: number | string;
+  }>;
+}
+
 export interface IPFSUploadResult {
   imageCid: string;
   imageUrl: string;
   metadataCid: string;
   metadataUrl: string;
-  metadata: any;
+  metadata: YodhaNFTMetadata;
   size: number;
 }
 

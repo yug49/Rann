@@ -87,7 +87,6 @@ const TokenExchangeCard = ({
 
   const cardColor = type === 'mint' ? 'border-green-500' : 'border-red-500';
   const buttonColor = type === 'mint' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700';
-  const isTransactionPending = isLoading || isConfirming;
 
   return (
     <div 

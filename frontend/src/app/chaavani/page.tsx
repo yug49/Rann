@@ -553,6 +553,7 @@ const ChaavaniPage = memo(function ChaavaniPage() {
       />
     );
   });
+  YodhaImage.displayName = 'YodhaImage';
 
   const TraitBar = memo(({ label, value }: { label: string; value: number }) => (
     <div className="mb-3">
@@ -578,6 +579,7 @@ const ChaavaniPage = memo(function ChaavaniPage() {
       </div>
     </div>
   ));
+  TraitBar.displayName = 'TraitBar';
 
   const YodhaCard = memo(({ yodha, onClick }: { yodha: UserYodha; onClick: () => void }) => {
     const isInactive = isYodhaInactive(yodha.traits);
@@ -657,6 +659,7 @@ const ChaavaniPage = memo(function ChaavaniPage() {
     </div>
     );
   });
+  YodhaCard.displayName = 'YodhaCard';
 
   // Function to convert cropped area to a File object
   const getCroppedImg = useCallback((image: HTMLImageElement, crop: PixelCrop): Promise<File> => {
@@ -1764,7 +1767,6 @@ const ChaavaniPage = memo(function ChaavaniPage() {
                     style={{ maxWidth: '100%', maxHeight: '400px' }}
                     onLoad={(e) => {
                       const { naturalWidth, naturalHeight } = e.currentTarget;
-                      const { width: displayWidth, height: displayHeight } = e.currentTarget;
                       
                       // Calculate crop in percentage terms for the displayed image
                       const minDimension = Math.min(naturalWidth, naturalHeight);

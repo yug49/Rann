@@ -68,7 +68,7 @@ class NearWalletService {
       let selectedWallet = null;
       
       // First, try Meteor Wallet since you mentioned you have it installed
-      const meteorWallet = wallets.find((w: any) => w.id === 'meteor-wallet');
+      const meteorWallet = wallets.find((w: { id: string; metadata: { name: string } }) => w.id === 'meteor-wallet');
       if (meteorWallet) {
         console.log("Found Meteor Wallet, attempting to connect...");
         selectedWallet = meteorWallet;

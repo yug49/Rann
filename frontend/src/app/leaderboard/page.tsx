@@ -5,6 +5,7 @@ import { useAccount } from 'wagmi';
 import { Badge } from '../../components/ui/badge';
 import { Modal } from '../../components/ui/modal';
 import Image from 'next/image';
+import Link from 'next/link';
 import './leaderboard-glass.css';
 
 // Types
@@ -641,7 +642,7 @@ export default function LeaderboardPage() {
 
         {/* Back to Home */}
         <div className="text-center mt-12">
-          <a 
+          <Link 
             href="/"
             className="inline-block arcade-button px-6 py-3 text-xs tracking-wide"
             style={{
@@ -650,7 +651,7 @@ export default function LeaderboardPage() {
             }}
           >
             GO BACK
-          </a>
+          </Link>
         </div>
       </div>
     </div>

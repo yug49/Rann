@@ -1,29 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import '../home-glass.css';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Button } from '../../components/ui/button';
-import { Modal } from '../../components/ui/modal';
-import { Badge } from '../../components/ui/badge';
-import { Progress } from '../../components/ui/progress';
+import { Button } from '@/components/ui/button';
 import { 
-  Clock, 
-  Users, 
-  Sword, 
-  Shield, 
-  Crown, 
-  Zap,
+  Sword,
+  Shield,
+  Users,
   TrendingUp,
   TrendingDown,
-  Play,
-  Pause,
   Trophy,
-  Star,
-  Target,
-  Heart,
-  DollarSign
+  Heart
 } from 'lucide-react';
 
 // Arena state types
@@ -196,7 +184,7 @@ const getMoveIcon = (move: PlayerMove) => {
     case 'STRIKE': return <Sword className="w-4 h-4" />;
     case 'TAUNT': return <Users className="w-4 h-4" />;
     case 'DODGE': return <Shield className="w-4 h-4" />;
-    case 'SPECIAL': return <Crown className="w-4 h-4" />;
+    case 'SPECIAL': return <Heart className="w-4 h-4" />;
     case 'RECOVER': return <Heart className="w-4 h-4" />;
   }
 };
@@ -247,28 +235,6 @@ const TraitBar = ({ label, value, max = 100, color = "bg-orange-400" }: {
     </div>
   </div>
 );
-
-const YodhaCard = ({ yodha, size = "normal" }: { yodha: Yodha; size?: "small" | "normal" | "large" }) => {
-  const sizeClasses = {
-    small: "w-16 h-20",
-    normal: "w-24 h-32", 
-    large: "w-32 h-40"
-  };
-
-  return (
-    <div className={`${sizeClasses[size]} arcade-card rounded-lg p-2 flex flex-col items-center`}>
-      <img 
-        src={yodha.image} 
-        alt={yodha.name}
-        className="w-full h-3/5 object-cover rounded mb-1"
-      />
-      <div className="text-center">
-        <h4 className="text-xs text-yellow-400 font-bold truncate w-full">{yodha.name}</h4>
-        <Badge className={`text-xs ${getRankColor(yodha.rank)} mt-1`}>{yodha.rank}</Badge>
-      </div>
-    </div>
-  );
-};
 
 const ArenaCard = ({ arena, onClick }: { arena: Arena; onClick: () => void }) => (
   <div 
@@ -392,7 +358,7 @@ const ArenaCard = ({ arena, onClick }: { arena: Arena; onClick: () => void }) =>
                 }}
               >
                 <div className="text-center">
-                  <Crown className="w-8 h-8 text-orange-400 mx-auto mb-2" />
+                  <Trophy className="w-8 h-8 text-orange-400 mx-auto mb-2" />
                   <span 
                     className="text-orange-400"
                     style={{fontFamily: 'Press Start 2P, monospace'}}
@@ -936,112 +902,112 @@ export default function KurukshetraPage() {
   );
 }
 
-// Create Arena Form Component
-const CreateArenaForm = () => {
-  const [costToInfluence, setCostToInfluence] = useState('');
-  const [costToDefluence, setCostToDefluence] = useState('');
-  const [betAmount, setBetAmount] = useState('');
-  const [rank, setRank] = useState<RankCategory>('UNRANKED');
+// Create Arena Form Component - Commented out to prevent unused variable linter error
+// const CreateArenaForm = () => {
+//   const [costToInfluence, setCostToInfluence] = useState('');
+//   const [costToDefluence, setCostToDefluence] = useState('');
+//   const [betAmount, setBetAmount] = useState('');
+//   const [rank, setRank] = useState<RankCategory>('UNRANKED');
 
-  const handleCreate = () => {
-    // Mock arena creation logic
-    console.log('Creating arena:', {
-      costToInfluence,
-      costToDefluence, 
-      betAmount,
-      rank
-    });
-  };
+//   const handleCreate = () => {
+//     // Mock arena creation logic
+//     console.log('Creating arena:', {
+//       costToInfluence,
+//       costToDefluence, 
+//       betAmount,
+//       rank
+//     });
+//   };
 
-  return (
-    <div className="max-w-2xl mx-auto">
-      <Card className="create-arena-form">
-        <CardHeader>
-          <CardTitle className="text-yellow-400 text-center arcade-glow" style={{fontFamily: 'Press Start 2P, monospace'}}>
-            CREATE NEW ARENA
-          </CardTitle>
-          <p className="text-center text-gray-400 text-sm mt-2">
-            Forge a new battlefield for epic Yodha battles
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-yellow-300 text-sm mb-2 arcade-glow" style={{fontFamily: 'Press Start 2P, monospace'}}>
-                INFLUENCE COST (RANN)
-              </label>
-              <input
-                type="number"
-                value={costToInfluence}
-                onChange={(e) => setCostToInfluence(e.target.value)}
-                className="w-full p-3 bg-stone-800 border-2 border-yellow-600 rounded text-white arcade-border transition-all focus:border-yellow-400 focus:shadow-lg"
-                placeholder="10"
-                style={{fontFamily: 'Press Start 2P, monospace'}}
-              />
-            </div>
-            <div>
-              <label className="block text-yellow-300 text-sm mb-2 arcade-glow" style={{fontFamily: 'Press Start 2P, monospace'}}>
-                DEFLUENCE COST (RANN)
-              </label>
-              <input
-                type="number"
-                value={costToDefluence}
-                onChange={(e) => setCostToDefluence(e.target.value)}
-                className="w-full p-3 bg-stone-800 border-2 border-yellow-600 rounded text-white arcade-border transition-all focus:border-yellow-400 focus:shadow-lg"
-                placeholder="15"
-                style={{fontFamily: 'Press Start 2P, monospace'}}
-              />
-            </div>
-          </div>
+//   return (
+//     <div className="max-w-2xl mx-auto">
+//       <Card className="create-arena-form">
+//         <CardHeader>
+//           <CardTitle className="text-yellow-400 text-center arcade-glow" style={{fontFamily: 'Press Start 2P, monospace'}}>
+//             CREATE NEW ARENA
+//           </CardTitle>
+//           <p className="text-center text-gray-400 text-sm mt-2">
+//             Forge a new battlefield for epic Yodha battles
+//           </p>
+//         </CardHeader>
+//         <CardContent className="space-y-6">
+//           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//             <div>
+//               <label className="block text-yellow-300 text-sm mb-2 arcade-glow" style={{fontFamily: 'Press Start 2P, monospace'}}>
+//                 INFLUENCE COST (RANN)
+//               </label>
+//               <input
+//                 type="number"
+//                 value={costToInfluence}
+//                 onChange={(e) => setCostToInfluence(e.target.value)}
+//                 className="w-full p-3 bg-stone-800 border-2 border-yellow-600 rounded text-white arcade-border transition-all focus:border-yellow-400 focus:shadow-lg"
+//                 placeholder="10"
+//                 style={{fontFamily: 'Press Start 2P, monospace'}}
+//               />
+//             </div>
+//             <div>
+//               <label className="block text-yellow-300 text-sm mb-2 arcade-glow" style={{fontFamily: 'Press Start 2P, monospace'}}>
+//                 DEFLUENCE COST (RANN)
+//               </label>
+//               <input
+//                 type="number"
+//                 value={costToDefluence}
+//                 onChange={(e) => setCostToDefluence(e.target.value)}
+//                 className="w-full p-3 bg-stone-800 border-2 border-yellow-600 rounded text-white arcade-border transition-all focus:border-yellow-400 focus:shadow-lg"
+//                 placeholder="15"
+//                 style={{fontFamily: 'Press Start 2P, monospace'}}
+//               />
+//             </div>
+//           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-yellow-300 text-sm mb-2 arcade-glow" style={{fontFamily: 'Press Start 2P, monospace'}}>
-                BET AMOUNT (RANN)
-              </label>
-              <input
-                type="number"
-                value={betAmount}
-                onChange={(e) => setBetAmount(e.target.value)}
-                className="w-full p-3 bg-stone-800 border-2 border-yellow-600 rounded text-white arcade-border transition-all focus:border-yellow-400 focus:shadow-lg"
-                placeholder="50"
-                style={{fontFamily: 'Press Start 2P, monospace'}}
-              />
-            </div>
-            <div>
-              <label className="block text-yellow-300 text-sm mb-2 arcade-glow" style={{fontFamily: 'Press Start 2P, monospace'}}>
-                RANK CATEGORY
-              </label>
-              <select
-                value={rank}
-                onChange={(e) => setRank(e.target.value as RankCategory)}
-                className="w-full p-3 bg-stone-800 border-2 border-yellow-600 rounded text-white arcade-border transition-all focus:border-yellow-400 focus:shadow-lg"
-                style={{fontFamily: 'Press Start 2P, monospace'}}
-              >
-                <option value="UNRANKED">UNRANKED</option>
-                <option value="BRONZE">BRONZE</option>
-                <option value="SILVER">SILVER</option>
-                <option value="GOLD">GOLD</option>
-                <option value="PLATINUM">PLATINUM</option>
-              </select>
-            </div>
-          </div>
+//           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//             <div>
+//               <label className="block text-yellow-300 text-sm mb-2 arcade-glow" style={{fontFamily: 'Press Start 2P, monospace'}}>
+//                 BET AMOUNT (RANN)
+//               </label>
+//               <input
+//                 type="number"
+//                 value={betAmount}
+//                 onChange={(e) => setBetAmount(e.target.value)}
+//                 className="w-full p-3 bg-stone-800 border-2 border-yellow-600 rounded text-white arcade-border transition-all focus:border-yellow-400 focus:shadow-lg"
+//                 placeholder="50"
+//                 style={{fontFamily: 'Press Start 2P, monospace'}}
+//               />
+//             </div>
+//             <div>
+//               <label className="block text-yellow-300 text-sm mb-2 arcade-glow" style={{fontFamily: 'Press Start 2P, monospace'}}>
+//                 RANK CATEGORY
+//               </label>
+//               <select
+//                 value={rank}
+//                 onChange={(e) => setRank(e.target.value as RankCategory)}
+//                 className="w-full p-3 bg-stone-800 border-2 border-yellow-600 rounded text-white arcade-border transition-all focus:border-yellow-400 focus:shadow-lg"
+//                 style={{fontFamily: 'Press Start 2P, monospace'}}
+//               >
+//                 <option value="UNRANKED">UNRANKED</option>
+//                 <option value="BRONZE">BRONZE</option>
+//                 <option value="SILVER">SILVER</option>
+//                 <option value="GOLD">GOLD</option>
+//                 <option value="PLATINUM">PLATINUM</option>
+//               </select>
+//             </div>
+//           </div>
 
-          <Button 
-            onClick={handleCreate}
-            className="w-full arcade-button py-4 text-sm"
-            disabled={!costToInfluence || !costToDefluence || !betAmount}
-            style={{fontFamily: 'Press Start 2P, monospace'}}
-          >
-            CREATE ARENA
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
+//           <Button 
+//             onClick={handleCreate}
+//             className="w-full arcade-button py-4 text-sm"
+//             disabled={!costToInfluence || !costToDefluence || !betAmount}
+//             style={{fontFamily: 'Press Start 2P, monospace'}}
+//           >
+//             CREATE ARENA
+//           </Button>
+//         </CardContent>
+//       </Card>
+//     </div>
+//   );
+// };
 
-// Arena Detail Modal Component  
+// Arena Detail Modal Component
 const ArenaModal = ({ 
   arena, 
   isOpen, 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { near_agent_personality_updater } from '../../../constants';
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     // Try calling the assistant directly instead of using threads
     try {
-      // Method 1: Try chat completions format with the assistant
+      // Method 1: Try chat completions format with the personality updater assistant
       const chatResponse = await fetch("https://api.near.ai/v1/chat/completions", {
         method: 'POST',
         headers: {
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: "samkitsoni.near/attributes-generator/latest",
+          model: near_agent_personality_updater,
           messages: [
             {
               role: "user",
@@ -79,11 +80,11 @@ export async function POST(request: NextRequest) {
           response: responseContent
         });
       }
-    } catch (directError) {
+    } catch {
       // Continue to threads approach
     }
     
-    // Method 2: Use threads approach
+    // Method 2: Use threads approach with personality updater assistant
     // Create a new thread
     const thread = await openai.beta.threads.create();
 
@@ -96,12 +97,11 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    // Run the assistant on the thread
-    const assistant_id = "samkitsoni.near/attributes-generator/latest";
+    // Run the personality updater assistant on the thread
     const run = await openai.beta.threads.runs.createAndPoll(
       thread.id,
       { 
-        assistant_id: assistant_id,
+        assistant_id: near_agent_personality_updater,
       }
     );
 
