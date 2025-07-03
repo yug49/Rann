@@ -807,6 +807,16 @@ body {
   100% { transform: translateX(100%); }
 }
 
+@keyframes coin-rotate {
+  0% { transform: rotateY(0deg); }
+  100% { transform: rotateY(360deg); }
+}
+
+.coin-spin {
+  animation: coin-rotate 2s linear infinite;
+  display: inline-block;
+}
+
 /* Create Arena Form */
 .create-arena-form {
   background: 

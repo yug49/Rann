@@ -1,28 +1,32 @@
 import Image from 'next/image';
-import { FaGithub, FaTwitter, FaLinkedin } from 'react-icons/fa';
+import { FaGithub, FaLinkedin, FaEnvelope } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 import '../home-glass.css';
 
 const teamMembers = [
 	{
 		name: 'Samkit Soni',
-		photo: '/lazered.png',
+		photo: '/Samkit_soni.jpg',
 		linkedin: 'https://www.linkedin.com/in/samkit-soni-bab741250/',
 		twitter: 'https://x.com/Samkit_Soni12',
 		github: 'https://github.com/SamkitSoni',
+		email: 'samkitsoni09@gmail.com',
 	},
 	{
 		name: 'Yug Agarwal',
-		photo: '/lazered.png',
+		photo: '/Yug.jpg',
 		linkedin: 'https://www.linkedin.com/in/yug-agarwal-8b761b255/',
 		twitter: 'https://x.com/yugAgarwal29',
 		github: 'https://github.com/yug49',
+		email: 'pyth0n0729@gmail.com',
 	},
 	{
 		name: 'Kaushtubh Agrawal',
-		photo: '/lazered.png',
+		photo: '/Kaushtubh_sir.jpg',
 		linkedin: 'https://www.linkedin.com/in/kaushtubh-agrawal-650b40229/',
 		twitter: 'https://x.com/KaushtubhAgraw1',
 		github: 'https://github.com/kaustubh76',
+		email: 'kaushtubh.agrawal@example.com',
 	},
 ];
 
@@ -85,8 +89,8 @@ export default function MeetTheTeam() {
 							}}
 						>
 							<div className="mb-6">
-								<div className="w-full mx-auto rounded-2xl flex items-center justify-center relative overflow-hidden border-2 border-orange-600">
-									<Image src={member.photo} alt={member.name} width={300} height={256} className="w-full h-full rounded-2xl object-cover" />
+								<div className="w-80 h-80 mx-auto rounded-2xl flex items-center justify-center relative overflow-hidden border-2 border-orange-600">
+									<Image src={member.photo} alt={member.name} width={320} height={320} className="w-full h-full rounded-2xl object-cover" />
 									<div className="absolute inset-0 rounded-2xl border-2 border-orange-600 opacity-0 group-hover:opacity-100 transition-opacity animate-pulse"></div>
 								</div>
 							</div>
@@ -98,14 +102,17 @@ export default function MeetTheTeam() {
 							</h2>
 							<div className="border-t-2 border-orange-600 pt-4 mb-4 w-full text-center"></div>
 							<div className="flex justify-center gap-4 mt-auto text-orange-400 text-2xl">
-								<a href={member.linkedin} target="_blank" rel="noopener noreferrer" title="LinkedIn" className="hover:text-orange-300 transition-colors">
+								<a href={member.linkedin} target="_blank" rel="noopener noreferrer" title="LinkedIn" className="hover:text-blue-600 transition-colors">
 									<FaLinkedin />
 								</a>
-								<a href={member.twitter} target="_blank" rel="noopener noreferrer" title="Twitter" className="hover:text-orange-300 transition-colors">
-									<FaTwitter />
+								<a href={member.twitter} target="_blank" rel="noopener noreferrer" title="X (Twitter)" className="hover:text-black transition-colors">
+									<FaXTwitter />
 								</a>
-								<a href={member.github} target="_blank" rel="noopener noreferrer" title="GitHub" className="hover:text-orange-300 transition-colors">
+								<a href={member.github} target="_blank" rel="noopener noreferrer" title="GitHub" className="hover:text-black transition-colors">
 									<FaGithub />
+								</a>
+								<a href={`mailto:${member.email}`} title="Email" className="hover:text-red-600 transition-colors">
+									<FaEnvelope />
 								</a>
 							</div>
 						</div>

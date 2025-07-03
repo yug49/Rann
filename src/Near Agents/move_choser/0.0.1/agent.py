@@ -1,24 +1,7 @@
 from nearai.agents.environment import Environment
 
-API_KEY = "Rannbhoomi"
-
 def run(env: Environment):
-    messages = env.list_messages()
-
-    if not messages:
-        env.add_reply({"role": "system", "content": "Not Authorized"})
-        return
-
-    user_msg = messages[0]
-    metadata = user_msg.get("metadata", {})
-
-    if metadata.get("api_key") != API_KEY:
-        env.add_reply({"role": "system", "content": "Not Authorized"})
-        return
-
-    prompt = {
-        "role": "system",
-        "content": """The agent will take a JSON file like this {
+    prompt = {"role": "system","content": """The agent will take a JSON file like this {
     "current_round": 3,
     "agent_1": {
         "personality": {
@@ -83,5 +66,8 @@ def run(env: Environment):
 The agent must analyze the damage done to both of the agents (agent_1 and agent_2) and based on the personality adjective and personality knowledge_areas return the best move in JSON format from moveset for both the agent. The result must be returned as a JSON object with the moves for both the agents. Do not return code, comments, or any explanation — just the final JSON object."""
     }
 
-    result = env.completion([prompt] + messages)
+    result = env.completion([prompt] + env.list_messages())
     env.add_reply(result)
+    env.request_user_input()
+
+run(env)
