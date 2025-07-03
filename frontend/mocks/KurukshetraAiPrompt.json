@@ -1,0 +1,62 @@
+{
+  "current_round": 2,
+  "agent_1": {
+    "personality": {
+      "adjectives": [
+        "Innovative",
+        "Resilient",
+        "Methodical",
+        "Inquisitive",
+        "Bold"
+      ],
+      "knowledge_areas": [
+        "Cognitive science",
+        "Augmented reality",
+        "Climate modeling",
+        "Blockchain architecture",
+        "Human-computer interaction"
+      ]
+    },
+    "traits": {
+      "Strength": 7700,
+      "Wit": 9100,
+      "Charisma": 8900,
+      "Defence": 7400,
+      "Luck": 6100
+    },
+    "total_damage_received": 38
+  },
+  "agent_2": {
+    "personality": {
+      "adjectives": [
+        "Logical",
+        "Steady",
+        "Strategic",
+        "Adaptable",
+        "Observant"
+      ],
+      "knowledge_areas": [
+        "Behavioral economics",
+        "Neural networks",
+        "Synthetic biology",
+        "Virtual reality",
+        "Ethics of AI"
+      ]
+    },
+    "traits": {
+      "Strength": 7600,
+      "Wit": 9400,
+      "Charisma": 8600,
+      "Defence": 7300,
+      "Luck": 6400
+    },
+    "total_damage_received": 41
+  },
+  "moveset": [
+    "strike",
+    "taunt",
+    "dodge",
+    "recover",
+    "special_move"
+  ]
+}

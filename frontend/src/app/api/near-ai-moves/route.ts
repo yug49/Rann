@@ -1,21 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
+  console.log('NEAR AI Moves API: Received request');
+  
   try {
     const body = await request.json();
-    const { auth, prompt } = body;
+    console.log('NEAR AI Moves API: Request body keys:', Object.keys(body));
+    const { auth, prompt, assistantId } = body;
 
-    if (!auth || !prompt) {
+    console.log('NEAR AI Moves API: assistantId =', assistantId);
+    console.log('NEAR AI Moves API: auth keys =', auth ? Object.keys(auth) : 'no auth');
+    console.log('NEAR AI Moves API: prompt length =', prompt ? prompt.length : 'no prompt');
+
+    if (!auth || !prompt || !assistantId) {
+      console.error('NEAR AI Moves API: Missing required fields');
       return NextResponse.json(
-        { error: 'Missing auth or prompt' },
+        { error: 'Missing auth, prompt, or assistantId' },
         { status: 400 }
       );
     }
 
     // Validate auth structure
-    if (!auth.signature || !auth.accountId || !auth.publicKey) {
+    if (!auth.signature || !auth.account_id || !auth.public_key) {
+      console.error('NEAR AI Moves API: Invalid auth structure');
       return NextResponse.json(
-        { error: 'Invalid auth structure - missing signature, accountId, or publicKey' },
+        { error: 'Invalid auth structure - missing signature, account_id, or public_key' },
         { status: 400 }
       );
     }
@@ -24,20 +33,19 @@ export async function POST(request: NextRequest) {
     const { default: OpenAI } = await import('openai');
     
     // For NEAR AI, we need to format the auth object to match their expected format
-    // The nonce should be sent as the original string from the Buffer
-    const nonceBuffer = Buffer.from(auth.nonce, 'base64');
-    const nonceString = nonceBuffer.toString('utf8'); // Convert back to original string
     const authForNearAI = {
       signature: auth.signature,
-      account_id: auth.accountId, // NEAR AI expects snake_case
-      public_key: auth.publicKey, // NEAR AI expects snake_case
+      account_id: auth.account_id,
+      public_key: auth.public_key,
       message: auth.message,
-      nonce: nonceString, // Use original string format (32 digit string)
+      nonce: auth.nonce,
       recipient: auth.recipient,
-      callback_url: auth.callbackUrl // NEAR AI expects snake_case
+      callback_url: auth.callback_url
     };
     
     const authString = `Bearer ${JSON.stringify(authForNearAI)}`;
+    
+    console.log('NEAR AI Moves API: Formatted auth string length =', authString.length);
     
     const openai = new OpenAI({
       baseURL: "https://api.near.ai/v1",
@@ -49,6 +57,8 @@ export async function POST(request: NextRequest) {
 
     // Try calling the assistant directly instead of using threads
     try {
+      console.log('NEAR AI Moves API: Attempting direct chat completion with assistantId:', assistantId);
+      
       // Method 1: Try chat completions format with the assistant
       const chatResponse = await fetch("https://api.near.ai/v1/chat/completions", {
         method: 'POST',
@@ -57,7 +67,7 @@ export async function POST(request: NextRequest) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: "samkitsoni.near/attributes-generator/latest",
+          model: assistantId,
           messages: [
             {
               role: "user",
@@ -69,7 +79,9 @@ export async function POST(request: NextRequest) {
       });
       
       if (chatResponse.ok) {
+        console.log('NEAR AI Moves API: Chat completion successful');
         const result = await chatResponse.json();
+        console.log('NEAR AI Moves API: Chat result:', result);
         
         // Extract the response content
         const responseContent = result.choices?.[0]?.message?.content || result.response || JSON.stringify(result);
@@ -78,9 +90,14 @@ export async function POST(request: NextRequest) {
           success: true,
           response: responseContent
         });
+      } else {
+        console.log('NEAR AI Moves API: Chat completion failed with status:', chatResponse.status);
+        const errorText = await chatResponse.text();
+        console.log('NEAR AI Moves API: Chat error:', errorText);
       }
-    } catch {
-      // Continue to threads approach
+    } catch (error) {
+      console.log('NEAR AI Moves API: Direct chat completion failed:', error);
+      console.log('NEAR AI Moves API: Trying threads approach');
     }
     
     // Method 2: Use threads approach
@@ -97,11 +114,10 @@ export async function POST(request: NextRequest) {
     );
 
     // Run the assistant on the thread
-    const assistant_id = "samkitsoni.near/attributes-generator/latest";
     const run = await openai.beta.threads.runs.createAndPoll(
       thread.id,
       { 
-        assistant_id: assistant_id,
+        assistant_id: assistantId,
       }
     );
 
@@ -152,7 +168,7 @@ export async function POST(request: NextRequest) {
       );
     }
   } catch (error) {
-    console.error("Server: Error calling NEAR AI:", error);
+    console.error("Server: Error calling NEAR AI move selector:", error);
     return NextResponse.json(
       { error: `Failed to call NEAR AI: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }
