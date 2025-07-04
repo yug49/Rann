@@ -1,7 +1,6 @@
 // FRONTEND BUTTON TRIGGER AUTOMATION
 // This automation sends commands to the frontend to trigger the actual NEXT ROUND button
 import { NextApiRequest, NextApiResponse } from 'next';
-import { KurukshetraAbi } from '../../../constants';
 
 // Command queue for frontend polling
 const commandQueue = new Map<string, any>();
@@ -38,23 +37,25 @@ function startCommandTimer(battleId: string, intervalMs: number = 1000) {
       
       if (state.phase === 'startGame') {
         // 70 seconds expired -> Send startGame command to frontend
-        console.log(`🎮 70 seconds expired - sending START GAME command to frontend`);
+        console.log(`🎮 Timer expired - sending START GAME command to frontend`);
         
         commandQueue.set(battleId, {
           action: 'startGame',
           timestamp: Date.now(),
-          battleId: battleId
+          battleId: battleId,
+          requiresVerification: true
         });
         
-        // Switch to battle phase
+        // Switch to battle phase optimistically - frontend will reset if needed
         state.phase = 'battle';
         state.currentRound = 1;
-        state.timeRemaining = 60; // Increased from 40 to 60 seconds to account for AI processing time
+        state.timeRemaining = 60;
         state.totalTime = 60;
         state.lastUpdate = Date.now();
         gameStates.set(battleId, state);
         
         console.log(`⏰ First NEXT ROUND command will be sent in 60 seconds`);
+        console.log(`📝 Note: If startGame fails due to insufficient bets, frontend should call reset endpoint`);
         
       } else if (state.phase === 'battle') {
         // 60 seconds expired -> Send nextRound command to frontend
@@ -121,12 +122,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     switch (req.method) {
       case 'GET':
-        // Check for pending commands
+        // Check for pending commands - ONLY FRONTEND POLLING SHOULD USE THIS
         console.log(`📡 GET request for battleId: ${battleId}`);
         const command = commandQueue.get(battleId);
         if (command) {
           console.log(`📤 Sending command to frontend:`, command);
-          // Clear the command after sending it
+          // Clear the command after sending it - ONLY frontend consumes commands
           commandQueue.delete(battleId);
           console.log(`🗑️ Command removed from queue for battleId: ${battleId}`);
           return res.status(200).json({
@@ -136,15 +137,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           });
         }
         
-        // Return current state
+        // Return current state - Return 200 even if no gameState to prevent 404 errors
         const gameState = gameStates.get(battleId);
         console.log(`📊 No command, returning state for ${battleId}:`, gameState?.phase, gameState?.currentRound);
-        if (!gameState) {
-          return res.status(404).json({ error: 'Battle not found' });
-        }
+        
+        // Return 200 with empty state instead of 404 to prevent frontend errors
         return res.status(200).json({
           hasCommand: false,
-          gameState: gameState
+          gameState: gameState || null
         });
 
       case 'POST':
@@ -158,7 +158,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               battleId,
               gameState: 'playing',
               phase: 'startGame', // startGame -> battle
-              timeRemaining: 70,
+              timeRemaining: 70, // Back to 70 seconds for production
               totalTime: 70,
               lastUpdate: Date.now(),
               currentRound: 0, // Will become 1 after startGame
@@ -199,8 +199,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
             return res.status(404).json({ error: 'Battle not found' });
 
+          case 'reset':
+            // Called by frontend when startGame fails due to insufficient bets
+            const currentState = gameStates.get(battleId);
+            if (currentState) {
+              console.log(`🔄 Frontend reported startGame failed - stopping automation for ${battleId}`);
+              
+              // Stop the timer to prevent further automatic commands
+              stopCommandTimer(battleId);
+              
+              // Clear any pending commands
+              commandQueue.delete(battleId);
+              
+              // Mark automation as disabled
+              currentState.automationEnabled = false;
+              currentState.gameState = 'stopped';
+              currentState.phase = 'startGame';
+              currentState.currentRound = 0;
+              currentState.timeRemaining = 0; // Set to 0 to indicate stopped
+              currentState.totalTime = 70;
+              currentState.lastUpdate = Date.now();
+              gameStates.set(battleId, currentState);
+              
+              return res.status(200).json({ 
+                message: 'Automation stopped due to failed startGame verification',
+                gameState: currentState,
+                automationStopped: true
+              });
+            }
+            return res.status(404).json({ error: 'Battle not found' });
+
           default:
-            return res.status(400).json({ error: 'Invalid action. Use "initialize", "cleanup", or "resume"' });
+            return res.status(400).json({ error: 'Invalid action. Use "initialize", "cleanup", "resume", or "reset"' });
         }
 
       default:

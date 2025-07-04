@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAccount, useWriteContract, useWatchContractEvent } from 'wagmi';
-import { encodePacked, keccak256 } from 'viem';
+import { encodePacked, keccak256, decodeEventLog } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import '../home-glass.css';
 import { Button } from '../../components/ui/button';
@@ -11,8 +11,8 @@ import { Button } from '../../components/ui/button';
 // import { Badge } from '../../components/ui/badge';
 import { useArenas, type RankCategory, type ArenaWithDetails } from '../../hooks/useArenas';
 import { arenaService, isValidBettingAmount, getClosestValidBettingAmount } from '../../services/arenaService';
-import { near_agent_move_selecter, KurukshetraAbi } from '../../constants';
-import { waitForTransactionReceipt } from '@wagmi/core';
+import { near_agent_move_selecter, KurukshetraAbi, chainsToTSender, yodhaNFTAbi } from '../../constants';
+import { waitForTransactionReceipt, readContract } from '@wagmi/core';
 import rainbowKitConfig from '../../rainbowKitConfig';
 import {
   Users,
@@ -38,14 +38,96 @@ const PlayerMoves = {
 
 // Convert move name to enum value
 const getMoveEnum = (moveName: string): number => {
-  const normalizedMove = moveName.toUpperCase() as keyof typeof PlayerMoves;
+  const normalizedMove = normalizeMoveName(moveName).toUpperCase() as keyof typeof PlayerMoves;
   return PlayerMoves[normalizedMove] ?? PlayerMoves.STRIKE; // Default to STRIKE if invalid
+};
+
+// Normalize move names to handle variations (e.g., SPECIAL_MOVE -> SPECIAL)
+const normalizeMoveName = (moveName: string): string => {
+  const normalized = moveName.toUpperCase().trim();
+  
+  // Handle variations of move names that AI might return
+  switch (normalized) {
+    case 'SPECIAL_MOVE':
+    case 'SPECIAL MOVE':
+      return 'SPECIAL';
+    default:
+      return normalized;
+  }
+};
+
+// Move name cache for Yodha NFTs
+interface YodhaMoves {
+  strike: string;
+  taunt: string;
+  dodge: string;
+  special: string;
+  recover: string;
+}
+
+// Cache for storing move names to avoid repeated contract calls
+const moveNamesCache = new Map<string, YodhaMoves>();
+
+// Helper function to get specific move name from cached moves with move type in brackets
+const getSpecificMoveName = (moves: YodhaMoves, moveType: PlayerMove): string => {
+  let specificName: string;
+  switch (moveType) {
+    case 'STRIKE': 
+      specificName = moves.strike;
+      break;
+    case 'TAUNT': 
+      specificName = moves.taunt;
+      break;
+    case 'DODGE': 
+      specificName = moves.dodge;
+      break;
+    case 'SPECIAL': 
+      specificName = moves.special;
+      break;
+    case 'RECOVER': 
+      specificName = moves.recover;
+      break;
+    default: 
+      specificName = moveType;
+  }
+  
+  // Return specific name with move type in brackets
+  return `${specificName} (${moveType})`;
 };
 
 // Arena state types
 type ArenaState = 'EMPTY' | 'INITIALIZED' | 'BATTLE_ONGOING' | 'FINISHED';
 type BattlePhase = 'BETTING' | 'ROUND_INTERVAL' | 'CALCULATING' | 'FINISHED';
 type PlayerMove = 'STRIKE' | 'TAUNT' | 'DODGE' | 'SPECIAL' | 'RECOVER';
+
+// Enhanced battle notification type with HIT/MISS information
+interface BattleNotification {
+  isVisible: boolean;
+  yodhaOneName: string;
+  yodhaTwoName: string;
+  yodhaOneMove: string;
+  yodhaTwoMove: string;
+  yodhaOneHitStatus?: 'HIT' | 'MISS' | 'PENDING';
+  yodhaTwoHitStatus?: 'HIT' | 'MISS' | 'PENDING';
+}
+
+// Enhanced battle result for tracking move execution details
+interface BattleMoveResult {
+  yodhaOneResult: {
+    moveName: string;
+    hitStatus: 'HIT' | 'MISS';
+    damageDealt: number;
+    recoveryGained: number;
+    dodged: boolean;
+  };
+  yodhaTwoResult: {
+    moveName: string;
+    hitStatus: 'HIT' | 'MISS';
+    damageDealt: number;
+    recoveryGained: number;
+    dodged: boolean;
+  };
+}
 
 interface Yodha {
   id: number;
@@ -430,13 +512,13 @@ export default function KurukshetraPage() {
   const [initializationError, setInitializationError] = useState<string | null>(null);
   
   // Battle animation states
-  const [battleNotification, setBattleNotification] = useState<{
-    isVisible: boolean;
-    yodhaOneName: string;
-    yodhaTwoName: string;
-    yodhaOneMove: string;
-    yodhaTwoMove: string;
-  } | null>(null);
+  const [battleNotification, setBattleNotification] = useState<BattleNotification | null>(null);
+  
+  // Cache move names for current arena Yodhas
+  const [yodhaMovesCache, setYodhaMovesCache] = useState<{
+    yodhaOne?: YodhaMoves;
+    yodhaTwo?: YodhaMoves;
+  }>({});
   
   // Winner display state
   const [winnerDisplay, setWinnerDisplay] = useState<{
@@ -451,6 +533,73 @@ export default function KurukshetraPage() {
   // Arena automation hook
   const arenaSync = useArenaSync(selectedArena?.address || null);
 
+  // Function to fetch move names from YodhaNFT contract
+  const fetchYodhaMoves = useCallback(async (tokenId: number): Promise<YodhaMoves | null> => {
+    try {
+      const cacheKey = `${tokenId}`;
+      
+      // Check cache first
+      if (moveNamesCache.has(cacheKey)) {
+        return moveNamesCache.get(cacheKey)!;
+      }
+
+      // Fetch from contract
+      const moves = await readContract(rainbowKitConfig, {
+        address: chainsToTSender[545].yodhaNFT as `0x${string}`,
+        abi: yodhaNFTAbi,
+        functionName: 'getMoves',
+        args: [tokenId],
+        chainId: 545,
+      });
+
+      const movesData = moves as { strike?: string; taunt?: string; dodge?: string; special?: string; recover?: string };
+      const yodhaMoves: YodhaMoves = {
+        strike: movesData.strike || 'Strike',
+        taunt: movesData.taunt || 'Taunt',
+        dodge: movesData.dodge || 'Dodge',
+        special: movesData.special || 'Special',
+        recover: movesData.recover || 'Recover'
+      };
+
+      console.log(`🎯 Fetched moves for Yodha ${tokenId}:`, yodhaMoves);
+
+      // Cache the result
+      moveNamesCache.set(cacheKey, yodhaMoves);
+      return yodhaMoves;
+    } catch (error) {
+      console.error('Error fetching Yodha moves:', error);
+      return null;
+    }
+  }, []);
+
+  // Function to cache moves for both Yodhas when arena modal opens
+  const cacheArenaYodhaMoves = useCallback(async () => {
+    if (!selectedArena?.yodhaOne?.id || !selectedArena?.yodhaTwo?.id) {
+      return;
+    }
+
+    console.log('🎯 Caching move names for Yodhas...');
+    
+    try {
+      const [yodhaOneMoves, yodhaTwoMoves] = await Promise.all([
+        fetchYodhaMoves(selectedArena.yodhaOne.id),
+        fetchYodhaMoves(selectedArena.yodhaTwo.id)
+      ]);
+
+      setYodhaMovesCache({
+        yodhaOne: yodhaOneMoves || undefined,
+        yodhaTwo: yodhaTwoMoves || undefined
+      });
+
+      console.log('✅ Move names cached successfully:', {
+        yodhaOne: yodhaOneMoves,
+        yodhaTwo: yodhaTwoMoves
+      });
+    } catch (error) {
+      console.error('❌ Error caching move names:', error);
+    }
+  }, [selectedArena?.yodhaOne?.id, selectedArena?.yodhaTwo?.id, fetchYodhaMoves]);
+
   // Execute battle moves after receiving AI response
   const executeBattleMoves = async (moves: { agent_1: { move: string }, agent_2: { move: string } }) => {
     if (!selectedArena || !address) {
@@ -461,26 +610,50 @@ export default function KurukshetraPage() {
     try {
       console.log('Executing battle moves:', moves);
 
-      // Trigger battle notification
-      console.log(`🎯 BATTLE: ${selectedArena.yodhaOne?.name || 'Yodha One'} used ${moves.agent_1.move.toUpperCase()} vs ${selectedArena.yodhaTwo?.name || 'Yodha Two'} used ${moves.agent_2.move.toUpperCase()}`);
+      // Get specific move names from cache with proper normalization
+      const normalizedYodhaOneMove = normalizeMoveName(moves.agent_1.move) as PlayerMove;
+      const normalizedYodhaTwoMove = normalizeMoveName(moves.agent_2.move) as PlayerMove;
+      
+      console.log('🎯 Move normalization:', {
+        original: { agent_1: moves.agent_1.move, agent_2: moves.agent_2.move },
+        normalized: { agent_1: normalizedYodhaOneMove, agent_2: normalizedYodhaTwoMove }
+      });
+      
+      const yodhaOneMoveName = yodhaMovesCache.yodhaOne 
+        ? getSpecificMoveName(yodhaMovesCache.yodhaOne, normalizedYodhaOneMove)
+        : `${normalizedYodhaOneMove} (${normalizedYodhaOneMove})`;
+      
+      const yodhaTwoMoveName = yodhaMovesCache.yodhaTwo 
+        ? getSpecificMoveName(yodhaMovesCache.yodhaTwo, normalizedYodhaTwoMove)
+        : `${normalizedYodhaTwoMove} (${normalizedYodhaTwoMove})`;
+        
+      console.log('🎯 Final move names:', {
+        yodhaOne: yodhaOneMoveName,
+        yodhaTwo: yodhaTwoMoveName,
+        cacheStatus: {
+          yodhaOne: !!yodhaMovesCache.yodhaOne,
+          yodhaTwo: !!yodhaMovesCache.yodhaTwo
+        }
+      });
 
-      // Set battle notification for UI display
+      // Trigger battle notification
+      console.log(`🎯 BATTLE: ${selectedArena.yodhaOne?.name || 'Yodha One'} used ${yodhaOneMoveName} vs ${selectedArena.yodhaTwo?.name || 'Yodha Two'} used ${yodhaTwoMoveName}`);
+
+      // Set battle notification for UI display with specific move names
       setBattleNotification({
         isVisible: true,
         yodhaOneName: selectedArena.yodhaOne?.name || 'Yodha One',
         yodhaTwoName: selectedArena.yodhaTwo?.name || 'Yodha Two',
-        yodhaOneMove: moves.agent_1.move.toUpperCase(),
-        yodhaTwoMove: moves.agent_2.move.toUpperCase()
-      });
+        yodhaOneMove: yodhaOneMoveName,
+        yodhaTwoMove: yodhaTwoMoveName,
+        yodhaOneHitStatus: 'PENDING',
+        yodhaTwoHitStatus: 'PENDING'
+              });
+        
+        const yodhaOneMove = getMoveEnum(normalizedYodhaOneMove);
+        const yodhaTwoMove = getMoveEnum(normalizedYodhaTwoMove);
 
-      // Hide notification after 5 seconds
-      setTimeout(() => {
-        setBattleNotification(null);
-      }, 5000);
-      const yodhaOneMove = getMoveEnum(moves.agent_1.move);
-      const yodhaTwoMove = getMoveEnum(moves.agent_2.move);
-
-      console.log('Move enums:', { yodhaOneMove, yodhaTwoMove });      // Get game master private key from environment
+        console.log('Move enums:', { yodhaOneMove, yodhaTwoMove });      // Get game master private key from environment
       const gameStandardPrivateKey = process.env.NEXT_PUBLIC_GAME_MASTER_PRIVATE_KEY;
       if (!gameStandardPrivateKey) {
         throw new Error('Game master private key not found');
@@ -556,6 +729,84 @@ export default function KurukshetraPage() {
       });
 
       console.log('Battle confirmed in block:', receipt.blockNumber);
+      
+      // Listen for YodhaMoveExecuted events to determine HIT/MISS status
+      try {
+        const moveExecutedEvents = receipt.logs.filter(log => {
+          try {
+            const decodedLog = decodeEventLog({
+              abi: KurukshetraAbi,
+              data: log.data,
+              topics: log.topics,
+            });
+            return decodedLog.eventName === 'YodhaMoveExecuted';
+          } catch {
+            return false;
+          }
+        });
+
+        console.log('🎯 YodhaMoveExecuted events found:', moveExecutedEvents.length);
+        
+        // Process events to determine HIT/MISS for each Yodha
+        let yodhaOneHitStatus: 'HIT' | 'MISS' = 'MISS';
+        let yodhaTwoHitStatus: 'HIT' | 'MISS' = 'MISS';
+        
+        moveExecutedEvents.forEach((log) => {
+          try {
+            const decodedLog = decodeEventLog({
+              abi: KurukshetraAbi,
+              data: log.data,
+              topics: log.topics,
+            });
+            
+            if (decodedLog.eventName === 'YodhaMoveExecuted') {
+              const { args } = decodedLog;
+              const eventArgs = args as any;
+              const damageOnOpponentYodha = eventArgs.damageOnOpponentYodha;
+              const recoveryOnSelfYodha = eventArgs.recoveryOnSelfYodha;
+              const dodged = eventArgs.dodged;
+              
+              // Determine if it's a HIT or MISS based on YodhaMoveExecuted event data
+              // MISS: damageOnOpponent=0 AND recoveryOfSelf=0 AND dodged=false (all conditions fail)
+              // HIT: any one of these is true: damage dealt > 0 OR self recovery > 0 OR successfully dodged
+              const isHit = damageOnOpponentYodha > 0 || recoveryOnSelfYodha > 0 || dodged === true;
+              
+              // We'll get 2 events (one for each Yodha), so we track both
+              // The order matches the battle function call order: yodhaOne first, then yodhaTwo
+              if (moveExecutedEvents.indexOf(log) === 0) {
+                yodhaOneHitStatus = isHit ? 'HIT' : 'MISS';
+              } else {
+                yodhaTwoHitStatus = isHit ? 'HIT' : 'MISS';
+              }
+              
+              console.log(`📊 Move result - Damage: ${damageOnOpponentYodha}, Recovery: ${recoveryOnSelfYodha}, Dodged: ${dodged} = ${isHit ? 'HIT' : 'MISS'}`);
+            }
+          } catch (error) {
+            console.error('Error decoding YodhaMoveExecuted event:', error);
+          }
+        });
+
+        // Update battle notification with HIT/MISS status
+        setBattleNotification(prev => prev ? {
+          ...prev,
+          yodhaOneHitStatus,
+          yodhaTwoHitStatus
+        } : null);
+
+        console.log(`🎯 Final hit status - ${selectedArena.yodhaOne?.name}: ${yodhaOneHitStatus}, ${selectedArena.yodhaTwo?.name}: ${yodhaTwoHitStatus}`);
+        
+      } catch (error) {
+        console.error('❌ Error processing YodhaMoveExecuted events:', error);
+      }
+
+      // Hide notification after 8 seconds (longer to show HIT/MISS results)
+      setTimeout(() => {
+        setBattleNotification(null);
+      }, 8000);
+      
+      // Refresh arena data to get updated influence/defluence costs and other state changes
+      console.log('🔄 Refreshing arena data after battle execution...');
+      await refetch();
 
     } catch (error) {
       console.error('Error executing battle moves:', error);
@@ -566,6 +817,13 @@ export default function KurukshetraPage() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Cache move names when arena modal opens and has both Yodhas
+  useEffect(() => {
+    if (selectedArena?.yodhaOne?.id && selectedArena?.yodhaTwo?.id && !yodhaMovesCache.yodhaOne && !yodhaMovesCache.yodhaTwo) {
+      cacheArenaYodhaMoves();
+    }
+  }, [selectedArena?.yodhaOne?.id, selectedArena?.yodhaTwo?.id, yodhaMovesCache.yodhaOne, yodhaMovesCache.yodhaTwo, cacheArenaYodhaMoves]);
 
   // Helper function to convert ArenaWithDetails to Arena
   const convertArenaWithDetailsToArena = useCallback((arenaWithDetails: ArenaWithDetails): Arena | null => {
@@ -670,7 +928,7 @@ export default function KurukshetraPage() {
     
     try {
       console.log('🤖 Manual start game triggered - calling handleStartGame directly');
-      await handleStartGame();
+      await handleStartGame(false); // Pass false for manual start
       console.log('✅ Manual start game successful');
     } catch (error) {
       console.error('❌ Manual start game error:', error);
@@ -696,6 +954,9 @@ export default function KurukshetraPage() {
     setYodhaTwoNFTId('');
     setBetAmount('');
     setSelectedYodha(null);
+    setBattleNotification(null);
+    // Clear move cache for next arena
+    setYodhaMovesCache({});
   };
 
   const handleEnhancedArenaClick = (arenaWithDetails: ArenaWithDetails) => {
@@ -776,7 +1037,7 @@ export default function KurukshetraPage() {
   // const handleArenaAddressClick = async (arenaAddress: string) => { ... }
   // const handleArenaClick = (arena: Arena) => { ... }
 
-  const handleStartGame = useCallback(async () => {
+  const handleStartGame = useCallback(async (isAutomated: boolean = false) => {
     if (!selectedArena) return;
 
     try {
@@ -847,15 +1108,87 @@ export default function KurukshetraPage() {
 
       console.log('Game started successfully! Block:', receipt.blockNumber);
 
-      // Close modal and refresh arena data
-      setIsModalOpen(false);
-      // Optionally trigger a refetch of arena data here
+      // Refresh arena data to get the updated state
+      console.log('🔄 Refreshing arena data after game start...');
+      await refetch();
+      
+      // If this was automated, verify the contract state
+      if (isAutomated) {
+        console.log('🔍 Automated start - verifying contract state...');
+        
+        // Wait for transaction to be confirmed (5 seconds)
+        setTimeout(async () => {
+          try {
+            const currentRound = await arenaService.getCurrentRound(selectedArena.address);
+            console.log(`📊 Contract current round: ${currentRound}`);
+            
+            if (currentRound === 0) {
+              // Game was reset due to insufficient bets, notify backend to stop automation
+              console.log('⚠️ Game was reset (insufficient bets) - stopping automation');
+              
+              const response = await fetch(`/api/arena/commands?battleId=${selectedArena.address}`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  action: 'reset'
+                })
+              });
+              
+              if (response.ok) {
+                const result = await response.json();
+                console.log('✅ Automation stopped due to insufficient bets');
+                console.log('ℹ️ To restart automation, you can reinitialize it manually');
+                
+                // Optionally show a notification to the user
+                // You can add a toast notification here if you have a notification system
+                alert('Automation stopped: Game was reset due to insufficient bets. You can restart automation manually if needed.');
+              } else {
+                console.error('❌ Failed to stop automation');
+              }
+            } else {
+              console.log('✅ Game started successfully, round:', currentRound);
+            }
+          } catch (error) {
+            console.error('❌ Error verifying contract state:', error);
+          }
+        }, 5000);
+      }
+      
+      // If this was a manual start (not automated), close the modal
+      // If automated (backend trigger), keep modal open to show battle interface
+      if (!isAutomated) {
+        console.log('📝 Manual start - closing modal');
+        setIsModalOpen(false);
+      } else {
+        console.log('🤖 Automated start - keeping modal open and updating arena state');
+        // Give a moment for refetch to complete, then update selectedArena with fresh data
+        setTimeout(() => {
+          // Search across all ranks for the updated arena
+          const allArenas = [
+            ...arenasWithDetails.UNRANKED,
+            ...arenasWithDetails.BRONZE,
+            ...arenasWithDetails.SILVER,
+            ...arenasWithDetails.GOLD,
+            ...arenasWithDetails.PLATINUM
+          ];
+          const updatedArenaWithDetails = allArenas.find(a => a.address === selectedArena.address);
+          if (updatedArenaWithDetails) {
+            const updatedArena = convertArenaWithDetailsToArena(updatedArenaWithDetails);
+            if (updatedArena) {
+              console.log('🆕 Updated arena state after game start:', updatedArena);
+              setSelectedArena(updatedArena);
+            }
+          }
+        }, 2000); // Give 2 seconds for the refetch to complete
+      }
 
     } catch (error) {
       console.error('Failed to start game:', error);
       // Handle error - maybe show a toast notification
     }
-  }, [selectedArena]); // Add useCallback dependency array
+  }, [selectedArena, refetch]); // Add refetch to dependency array
 
   const handleBet = async (yodha: 'ONE' | 'TWO') => {
     if (!betAmount || !selectedArena || !address) return;
@@ -989,7 +1322,9 @@ export default function KurukshetraPage() {
 
       console.log('Influence confirmed!');
 
-      // Note: In a real app you might want to update the arena state
+      // Refresh arena data to get updated influence costs and other state changes
+      console.log('🔄 Refreshing arena data after influence...');
+      await refetch();
 
     } catch (error) {
       console.error('Failed to influence:', error);
@@ -1053,7 +1388,9 @@ export default function KurukshetraPage() {
 
       console.log('Defluence confirmed!');
 
-      // Note: In a real app you might want to update the arena state
+      // Refresh arena data to get updated defluence costs and other state changes
+      console.log('🔄 Refreshing arena data after defluence...');
+      await refetch();
 
     } catch (error) {
       console.error('Failed to defluence:', error);
@@ -1432,7 +1769,7 @@ export default function KurukshetraPage() {
             switch (data.command.action) {
               case 'startGame':
                 console.log('🎮 Backend triggered START GAME - calling handleStartGame()');
-                await handleStartGame();
+                await handleStartGame(true); // Pass true for isAutomated
                 console.log('✅ handleStartGame() completed');
                 break;
                 
@@ -1499,17 +1836,17 @@ export default function KurukshetraPage() {
             await refetch();
             
             if (selectedArena) {
-              const winnerIsYodhaOne = selectedArena.yodhaOneHealth > selectedArena.yodhaTwoHealth;
-              const winnerNFTId = winnerIsYodhaOne ? selectedArena.yodhaOneNFTId : selectedArena.yodhaTwoNFTId;
-              const winnerName = winnerIsYodhaOne ? 
-                yodhaDetails[selectedArena.yodhaOneNFTId]?.name || `Yodha #${selectedArena.yodhaOneNFTId}` :
-                yodhaDetails[selectedArena.yodhaTwoNFTId]?.name || `Yodha #${selectedArena.yodhaTwoNFTId}`;
+              // Determine winner based on damage (lower damage wins, or use winner field if available)
+              const winnerIsYodhaOne = selectedArena.winner === 'ONE' || 
+                (selectedArena.winner === undefined && selectedArena.yodhaOneDamage < selectedArena.yodhaTwoDamage);
+              const winnerYodha = winnerIsYodhaOne ? selectedArena.yodhaOne : selectedArena.yodhaTwo;
+              const winnerName = winnerYodha?.name || `Yodha #${winnerYodha?.id || 'Unknown'}`;
               
               // Show winner display
               setWinnerDisplay({
                 isVisible: true,
                 winnerName,
-                winnerNFTId
+                winnerNFTId: winnerYodha?.id?.toString() || '0'
               });
               
               // Hide winner display after 10 seconds
@@ -1538,6 +1875,51 @@ export default function KurukshetraPage() {
       // Refresh arena data when game starts
       refetch();
       console.log('Battle has started!');
+    },
+  });
+
+  // Listen for influence events to refresh costs
+  useWatchContractEvent({
+    address: selectedArena?.address as `0x${string}`,
+    abi: KurukshetraAbi,
+    eventName: 'YodhaOneInfluenced',
+    onLogs(logs) {
+      console.log('YodhaOneInfluenced event received:', logs);
+      // Refresh arena data to get updated influence costs
+      refetch();
+    },
+  });
+
+  useWatchContractEvent({
+    address: selectedArena?.address as `0x${string}`,
+    abi: KurukshetraAbi,
+    eventName: 'YodhaOneDefluenced',
+    onLogs(logs) {
+      console.log('YodhaOneDefluenced event received:', logs);
+      // Refresh arena data to get updated defluence costs
+      refetch();
+    },
+  });
+
+  useWatchContractEvent({
+    address: selectedArena?.address as `0x${string}`,
+    abi: KurukshetraAbi,
+    eventName: 'YodhaTwoInfluenced',
+    onLogs(logs) {
+      console.log('YodhaTwoInfluenced event received:', logs);
+      // Refresh arena data to get updated influence costs
+      refetch();
+    },
+  });
+
+  useWatchContractEvent({
+    address: selectedArena?.address as `0x${string}`,
+    abi: KurukshetraAbi,
+    eventName: 'YodhaTwoDefluenced',
+    onLogs(logs) {
+      console.log('YodhaTwoDefluenced event received:', logs);
+      // Refresh arena data to get updated defluence costs
+      refetch();
     },
   });
 
@@ -1843,7 +2225,7 @@ export default function KurukshetraPage() {
             onInfluence={ handleInfluence }
             onDefluence={ handleDefluence }
                        onInitialize={ handleInitializeArena }
-            onStartGame={ handleStartGame }
+            onStartGame={ () => handleStartGame(false) } // Manual start from modal
             onNextRound={ handleNextRound }
             betAmount={ betAmount }
             setBetAmount={ setBetAmount }
@@ -1916,13 +2298,7 @@ const ArenaModal = ({
   setYodhaTwoNFTId: (id: string) => void;
   isInitializing?: boolean;
   initializationError?: string | null;
-  battleNotification?: {
-    isVisible: boolean;
-    yodhaOneName: string;
-    yodhaTwoName: string;
-    yodhaOneMove: string;
-    yodhaTwoMove: string;
-  } | null;
+  battleNotification?: BattleNotification | null;
   winnerDisplay?: {
     isVisible: boolean;
     winnerName: string;
@@ -1985,6 +2361,12 @@ const ArenaModal = ({
                   Round { arena.currentRound }/{ arena.maxRounds }
                 </div>
                 <div
+                  className="text-xs text-yellow-300 mt-2 max-w-md mx-auto leading-relaxed"
+                  style={ { fontFamily: 'Press Start 2P, monospace' } }
+                >
+                  Note: Players should only place bets after the round counter updates. NEAR AI's response, blockchain validation, and their synchronization with the timer above can sometimes vary.
+                </div>
+                <div
                   className="text-sm text-blue-400 mt-1"
                   style={ { fontFamily: 'Press Start 2P, monospace' } }
                 >
@@ -2007,22 +2389,21 @@ const ArenaModal = ({
               {(arenaSync.gameState.gameState === 'betting' || arenaSync.gameState.gameState === 'playing') && (
                 <div className="mt-4 flex gap-4 justify-center">
                   {arenaSync.gameState.gameState === 'betting' && manualStartGame && (
-                    <button
-                      onClick={manualStartGame}
-                      className="arcade-button px-4 py-2 text-sm"
-                      style={{ fontFamily: 'Press Start 2P, monospace' }}
-                    >
-                      START NOW
-                    </button>
-                  )}
-                  {arenaSync.gameState.gameState === 'playing' && manualNextRound && (
-                    <button
-                      onClick={manualNextRound}
-                      className="arcade-button px-4 py-2 text-sm"
-                      style={{ fontFamily: 'Press Start 2P, monospace' }}
-                    >
-                      NEXT ROUND
-                    </button>
+                    <div className="text-center">
+                      <button
+                        onClick={manualStartGame}
+                        className="arcade-button px-4 py-2 text-sm"
+                        style={{ fontFamily: 'Press Start 2P, monospace' }}
+                      >
+                        START NOW
+                      </button>
+                      <div
+                        className="text-xs text-red-300 mt-2 max-w-xs mx-auto leading-relaxed"
+                        style={{ fontFamily: 'Press Start 2P, monospace' }}
+                      >
+                        This button is only to be used if the automation mechanism fails (timer gets to 0 and hangs there, or the timer is not visible). This is a manual override button and must not be used unless the above condition occurs, as this can break automation for this battle.
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
@@ -2035,14 +2416,6 @@ const ArenaModal = ({
                 >
                   🤖 AUTOMATION ACTIVE
                 </div>
-                {arenaSync.gameState.currentRound > 0 && (
-                  <div
-                    className="text-xs text-orange-400 mt-1"
-                    style={{ fontFamily: 'Press Start 2P, monospace' }}
-                  >
-                    Round {arenaSync.gameState.currentRound}/{arenaSync.gameState.totalRounds}
-                  </div>
-                )}
                 {arenaSync.error && (
                   <div
                     className="text-xs text-red-400 mt-1"
@@ -2231,6 +2604,18 @@ const ArenaModal = ({
                   {battleNotification.yodhaOneName}
                   <br />
                   <span className="text-yellow-400">used {battleNotification.yodhaOneMove}</span>
+                  {battleNotification.yodhaOneHitStatus && battleNotification.yodhaOneHitStatus !== 'PENDING' && (
+                    <br />
+                  )}
+                  {battleNotification.yodhaOneHitStatus === 'HIT' && (
+                    <span className="text-green-400 text-xs">✅ HIT!</span>
+                  )}
+                  {battleNotification.yodhaOneHitStatus === 'MISS' && (
+                    <span className="text-red-400 text-xs">❌ MISS</span>
+                  )}
+                  {battleNotification.yodhaOneHitStatus === 'PENDING' && (
+                    <span className="text-gray-400 text-xs animate-pulse">⏳ ...</span>
+                  )}
                 </div>
                 <div
                   className="text-xl text-orange-400"
@@ -2245,6 +2630,18 @@ const ArenaModal = ({
                   {battleNotification.yodhaTwoName}
                   <br />
                   <span className="text-yellow-400">used {battleNotification.yodhaTwoMove}</span>
+                  {battleNotification.yodhaTwoHitStatus && battleNotification.yodhaTwoHitStatus !== 'PENDING' && (
+                    <br />
+                  )}
+                  {battleNotification.yodhaTwoHitStatus === 'HIT' && (
+                    <span className="text-green-400 text-xs">✅ HIT!</span>
+                  )}
+                  {battleNotification.yodhaTwoHitStatus === 'MISS' && (
+                    <span className="text-red-400 text-xs">❌ MISS</span>
+                  )}
+                  {battleNotification.yodhaTwoHitStatus === 'PENDING' && (
+                    <span className="text-gray-400 text-xs animate-pulse">⏳ ...</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -2312,7 +2709,7 @@ const ArenaModal = ({
                   <TraitBar label="Defense" value={ arena.yodhaOne.defense } />
                   <TraitBar label="Charisma" value={ arena.yodhaOne.charisma } />
                   <TraitBar label="Wit" value={ arena.yodhaOne.wit } />
-                  <TraitBar label="Personality" value={ arena.yodhaOne.luck } />
+                  <TraitBar label="Luck" value={ arena.yodhaOne.luck } />
                 </div>
 
                 {/* Action Buttons */}
@@ -2504,6 +2901,12 @@ const ArenaModal = ({
                       <Trophy className="w-4 h-4 mr-2 inline" />
                       NEXT ROUND
                     </button>
+                    <div
+                        className="text-xs text-red-300 mt-2 max-w-xs mx-auto leading-relaxed"
+                        style={{ fontFamily: 'Press Start 2P, monospace' }}
+                      >
+                        This button is only to be used if the automation mechanism fails (timer gets to 0 and hangs there, or the timer is not visible). This is a manual override button and must not be used unless the above condition occurs, as this can break automation for this battle.
+                      </div>
                   </div>
                 ) }
 
@@ -2581,7 +2984,7 @@ const ArenaModal = ({
                   <TraitBar label="Defense" value={ arena.yodhaTwo.defense } />
                   <TraitBar label="Charisma" value={ arena.yodhaTwo.charisma } />
                   <TraitBar label="Wit" value={ arena.yodhaTwo.wit } />
-                  <TraitBar label="Personality" value={ arena.yodhaTwo.luck } />
+                  <TraitBar label="Luck" value={ arena.yodhaTwo.luck } />
                 </div>
 
                 {/* Action Buttons */}
@@ -2641,15 +3044,18 @@ const ArenaModal = ({
                       >
                         { arena.yodhaOne?.name }
                       </div>
-                      <div
-                        className="text-sm text-orange-400 mb-4"
-                        style={ { fontFamily: 'Press Start 2P, monospace' } }
-                      >
-                        Total Bets: { totalYodhaOneBets } RANN
-                      </div>
+                      {/* Only show betting totals if game has started (currentRound > 0) */}
+                      { arena.currentRound > 0 && (
+                        <div
+                          className="text-sm text-orange-400 mb-4"
+                          style={ { fontFamily: 'Press Start 2P, monospace' } }
+                        >
+                          Total Bets: { totalYodhaOneBets } RANN
+                        </div>
+                      ) }
                       <button
                         onClick={ () => setSelectedYodha('ONE') }
-                        className={ `w-full px-4 py-2 rounded transition-all ${selectedYodha === 'ONE' ? 'bg-yellow-600' : 'arcade-button'}` }
+                        className={ `w-full px-4 py-2 rounded transition-all ${selectedYodha === 'ONE' ? 'bg-yellow-600' : 'arcade-button'} ${arena.currentRound === 0 ? 'mt-4' : ''}` }
                         style={ { fontFamily: 'Press Start 2P, monospace' } }
                       >
                         Bet on Yodha One
@@ -2664,15 +3070,18 @@ const ArenaModal = ({
                       >
                         { arena.yodhaTwo?.name }
                       </div>
-                      <div
-                        className="text-sm text-orange-400 mb-4"
-                        style={ { fontFamily: 'Press Start 2P, monospace' } }
-                      >
-                        Total Bets: { totalYodhaTwoBets } RANN
-                      </div>
+                      {/* Only show betting totals if game has started (currentRound > 0) */}
+                      { arena.currentRound > 0 && (
+                        <div
+                          className="text-sm text-orange-400 mb-4"
+                          style={ { fontFamily: 'Press Start 2P, monospace' } }
+                        >
+                          Total Bets: { totalYodhaTwoBets } RANN
+                        </div>
+                      ) }
                       <button
                         onClick={ () => setSelectedYodha('TWO') }
-                        className={ `w-full px-4 py-2 rounded transition-all ${selectedYodha === 'TWO' ? 'bg-yellow-600' : 'arcade-button'}` }
+                        className={ `w-full px-4 py-2 rounded transition-all ${selectedYodha === 'TWO' ? 'bg-yellow-600' : 'arcade-button'} ${arena.currentRound === 0 ? 'mt-4' : ''}` }
                         style={ { fontFamily: 'Press Start 2P, monospace' } }
                       >
                         Bet on Yodha Two
@@ -2747,15 +3156,17 @@ const ArenaModal = ({
                     </div>
                   ) }
 
-                  {/* Total Pot */}
-                  <div className="text-center mt-6">
-                    <div
-                      className="text-lg text-orange-400 arcade-glow"
-                      style={ { fontFamily: 'Press Start 2P, monospace' } }
-                    >
-                      Total Pot: { totalPot } RANN
+                  {/* Total Pot - Only show if game has started */}
+                  { arena.currentRound > 0 && (
+                    <div className="text-center mt-6">
+                      <div
+                        className="text-lg text-orange-400 arcade-glow"
+                        style={ { fontFamily: 'Press Start 2P, monospace' } }
+                      >
+                        Total Pot: { totalPot } RANN
+                      </div>
                     </div>
-                  </div>
+                  ) }
                 </>
               ) : (
                 // Show Start Battle button if battle is ready to start
@@ -2793,6 +3204,13 @@ const ArenaModal = ({
                   >
                     ⚔️ START BATTLE ⚔️
                   </button>
+                  
+                  <div
+                    className="text-xs text-red-300 mt-4 max-w-lg mx-auto leading-relaxed"
+                    style={ { fontFamily: 'Press Start 2P, monospace' } }
+                  >
+                    This button is only to be used if the automation mechanism fails (timer gets to 0 and hangs there, or the timer is not visible). This is a manual override button and must not be used unless the above condition occurs, as this can break automation for this battle.
+                  </div>
                 </div>
               ) }
             </div>

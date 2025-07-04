@@ -21,7 +21,7 @@ export const useArenaSync = (battleId: string | null) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch current game state from status endpoint (not commands)
+  // Fetch current game state from status endpoint (NEVER consumes commands)
   const fetchGameState = useCallback(async () => {
     if (!battleId) return;
 
@@ -29,22 +29,26 @@ export const useArenaSync = (battleId: string | null) => {
       const response = await fetch(`/api/arena/status?battleId=${battleId}`);
       if (response.ok) {
         const data = await response.json();
+        // Handle both existing gameState and null gameState gracefully
         if (data.gameState) {
           setGameState(data.gameState);
           setError(null);
         } else {
-          // No active automation
+          // No active automation - this is normal, not an error
           setGameState(null);
+          setError(null);
         }
-      } else if (response.status === 404) {
-        // Battle not found - set to idle state
-        setGameState(null);
       } else {
-        throw new Error('Failed to fetch game state');
+        // Only set error for actual server errors, not missing data
+        console.warn(`Status API returned ${response.status} for battle ${battleId}`);
+        setError(null); // Don't treat this as an error
+        setGameState(null);
       }
     } catch (err) {
-      setError('Failed to sync with backend');
-      console.error('Arena sync error:', err);
+      // Only log actual network/parsing errors
+      console.warn('Arena sync warning (non-critical):', err);
+      setError(null); // Don't treat connectivity issues as blocking errors
+      setGameState(null);
     }
   }, [battleId]);
 
@@ -122,19 +126,26 @@ export const useArenaSync = (battleId: string | null) => {
         }),
       });
     } catch (err) {
-      console.error('Cleanup error:', err);
+      console.warn('Cleanup warning (non-critical):', err);
     }
   }, [battleId]);
 
-  // Sync with backend every second
+  // Sync with backend every 2 seconds - ONLY uses status endpoint, never commands
   useEffect(() => {
     if (!battleId) return;
 
     // Poll status endpoint every 2 seconds for timer updates
-    const interval = setInterval(fetchGameState, 2000);
+    // This endpoint NEVER consumes commands, only reads state
+    const interval = setInterval(() => {
+      fetchGameState().catch(err => {
+        console.warn('Status polling warning (non-critical):', err);
+      });
+    }, 2000);
     
     // Initial fetch
-    fetchGameState();
+    fetchGameState().catch(err => {
+      console.warn('Initial status fetch warning (non-critical):', err);
+    });
 
     return () => clearInterval(interval);
   }, [battleId, fetchGameState]);
@@ -143,7 +154,9 @@ export const useArenaSync = (battleId: string | null) => {
   useEffect(() => {
     return () => {
       if (gameState?.gameState === 'finished') {
-        cleanupBattle();
+        cleanupBattle().catch(err => {
+          console.warn('Cleanup on unmount warning (non-critical):', err);
+        });
       }
     };
   }, [gameState?.gameState, cleanupBattle]);

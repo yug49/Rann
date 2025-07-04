@@ -14,13 +14,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const gameState = gameStates.get(battleId);
     
-    if (!gameState) {
-      return res.status(404).json({ error: 'Battle not found' });
-    }
-
-    // Return only the state without consuming any commands
+    // Return 200 with null gameState instead of 404 to prevent useArenaSync errors
+    // This endpoint is for reading state only, not consuming commands
     return res.status(200).json({
-      gameState: gameState
+      gameState: gameState || null
     });
   } catch (error) {
     console.error('Status API error:', error);
