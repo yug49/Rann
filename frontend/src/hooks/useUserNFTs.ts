@@ -23,6 +23,21 @@ interface UserYodha {
   rank: 'unranked' | 'bronze' | 'silver' | 'gold' | 'platinum';
   totalWinnings: number;
 }
+interface NFTMetadata {
+  name?: string;
+  title?: string;
+  description?: string;
+  image?: string;
+  bio?: string;
+  life_history?: string;
+  adjectives?: string;
+  knowledge_areas?: string;
+  attributes?: Array<{
+    trait_type: string;
+    value: number | string;
+  }>;
+  [key: string]: unknown; // Allow additional properties
+}
 
 // Simple metadata cache to avoid repeated IPFS requests
 const metadataCache = new Map<string, any>();
@@ -120,32 +135,10 @@ const fetchMetadataFromIPFS = async (tokenURI: string, tokenId?: string) => {
         await delay(500); // 500ms delay between gateway attempts
       }
       
-      // If this is the last gateway, fall back to mock data
+      // If this is the last gateway, return null instead of fallback data
       if (i === gateways.length - 1) {
-        console.log(`🔄 Token ${tokenId || 'unknown'}: All IPFS gateways failed, using fallback metadata`);
-        
-        // Create more realistic fallback data based on tokenId
-        const fallbackTokenId = tokenId || cid.slice(-3);
-        const fallbackMetadata = {
-          name: `Yodha Warrior #${fallbackTokenId}`,
-          description: "A legendary warrior from the Rann battlefield. This metadata is temporarily using fallback data due to IPFS gateway connectivity issues.",
-          image: `ipfs://${cid}`, // Keep the original IPFS hash
-          bio: "Ancient warrior whose full history is being retrieved from the cosmic archives...",
-          life_history: "Born in the age of digital warfare, this warrior's complete saga is stored in the decentralized realm...",
-          adjectives: "Brave, Mysterious, Resilient",
-          knowledge_areas: "Combat, Strategy, Digital Warfare",
-          attributes: [
-            { trait_type: "Strength", value: Math.floor(Math.random() * 50) + 50 },
-            { trait_type: "Wit", value: Math.floor(Math.random() * 50) + 50 },
-            { trait_type: "Charisma", value: Math.floor(Math.random() * 50) + 50 },
-            { trait_type: "Defence", value: Math.floor(Math.random() * 50) + 50 },
-            { trait_type: "Luck", value: Math.floor(Math.random() * 50) + 50 },
-          ]
-        };
-        
-        // Cache the fallback metadata
-        metadataCache.set(tokenURI, fallbackMetadata);
-        return fallbackMetadata;
+        console.log(`❌ Token ${tokenId || 'unknown'}: All IPFS gateways failed, returning null`);
+        return null;
       }
     }
   }
@@ -360,15 +353,15 @@ export const useUserNFTs = (isActive: boolean = false, chainId: number = 545) =>
             console.warn(`⚠️ No tokenURI found for token ${tokenId}`);
           }
 
-          // Parse traits from contract (convert from uint16 with 2 decimal precision)
-          let traits: YodhaTraits = {
-            strength: 50.0,
-            wit: 50.0,
-            charisma: 50.0,
-            defence: 50.0,
-            luck: 50.0
-          };
+          // Only proceed if we have valid metadata or essential contract data
+          if (!metadata && !contractTraits) {
+            console.warn(`⚠️ Skipping token ${tokenId}: No metadata or traits available from blockchain`);
+            continue; // Skip this NFT if we can't get real data
+          }
 
+          // Parse traits from contract (convert from uint16 with 2 decimal precision)
+          let traits: YodhaTraits | null = null;
+          
           if (contractTraits) {
             traits = {
               strength: Number(contractTraits.strength) / 100,
@@ -382,27 +375,37 @@ export const useUserNFTs = (isActive: boolean = false, chainId: number = 545) =>
           // Convert winnings from wei to ether
           const totalWinnings = Number(winnings) / 1e18;
 
-          // Build the UserYodha object
-          const userYodha: UserYodha = {
-            id: index + 1,
-            tokenId: Number(tokenId),
-            name: metadata?.name || `Warrior #${tokenId}`,
-            bio: metadata?.bio || 'Ancient warrior with unknown history',
-            life_history: metadata?.life_history || 'History lost to time...',
-            adjectives: Array.isArray(metadata?.personality) 
-              ? metadata.personality.join(', ') 
-              : metadata?.adjectives || 'Mysterious, Powerful',
-            knowledge_areas: Array.isArray(metadata?.knowledge_areas)
-              ? metadata.knowledge_areas.join(', ')
-              : metadata?.knowledge_areas || 'Combat, Strategy',
-            traits,
-            image: metadata?.image ? convertIpfsToProxyUrl(metadata.image) : '/lazered.png',
-            rank: rankingToString(ranking),
-            totalWinnings
-          };
+          // Only create UserYodha if we have real metadata or at minimum, valid traits from contract
+          if (metadata || traits) {
+            const userYodha: UserYodha = {
+              id: index + 1,
+              tokenId: Number(tokenId),
+              name: metadata?.name || metadata?.title || `Token #${tokenId}`,
+              bio: metadata?.bio || 'Data not available on IPFS',
+              life_history: metadata?.life_history || 'Data not available on IPFS',
+              adjectives: Array.isArray(metadata?.personality) 
+                ? metadata.personality.join(', ') 
+                : metadata?.adjectives || 'Data not available',
+              knowledge_areas: Array.isArray(metadata?.knowledge_areas)
+                ? metadata.knowledge_areas.join(', ')
+                : metadata?.knowledge_areas || 'Data not available',
+              traits: traits || {
+                strength: 0,
+                wit: 0,
+                charisma: 0,
+                defence: 0,
+                luck: 0
+              },
+              image: metadata?.image ? convertIpfsToProxyUrl(metadata.image) : '',
+              rank: rankingToString(ranking),
+              totalWinnings
+            };
 
-          nftResults.push(userYodha);
-          console.log(`✅ Completed processing NFT ${index + 1}/${tokenIds.length}:`, userYodha.name);
+            nftResults.push(userYodha);
+            console.log(`✅ Completed processing NFT ${index + 1}/${tokenIds.length}:`, userYodha.name);
+          } else {
+            console.warn(`⚠️ Skipping token ${tokenId}: No valid data available`);
+          }
 
           // Add a small delay between processing NFTs to avoid overwhelming IPFS gateways
           if (index < tokenIds.length - 1) {
@@ -411,29 +414,8 @@ export const useUserNFTs = (isActive: boolean = false, chainId: number = 545) =>
 
         } catch (error) {
           console.error(`Error loading details for NFT ${tokenId}:`, error);
-          
-          // Return a basic object even if there's an error
-          const errorYodha: UserYodha = {
-            id: index + 1,
-            tokenId: Number(tokenId),
-            name: `Warrior #${tokenId}`,
-            bio: 'Error loading data',
-            life_history: 'Unable to retrieve history',
-            adjectives: 'Unknown',
-            knowledge_areas: 'Unknown',
-            traits: {
-              strength: 50.0,
-              wit: 50.0,
-              charisma: 50.0,
-              defence: 50.0,
-              luck: 50.0
-            },
-            image: '/lazered.png',
-            rank: 'unranked' as const,
-            totalWinnings: 0.0
-          };
-          
-          nftResults.push(errorYodha);
+          // Skip this NFT instead of creating mock data
+          console.warn(`⚠️ Skipping token ${tokenId} due to error: ${error instanceof Error ? error.message : 'Unknown error'}`);
           
           // Add delay even on error to prevent rapid successive failures
           if (index < tokenIds.length - 1) {
