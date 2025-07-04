@@ -91,6 +91,7 @@ contract Kurukshetra {
     error Kurukshetra__InvalidSignature();
     error Kurukshetra__Locked();
     error Kurukshetra__InvalidAddress();
+    error Kurukshetra__BettingPeriodNotActive();
 
     enum RankCategory {
         UNRANKED,
@@ -149,6 +150,7 @@ contract Kurukshetra {
     uint256 private s_lastRoundEndedAt;
     uint256 private s_damageOnYodhaOne; // To keep track of damage of Yodha one during the game
     uint256 private s_damageOnYodhaTwo; // To keep track of damage of yodha two during the game
+    bool private s_isBettingPeriod; // Flag to check if the betting period is active
 
     uint8 private constant MIN_YODHA_BETTING_PERIOD = 60;
     uint8 private constant MIN_BATTLE_ROUNDS_INTERVAL = 30;
@@ -292,6 +294,7 @@ contract Kurukshetra {
         s_yodhaTwoNFTId = _yodhaTwoNFTId;
         s_gameInitialized = true;
         s_gameInitializedAt = block.timestamp;
+        s_isBettingPeriod = true;
 
         emit GameInitialized(_yodhaOneNFTId, _yodhaTwoNFTId, s_gameInitializedAt);
     }
@@ -309,6 +312,9 @@ contract Kurukshetra {
         }
         if (_multiplier == 0) {
             revert Kurukshetra__InvalidBetAmount();
+        }
+        if (!s_isBettingPeriod) {
+            revert Kurukshetra__BettingPeriodNotActive();
         }
 
         for (uint256 i = 0; i < _multiplier; i++) {
@@ -333,6 +339,10 @@ contract Kurukshetra {
         if (s_currentRound != 0) {
             revert Kurukshetra__GameAlreadyStarted();
         }
+        if (!s_isBettingPeriod) {
+            revert Kurukshetra__BettingPeriodNotActive();
+        }
+
 
         for (uint256 i = 0; i < _multiplier; i++) {
             s_playerTwoBetAddresses.push(msg.sender);
@@ -356,6 +366,8 @@ contract Kurukshetra {
         if (s_currentRound != 0) {
             revert Kurukshetra__GameAlreadyStarted();
         }
+
+        s_isBettingPeriod = false;
 
         if (s_playerTwoBetAddresses.length == 0 || s_playerOneBetAddresses.length == 0) {
             if(s_playerOneBetAddresses.length == 0) {
@@ -998,6 +1010,10 @@ contract Kurukshetra {
 
     function getDamageOnYodhaOne() external view returns (uint256) {
         return s_damageOnYodhaOne;
+    }
+
+    function getIsBettingPeriodGoingOn() external view returns (bool) {
+        return s_isBettingPeriod;
     }
 
     function getDamageOnYodhaTwo() external view returns (uint256) {
