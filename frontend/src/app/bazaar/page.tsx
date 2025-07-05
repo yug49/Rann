@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useWriteContract, useWaitForTransactionReceipt, useAccount, useChainId, useReadContract } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
 import '../home-glass.css';
@@ -59,10 +60,10 @@ export default function BazaarPage() {
   const { writeContract: writeYodhaNFT, data: yodhaHash, isPending: isYodhaPending } = useWriteContract();
   const { writeContract: writeRannToken, data: rannHash, isPending: isRannPending } = useWriteContract();
 
-  // Transaction receipt hooks
-  const { isLoading: isBazaarConfirming, isSuccess: isBazaarSuccess } = useWaitForTransactionReceipt({ hash: bazaarHash });
-  const { isLoading: isYodhaConfirming, isSuccess: isYodhaSuccess } = useWaitForTransactionReceipt({ hash: yodhaHash });
-  const { isLoading: isRannConfirming, isSuccess: isRannSuccess } = useWaitForTransactionReceipt({ hash: rannHash });
+  // Transaction receipt hooks - removed unused variables
+  const { isSuccess: isBazaarSuccess } = useWaitForTransactionReceipt({ hash: bazaarHash });
+  const { isSuccess: isYodhaSuccess } = useWaitForTransactionReceipt({ hash: yodhaHash });
+  const { isSuccess: isRannSuccess } = useWaitForTransactionReceipt({ hash: rannHash });
 
   // Get token IDs on sale from Bazaar contract
   const { data: tokenIdsOnSale, refetch: refetchTokenIds } = useReadContract({
@@ -1175,7 +1176,7 @@ export default function BazaarPage() {
 
         {/* Back to Home */}
         <div className="text-center mt-12">
-          <a 
+          <Link 
             href="/"
             className="inline-block arcade-button px-6 py-3 text-xs tracking-wide"
             style={{
@@ -1184,7 +1185,7 @@ export default function BazaarPage() {
             }}
           >
             GO BACK
-          </a>
+          </Link>
         </div>
       </div>
     </div>

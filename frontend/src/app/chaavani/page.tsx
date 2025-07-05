@@ -86,7 +86,7 @@ const ChaavaniPage = memo(function ChaavaniPage() {
   });
 
   // Custom hook to manage user NFTs
-  const { userNFTs, isLoadingNFTs, hasError: tokenIdsError, clearCache, debugState } = useUserNFTs(activeSection === 'manage', chainId);
+  const { userNFTs, isLoadingNFTs, hasError: tokenIdsError, clearCache } = useUserNFTs(activeSection === 'manage', chainId);
 
   // Check NEAR wallet connection status
   const checkNearWalletConnection = useCallback(() => {
@@ -1427,7 +1427,7 @@ const ChaavaniPage = memo(function ChaavaniPage() {
                         METADATA CID: {ipfsCid}
                       </p>
                       <p className="text-yellow-300 text-xs mb-2" style={{fontFamily: 'Press Start 2P, monospace'}}>
-                        ✅ IMAGE + JSON METADATA STORED ON IPFS
+                        IMAGE + JSON METADATA STORED ON IPFS
                       </p>
                       <a 
                         href={`https://${process.env.NEXT_PUBLIC_GATEWAY_URL || 'gateway.pinata.cloud'}/ipfs/${ipfsCid}`}
@@ -1460,34 +1460,8 @@ const ChaavaniPage = memo(function ChaavaniPage() {
                 className="text-gray-300 text-sm"
                 style={{fontFamily: 'Press Start 2P, monospace'}}
               >
-                MANAGE AND PROMOTE YOUR LEGENDARY FIGHTERS
+                MANAGE AND PROMOTE YOUR LEGENDARY YODHAS
               </p>
-              
-              {/* Debug tools (only show in development) */}
-              {process.env.NODE_ENV === 'development' && (
-                <div className="mt-4 flex gap-2 justify-center">
-                  <button
-                    onClick={() => {
-                      clearCache();
-                      alert('IPFS metadata cache cleared! Refresh will reload all NFT data.');
-                    }}
-                    className="px-4 py-2 bg-purple-600 border border-purple-400 text-purple-200 text-xs rounded-lg hover:bg-purple-700 transition-colors"
-                    style={{fontFamily: 'Press Start 2P, monospace'}}
-                  >
-                    🗑️ CLEAR CACHE
-                  </button>
-                  <button
-                    onClick={() => {
-                      debugState();
-                      alert('Check console for debug info!');
-                    }}
-                    className="px-4 py-2 bg-blue-600 border border-blue-400 text-blue-200 text-xs rounded-lg hover:bg-blue-700 transition-colors"
-                    style={{fontFamily: 'Press Start 2P, monospace'}}
-                  >
-                    🐛 DEBUG STATE
-                  </button>
-                </div>
-              )}
               
               {!connectedAddress && (
                 <div className="mt-4 p-4 bg-red-900/50 border border-red-500 rounded-lg">

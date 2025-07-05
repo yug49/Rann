@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAccount, useWriteContract, useWatchContractEvent } from 'wagmi';
+import { useAccount, useWatchContractEvent } from 'wagmi';
 import { encodePacked, keccak256, decodeEventLog } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import '../home-glass.css';
@@ -112,22 +112,22 @@ interface BattleNotification {
 }
 
 // Enhanced battle result for tracking move execution details
-interface BattleMoveResult {
-  yodhaOneResult: {
-    moveName: string;
-    hitStatus: 'HIT' | 'MISS';
-    damageDealt: number;
-    recoveryGained: number;
-    dodged: boolean;
-  };
-  yodhaTwoResult: {
-    moveName: string;
-    hitStatus: 'HIT' | 'MISS';
-    damageDealt: number;
-    recoveryGained: number;
-    dodged: boolean;
-  };
-}
+// interface BattleMoveResult {
+//   yodhaOneResult: {
+//     moveName: string;
+//     hitStatus: 'HIT' | 'MISS';
+//     damageDealt: number;
+//     recoveryGained: number;
+//     dodged: boolean;
+//   };
+//   yodhaTwoResult: {
+//     moveName: string;
+//     hitStatus: 'HIT' | 'MISS';
+//     damageDealt: number;
+//     recoveryGained: number;
+//     dodged: boolean;
+//   };
+// }
 
 interface Yodha {
   id: number;
@@ -257,12 +257,6 @@ const TraitBar = ({ label, value, max = 100, color = "bg-orange-400" }: {
     </div>
   );
 };
-
-
-
-
-
-
 
 const EnhancedArenaCard = ({
   arenaWithDetails,
@@ -528,7 +522,7 @@ export default function KurukshetraPage() {
   } | null>(null);
   
   // Contract hooks
-  const { writeContract } = useWriteContract();
+  // const { writeContract } = useWriteContract();
 
   // Arena automation hook
   const arenaSync = useArenaSync(selectedArena?.address || null);
@@ -761,7 +755,11 @@ export default function KurukshetraPage() {
             
             if (decodedLog.eventName === 'YodhaMoveExecuted') {
               const { args } = decodedLog;
-              const eventArgs = args as any;
+              const eventArgs = args as unknown as {
+                damageOnOpponentYodha: number;
+                recoveryOnSelfYodha: number;
+                dodged: boolean;
+              };
               const damageOnOpponentYodha = eventArgs.damageOnOpponentYodha;
               const recoveryOnSelfYodha = eventArgs.recoveryOnSelfYodha;
               const dodged = eventArgs.dodged;
@@ -932,18 +930,6 @@ export default function KurukshetraPage() {
       console.log('✅ Manual start game successful');
     } catch (error) {
       console.error('❌ Manual start game error:', error);
-    }
-  };
-
-  const manualNextRound = async () => {
-    if (!selectedArena) return;
-    
-    try {
-      console.log('⚔️ Manual next round triggered - calling handleNextRound directly');
-      await handleNextRound();
-      console.log('✅ Manual next round successful');
-    } catch (error) {
-      console.error('❌ Manual next round error:', error);
     }
   };
 
@@ -1137,7 +1123,7 @@ export default function KurukshetraPage() {
               });
               
               if (response.ok) {
-                const result = await response.json();
+                await response.json();
                 console.log('✅ Automation stopped due to insufficient bets');
                 console.log('ℹ️ To restart automation, you can reinitialize it manually');
                 
@@ -2241,7 +2227,6 @@ export default function KurukshetraPage() {
             winnerDisplay={ winnerDisplay }
             arenaSync={ arenaSync }
             manualStartGame={ manualStartGame }
-            manualNextRound={ manualNextRound }
           />
         ) }
       </div>
@@ -2276,8 +2261,7 @@ const ArenaModal = ({
   battleNotification,
   winnerDisplay,
   arenaSync,
-  manualStartGame,
-  manualNextRound
+  manualStartGame
 }: {
   arena: Arena;
   isOpen: boolean;
@@ -2304,9 +2288,29 @@ const ArenaModal = ({
     winnerName: string;
     winnerNFTId: string;
   } | null;
-  arenaSync?: any;
+  arenaSync?: {
+    gameState: {
+      battleId: string | null;
+      gameState: 'idle' | 'playing' | 'finished';
+      phase: 'startGame' | 'battle';
+      timeRemaining: number;
+      totalTime: number;
+      lastUpdate: number;
+      yodha1Id: number | null;
+      yodha2Id: number | null;
+      currentRound: number;
+      totalRounds: number;
+      automationEnabled: boolean;
+      type: string;
+    } | null;
+    isLoading: boolean;
+    error: string | null;
+    initializeBattle: (yodha1Id: number, yodha2Id: number) => Promise<void>;
+    manualStartGame: () => Promise<void>;
+    manualNextRound: () => Promise<void>;
+    cleanupBattle: () => Promise<void>;
+  };
   manualStartGame?: () => Promise<void>;
-  manualNextRound?: () => Promise<void>;
 }) => {
   if (!isOpen) return null;
 
@@ -2364,7 +2368,7 @@ const ArenaModal = ({
                   className="text-xs text-yellow-300 mt-2 max-w-md mx-auto leading-relaxed"
                   style={ { fontFamily: 'Press Start 2P, monospace' } }
                 >
-                  Note: Players should only place bets after the round counter updates. NEAR AI's response, blockchain validation, and their synchronization with the timer above can sometimes vary.
+                  Note: Players should only place bets after the round counter updates. NEAR AI&apos;s response, blockchain validation, and their synchronization with the timer above can sometimes vary.
                 </div>
                 <div
                   className="text-sm text-blue-400 mt-1"
@@ -2380,15 +2384,15 @@ const ArenaModal = ({
           {arenaSync?.gameState && (
             <div className="mb-6">
               <GameTimer
-                gameState={arenaSync.gameState.gameState || 'idle'}
+                gameState={arenaSync.gameState.gameState === 'idle' ? 'betting' : arenaSync.gameState.gameState === 'playing' ? 'playing' : 'idle'}
                 timeRemaining={arenaSync.gameState.timeRemaining || 0}
                 totalTime={arenaSync.gameState.totalTime || 0}
               />
               
               {/* Manual Override Buttons */}
-              {(arenaSync.gameState.gameState === 'betting' || arenaSync.gameState.gameState === 'playing') && (
+              {(arenaSync.gameState.gameState === 'idle' || arenaSync.gameState.gameState === 'playing') && (
                 <div className="mt-4 flex gap-4 justify-center">
-                  {arenaSync.gameState.gameState === 'betting' && manualStartGame && (
+                  {arenaSync.gameState.gameState === 'idle' && manualStartGame && (
                     <div className="text-center">
                       <button
                         onClick={manualStartGame}

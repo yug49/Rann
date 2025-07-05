@@ -17,7 +17,7 @@ export interface IPFSUploadResult {
   imageUrl: string;
   metadataCid: string;
   metadataUrl: string;
-  metadata: any;
+  metadata: YodhaNFTMetadata;
   size: number;
 }
 

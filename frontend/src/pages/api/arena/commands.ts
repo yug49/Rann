@@ -2,9 +2,34 @@
 // This automation sends commands to the frontend to trigger the actual NEXT ROUND button
 import { NextApiRequest, NextApiResponse } from 'next';
 
+// Define interfaces for type safety
+interface GameState {
+  gameState: 'playing' | 'finished' | 'stopped';
+  phase: 'startGame' | 'battle';
+  currentRound: number;
+  timeRemaining: number;
+  totalTime: number;
+  lastUpdate: number;
+  automationEnabled?: boolean;
+  battleId?: string;
+  totalRounds?: number;
+  yodha1Id?: string;
+  yodha2Id?: string;
+  type?: string;
+}
+
+interface Command {
+  action?: string;
+  command?: string;
+  timestamp?: number;
+  round?: number;
+  battleId?: string;
+  requiresVerification?: boolean;
+}
+
 // Command queue for frontend polling
-const commandQueue = new Map<string, any>();
-export const gameStates = new Map<string, any>(); // Export for status endpoint
+const commandQueue = new Map<string, Command>();
+export const gameStates = new Map<string, GameState>(); // Export for status endpoint
 const activeTimers = new Map<string, NodeJS.Timeout>();
 
 // Timer management - sends commands to frontend
@@ -154,7 +179,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           case 'initialize':
             console.log(`🎮 Initializing command-based automation for battle ${battleId}`);
             
-            const newGameState = {
+            const newGameState: GameState = {
               battleId,
               gameState: 'playing',
               phase: 'startGame', // startGame -> battle

@@ -75,7 +75,7 @@ export const useArenaSync = (battleId: string | null) => {
         const errorData = await response.json().catch(() => ({}));
         
         // Enhanced error message with suggestions
-        let errorMessage = errorData.error || `HTTP ${response.status}: ${response.statusText}`;
+        const errorMessage = errorData.error || `HTTP ${response.status}: ${response.statusText}`;
         
         console.error('Backend initialization error:', errorData);
         throw new Error(errorMessage);

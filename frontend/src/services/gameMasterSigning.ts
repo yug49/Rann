@@ -93,23 +93,23 @@ export class GameMasterSigningService {
    * Extracts traits and moves from the AI response JSON
    * AI now returns format: {"Strength": 6211, "Wit": 8302, "strike_attack": "Tweet Storm", etc.}
    */
-  extractTraitsAndMoves(aiResponse: Record<string, any>, tokenId: number): YodhaTraitsData {
+  extractTraitsAndMoves(aiResponse: Record<string, unknown>, tokenId: number): YodhaTraitsData {
     try {
       // The AI response is now in a different format
       console.log('Extracting from AI response format:', aiResponse);
 
       return {
         tokenId,
-        strength: aiResponse.Strength || aiResponse.strength || 0,
-        wit: aiResponse.Wit || aiResponse.wit || 0,
-        charisma: aiResponse.Charisma || aiResponse.charisma || 0,
-        defence: aiResponse.Defence || aiResponse.defence || aiResponse.Defense || aiResponse.defense || 0, // Handle both spellings
-        luck: aiResponse.Luck || aiResponse.luck || 0,
-        strike: aiResponse.strike_attack || aiResponse.strike || 'Strike',
-        taunt: aiResponse.taunt_attack || aiResponse.taunt || 'Taunt',
-        dodge: aiResponse.dodge || 'Dodge',
-        special: aiResponse.special_move || aiResponse.special || 'Special',
-        recover: aiResponse.recover || 'Recover'
+        strength: Number(aiResponse.Strength || aiResponse.strength || 0),
+        wit: Number(aiResponse.Wit || aiResponse.wit || 0),
+        charisma: Number(aiResponse.Charisma || aiResponse.charisma || 0),
+        defence: Number(aiResponse.Defence || aiResponse.defence || aiResponse.Defense || aiResponse.defense || 0), // Handle both spellings
+        luck: Number(aiResponse.Luck || aiResponse.luck || 0),
+        strike: String(aiResponse.strike_attack || aiResponse.strike || 'Strike'),
+        taunt: String(aiResponse.taunt_attack || aiResponse.taunt || 'Taunt'),
+        dodge: String(aiResponse.dodge || 'Dodge'),
+        special: String(aiResponse.special_move || aiResponse.special || 'Special'),
+        recover: String(aiResponse.recover || 'Recover')
       };
     } catch (error) {
       console.error('Error extracting traits and moves:', error);

@@ -34,7 +34,7 @@ class YodhaActivationService {
       }
       
       // Call our backend API route
-      const requestBody: any = { yodhaData };
+      const requestBody: { yodhaData: unknown; auth?: unknown } = { yodhaData };
       if (auth) {
         requestBody.auth = auth;
       }

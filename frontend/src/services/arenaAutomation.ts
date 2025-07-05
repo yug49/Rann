@@ -71,7 +71,7 @@ class ArenaAutomationService {
     }
   }
 
-  private async callGameMaster(action: string, data: any) {
+  private async callGameMaster(action: string, data: Record<string, unknown>) {
     try {
       const response = await fetch('/api/game-master', {
         method: 'POST',

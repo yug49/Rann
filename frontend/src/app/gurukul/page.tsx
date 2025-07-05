@@ -424,82 +424,6 @@ export default function GurukulPage() {
     }
   }, [isContractError, transactionError]);
 
-  // Contract state validator
-  const validateContractState = useCallback(() => {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-
-    // Check wallet connection
-    if (!isWagmiConnected || !address) {
-      errors.push('Web3 wallet not connected');
-    }
-
-    if (!isNearConnected || !nearAccountId) {
-      errors.push('NEAR wallet not connected (required for AI analysis)');
-    }
-
-    // Check contract addresses
-    if (!yodhaNFTContract) {
-      errors.push('Yodha NFT contract not found for current chain');
-    }
-
-    if (!gurukulContract) {
-      errors.push('Gurukul contract not found for current chain');
-    }
-
-    // Check NFT ownership and activation
-    if (!userTokenIds || (Array.isArray(userTokenIds) && userTokenIds.length === 0)) {
-      warnings.push('No Yodha NFTs found in your wallet');
-    } else if (userYodhas.length === 0) {
-      warnings.push('No activated Yodha NFTs found (NFTs must have traits assigned)');
-    }
-
-    // Check selected token
-    if (!selectedTokenId) {
-      warnings.push('No warrior selected');
-    }
-
-    // Check IPFS CID
-    if (!ipfsCidData) {
-      warnings.push('Questions metadata not loaded from contract');
-    }
-
-    // Check questions loaded from IPFS
-    if (!questions || questions.length === 0) {
-      warnings.push('Questions not loaded from IPFS');
-    }
-
-    // Check if approved for training
-    if (selectedTokenId && !isApproved) {
-      warnings.push('NFT not approved for Gurukul training');
-    }
-
-    // Check if entered Gurukul
-    if (selectedTokenId && !hasEnteredGurukul) {
-      warnings.push('Warrior has not entered Gurukul');
-    }
-
-    // Check assigned questions
-    if (hasEnteredGurukul && (!assignedQuestionIds || assignedQuestionIds.length === 0)) {
-      warnings.push('No questions assigned by contract');
-    }
-
-    // Check current traits
-    if (selectedTokenId && !currentTraits) {
-      warnings.push('Warrior traits not loaded from contract');
-    }
-
-    return { errors, warnings };
-  }, [
-    isWagmiConnected, address, isNearConnected, nearAccountId,
-    yodhaNFTContract, gurukulContract, userTokenIds, selectedTokenId,
-    ipfsCidData, questions, isApproved, hasEnteredGurukul,
-    assignedQuestionIds, currentTraits, userYodhas.length
-  ]);
-
-  // Contract state validation
-  const contractState = validateContractState();
-
   // Process user's NFTs - comprehensive metadata loading like Chaavani
   useEffect(() => {
     if (userTokenIds && Array.isArray(userTokenIds) && userTokenIds.length > 0) {
@@ -1113,18 +1037,6 @@ export default function GurukulPage() {
     }
   }, [isGurukulSuccess, refetchAssignedQuestions, refetchTraits]);
 
-  // Get trait improvement hint
-  const getTraitImprovementHint = (questionId: number): string => {
-    const hints = {
-      0: "This choice may affect your Charisma and Strength",
-      1: "This decision could influence your Wit and Charisma", 
-      2: "Your response might impact your Strength and Defence",
-      3: "This choice may enhance your Wit and Charisma",
-      4: "Your decision could affect your Luck and Wit"
-    };
-    return hints[questionId as keyof typeof hints] || "This choice will shape your warrior's destiny";
-  };
-
   // Format trait value with color
   const formatTraitValue = (value: number): string => {
     return value.toString().padStart(2, '0');
@@ -1213,59 +1125,6 @@ export default function GurukulPage() {
       {/* Main Content */}
       <div className="relative z-10 container mx-auto px-6 py-12">
         {/* Page Header */}
-        {/* Contract State Validation Display */}
-        {(contractState.errors.length > 0 || contractState.warnings.length > 0) && (
-          <div className="max-w-4xl mx-auto mb-8">
-            <div 
-              className="arcade-card p-6"
-              style={{
-                background: 'radial-gradient(circle at top left, rgba(255, 100, 100, 0.15), rgba(255, 80, 80, 0.1) 50%), linear-gradient(135deg, rgba(255, 100, 100, 0.2) 0%, rgba(255, 80, 80, 0.15) 30%, rgba(255, 100, 100, 0.2) 100%)',
-                border: '3px solid #ff4444',
-                borderRadius: '24px',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), 0 0 8px rgba(255, 68, 68, 0.3)'
-              }}
-            >
-              <h3 
-                className="text-lg text-red-400 mb-4 tracking-wider text-center"
-                style={{fontFamily: 'Press Start 2P, monospace'}}
-              >
-                SYSTEM STATUS
-              </h3>
-              
-              {contractState.errors.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="text-red-400 text-sm mb-2" style={{fontFamily: 'Press Start 2P, monospace'}}>
-                    ERRORS:
-                  </h4>
-                  <ul className="text-red-300 text-xs space-y-1">
-                    {contractState.errors.map((error, index) => (
-                      <li key={index} style={{fontFamily: 'Press Start 2P, monospace'}}>
-                        • {error}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {contractState.warnings.length > 0 && (
-                <div>
-                  <h4 className="text-yellow-400 text-sm mb-2" style={{fontFamily: 'Press Start 2P, monospace'}}>
-                    WARNINGS:
-                  </h4>
-                  <ul className="text-yellow-300 text-xs space-y-1">
-                    {contractState.warnings.map((warning, index) => (
-                      <li key={index} style={{fontFamily: 'Press Start 2P, monospace'}}>
-                        • {warning}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
 
         <div className="text-center mb-12">
           <h1 
@@ -1322,16 +1181,27 @@ export default function GurukulPage() {
                     SELECT YOUR WARRIOR
                   </h2>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {userYodhas.map((yodha) => (
-                      <YodhaCard 
-                        key={yodha.tokenId}
-                        yodha={yodha} 
-                        onClick={() => handleWarriorSelect(yodha.tokenId)} 
-                        isSelected={selectedTokenId === yodha.tokenId} 
-                      />
-                    ))}
-                  </div>
+                  {isLoadingNFTs ? (
+                    <div className="text-center py-8">
+                      <p 
+                        className="text-gray-300 text-sm"
+                        style={{fontFamily: 'Press Start 2P, monospace'}}
+                      >
+                        LOADING WARRIORS... PLEASE WAIT.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {userYodhas.map((yodha) => (
+                        <YodhaCard 
+                          key={yodha.tokenId}
+                          yodha={yodha} 
+                          onClick={() => handleWarriorSelect(yodha.tokenId)} 
+                          isSelected={selectedTokenId === yodha.tokenId} 
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -1879,12 +1749,11 @@ export default function GurukulPage() {
                         STRENGTH
                     </div>
                       <div className="text-white text-lg" style={{fontFamily: 'Press Start 2P, monospace'}}>
-                        {formatTraitValue(currentTraits.strength)}
-                        {traitChanges && (
+                        {formatTraitValue(currentTraits.strength)}                        {traitChanges && (
                           <span className={`text-xs ml-2 ${traitChanges.strength > 0 ? 'text-green-400' : traitChanges.strength < 0 ? 'text-red-400' : 'text-gray-400'}`}>
-                            ({traitChanges.strength > 0 ? '+' : ''}{traitChanges.strength})
+                            ({traitChanges.strength > 0 ? '+' : ''}{formatTraitValue(traitChanges.strength)})
                           </span>
-                  )}
+                        )}
                 </div>
               </div>
                     <div className="text-center">
@@ -1895,7 +1764,7 @@ export default function GurukulPage() {
                         {formatTraitValue(currentTraits.wit)}
                         {traitChanges && (
                           <span className={`text-xs ml-2 ${traitChanges.wit > 0 ? 'text-green-400' : traitChanges.wit < 0 ? 'text-red-400' : 'text-gray-400'}`}>
-                            ({traitChanges.wit > 0 ? '+' : ''}{traitChanges.wit})
+                            ({traitChanges.wit > 0 ? '+' : ''}{formatTraitValue(traitChanges.wit)})
                           </span>
                         )}
                       </div>
@@ -1908,7 +1777,7 @@ export default function GurukulPage() {
                         {formatTraitValue(currentTraits.charisma)}
                         {traitChanges && (
                           <span className={`text-xs ml-2 ${traitChanges.charisma > 0 ? 'text-green-400' : traitChanges.charisma < 0 ? 'text-red-400' : 'text-gray-400'}`}>
-                            ({traitChanges.charisma > 0 ? '+' : ''}{traitChanges.charisma})
+                            ({traitChanges.charisma > 0 ? '+' : ''}{formatTraitValue(traitChanges.charisma)})
                           </span>
                         )}
                       </div>
@@ -1921,7 +1790,7 @@ export default function GurukulPage() {
                         {formatTraitValue(currentTraits.defence)}
                         {traitChanges && (
                           <span className={`text-xs ml-2 ${traitChanges.defence > 0 ? 'text-green-400' : traitChanges.defence < 0 ? 'text-red-400' : 'text-gray-400'}`}>
-                            ({traitChanges.defence > 0 ? '+' : ''}{traitChanges.defence})
+                            ({traitChanges.defence > 0 ? '+' : ''}{formatTraitValue(traitChanges.defence)})
                           </span>
                         )}
                       </div>
@@ -1934,7 +1803,7 @@ export default function GurukulPage() {
                         {formatTraitValue(currentTraits.luck)}
                         {traitChanges && (
                           <span className={`text-xs ml-2 ${traitChanges.luck > 0 ? 'text-green-400' : traitChanges.luck < 0 ? 'text-red-400' : 'text-gray-400'}`}>
-                            ({traitChanges.luck > 0 ? '+' : ''}{traitChanges.luck})
+                            ({traitChanges.luck > 0 ? '+' : ''}{formatTraitValue(traitChanges.luck)})
                           </span>
                         )}
                       </div>
@@ -1944,65 +1813,80 @@ export default function GurukulPage() {
               )}
               
               {aiResponse && (
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+                <div className="mb-6 p-4 bg-gray-800 border border-gray-600 rounded-lg">
                   <h3 
-                    className="text-lg text-purple-400 mb-4 text-center"
+                    className="text-lg text-yellow-400 text-center mb-4 tracking-wider"
                     style={{fontFamily: 'Press Start 2P, monospace'}}
                   >
                     🤖 AI WISDOM MASTER ANALYSIS
                   </h3>
-                  <div className="text-sm text-purple-200 leading-relaxed">
-                    <p style={{fontFamily: 'Press Start 2P, monospace', fontSize: '10px', lineHeight: '1.6'}}>
-                      {aiResponse}
+                  <div className="text-xs text-gray-300 leading-relaxed mb-4 text-center">
+                    <p style={{fontFamily: 'Press Start 2P, monospace', lineHeight: '1.6'}}>
+                      THE GURUKUL MASTER HAS ANALYZED YOUR MORAL CHOICES AND SHAPED YOUR WARRIOR DESTINY. YOUR DECISIONS HAVE FORGED NEW PATHS IN STRENGTH, WISDOM, AND CHARACTER. EACH CHOICE ECHOES THROUGH TIME, TRANSFORMING YOUR WARRIOR ESSENCE.
                     </p>
                   </div>
                   
                   {traitChanges && (
-                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
-                      <h4 className="text-lg font-bold text-purple-800 mb-4">🔮 TRAIT MODIFICATIONS</h4>
-                      <div className="grid grid-cols-5 gap-4">
+                    <div className="mt-4 p-4 bg-gray-700 border border-gray-500 rounded-lg">
+                      <h4 
+                        className="text-lg text-yellow-400 text-center mb-4 tracking-wider"
+                        style={{fontFamily: 'Press Start 2P, monospace'}}
+                      >
+                        🔮 TRAIT MODIFICATIONS
+                      </h4>
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                         <div className="text-center">
-                          <div className="text-sm text-gray-600 mb-1">Strength</div>
-                          <div className={`text-lg font-bold ${
-                            traitChanges.strength > 0 ? 'text-green-600' : 
-                            traitChanges.strength < 0 ? 'text-red-600' : 'text-gray-600'
-                          }`}>
+                          <div className="text-red-400 text-xs mb-1" style={{fontFamily: 'Press Start 2P, monospace'}}>
+                            STRENGTH
+                          </div>
+                          <div className={`text-lg ${
+                            traitChanges.strength > 0 ? 'text-green-400' : 
+                            traitChanges.strength < 0 ? 'text-red-400' : 'text-gray-400'
+                          }`} style={{fontFamily: 'Press Start 2P, monospace'}}>
                             {traitChanges.strength > 0 ? '+' : ''}{formatTraitValue(traitChanges.strength)}
                           </div>
                         </div>
                         <div className="text-center">
-                          <div className="text-sm text-gray-600 mb-1">Wit</div>
-                          <div className={`text-lg font-bold ${
-                            traitChanges.wit > 0 ? 'text-green-600' : 
-                            traitChanges.wit < 0 ? 'text-red-600' : 'text-gray-600'
-                          }`}>
+                          <div className="text-blue-400 text-xs mb-1" style={{fontFamily: 'Press Start 2P, monospace'}}>
+                            WIT
+                          </div>
+                          <div className={`text-lg ${
+                            traitChanges.wit > 0 ? 'text-green-400' : 
+                            traitChanges.wit < 0 ? 'text-red-400' : 'text-gray-400'
+                          }`} style={{fontFamily: 'Press Start 2P, monospace'}}>
                             {traitChanges.wit > 0 ? '+' : ''}{formatTraitValue(traitChanges.wit)}
                           </div>
                         </div>
                         <div className="text-center">
-                          <div className="text-sm text-gray-600 mb-1">Charisma</div>
-                          <div className={`text-lg font-bold ${
-                            traitChanges.charisma > 0 ? 'text-green-600' : 
-                            traitChanges.charisma < 0 ? 'text-red-600' : 'text-gray-600'
-                          }`}>
+                          <div className="text-purple-400 text-xs mb-1" style={{fontFamily: 'Press Start 2P, monospace'}}>
+                            CHARISMA
+                          </div>
+                          <div className={`text-lg ${
+                            traitChanges.charisma > 0 ? 'text-green-400' : 
+                            traitChanges.charisma < 0 ? 'text-red-400' : 'text-gray-400'
+                          }`} style={{fontFamily: 'Press Start 2P, monospace'}}>
                             {traitChanges.charisma > 0 ? '+' : ''}{formatTraitValue(traitChanges.charisma)}
                           </div>
                         </div>
                         <div className="text-center">
-                          <div className="text-sm text-gray-600 mb-1">Defence</div>
-                          <div className={`text-lg font-bold ${
-                            traitChanges.defence > 0 ? 'text-green-600' : 
-                            traitChanges.defence < 0 ? 'text-red-600' : 'text-gray-600'
-                          }`}>
+                          <div className="text-green-400 text-xs mb-1" style={{fontFamily: 'Press Start 2P, monospace'}}>
+                            DEFENCE
+                          </div>
+                          <div className={`text-lg ${
+                            traitChanges.defence > 0 ? 'text-green-400' : 
+                            traitChanges.defence < 0 ? 'text-red-400' : 'text-gray-400'
+                          }`} style={{fontFamily: 'Press Start 2P, monospace'}}>
                             {traitChanges.defence > 0 ? '+' : ''}{formatTraitValue(traitChanges.defence)}
                           </div>
                         </div>
                         <div className="text-center">
-                          <div className="text-sm text-gray-600 mb-1">Luck</div>
-                          <div className={`text-lg font-bold ${
-                            traitChanges.luck > 0 ? 'text-green-600' : 
-                            traitChanges.luck < 0 ? 'text-red-600' : 'text-gray-600'
-                          }`}>
+                          <div className="text-yellow-400 text-xs mb-1" style={{fontFamily: 'Press Start 2P, monospace'}}>
+                            LUCK
+                          </div>
+                          <div className={`text-lg ${
+                            traitChanges.luck > 0 ? 'text-green-400' : 
+                            traitChanges.luck < 0 ? 'text-red-400' : 'text-gray-400'
+                          }`} style={{fontFamily: 'Press Start 2P, monospace'}}>
                             {traitChanges.luck > 0 ? '+' : ''}{formatTraitValue(traitChanges.luck)}
                           </div>
                         </div>

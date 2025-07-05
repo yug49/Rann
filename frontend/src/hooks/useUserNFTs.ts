@@ -23,6 +23,7 @@ interface UserYodha {
   rank: 'unranked' | 'bronze' | 'silver' | 'gold' | 'platinum';
   totalWinnings: number;
 }
+
 interface NFTMetadata {
   name?: string;
   title?: string;
@@ -32,6 +33,7 @@ interface NFTMetadata {
   life_history?: string;
   adjectives?: string;
   knowledge_areas?: string;
+  personality?: string[];
   attributes?: Array<{
     trait_type: string;
     value: number | string;
@@ -40,7 +42,7 @@ interface NFTMetadata {
 }
 
 // Simple metadata cache to avoid repeated IPFS requests
-const metadataCache = new Map<string, any>();
+const metadataCache = new Map<string, NFTMetadata>();
 
 // Function to clear cache for debugging/testing
 const clearMetadataCache = () => {
@@ -64,7 +66,7 @@ const convertIpfsToProxyUrl = (ipfsUrl: string) => {
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Helper function to fetch metadata from IPFS with improved error handling and rate limiting
-const fetchMetadataFromIPFS = async (tokenURI: string, tokenId?: string) => {
+const fetchMetadataFromIPFS = async (tokenURI: string, tokenId?: string): Promise<NFTMetadata | null> => {
   if (!tokenURI.startsWith('ipfs://')) {
     console.log('Not an IPFS URL:', tokenURI);
     return null;
@@ -73,7 +75,7 @@ const fetchMetadataFromIPFS = async (tokenURI: string, tokenId?: string) => {
   // Check cache first
   if (metadataCache.has(tokenURI)) {
     console.log('📦 Using cached metadata for:', tokenURI);
-    return metadataCache.get(tokenURI);
+    return metadataCache.get(tokenURI) || null;
   }
 
   const cid = tokenURI.replace('ipfs://', '');

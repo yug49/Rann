@@ -69,7 +69,7 @@ class NearWalletService {
       
       // If a preferred wallet is specified, try to find it first
       if (preferredWalletId) {
-        selectedWallet = wallets.find((w: any) => w.id === preferredWalletId);
+        selectedWallet = wallets.find((w: { id: string; metadata: { name: string } }) => w.id === preferredWalletId);
         if (selectedWallet) {
           console.log(`Found preferred wallet: ${selectedWallet.metadata.name}`);
         } else {
@@ -80,7 +80,7 @@ class NearWalletService {
       // If no preferred wallet specified or not found, use auto-detection
       if (!selectedWallet) {
         // First, try Meteor Wallet since you mentioned you have it installed
-        const meteorWallet = wallets.find((w: any) => w.id === 'meteor-wallet');
+        const meteorWallet = wallets.find((w: { id: string; metadata: { name: string } }) => w.id === 'meteor-wallet');
         if (meteorWallet) {
           console.log("Found Meteor Wallet, attempting to connect...");
           selectedWallet = meteorWallet;
@@ -110,7 +110,7 @@ class NearWalletService {
         });
       } catch (error) {
         // If signIn fails, try without any parameters for basic connection
-        console.log("Standard signIn failed, trying basic connection...");
+        console.log("Standard signIn failed, trying basic connection...", error);
         await this.wallet.signIn({});
       }
       

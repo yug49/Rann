@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createWalletClient, http, parseEther, createPublicClient } from 'viem';
+import { createWalletClient, http, createPublicClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { flowPreviewnet } from 'viem/chains';
 
@@ -40,6 +40,18 @@ interface ArenaState {
   minBattleRoundsInterval: number;
   playerOneBetAddresses: string[];
   playerTwoBetAddresses: string[];
+}
+
+// Add this new interface for the results
+interface GameMasterResult {
+  success: boolean;
+  action?: 'started' | 'executed_round' | 'no_action_needed';
+  error?: string;
+  reason?: string;
+  bettingEndTime?: number;
+  currentTime?: number;
+  round?: number;
+  roundEndTime?: number;
 }
 
 async function getArenaState(arenaAddress: string): Promise<ArenaState | null> {
@@ -149,7 +161,7 @@ async function startGame(arenaAddress: string): Promise<boolean> {
 async function generateAIMoves(arenaAddress: string): Promise<{ agent_1: { move: string }, agent_2: { move: string } } | null> {
   try {
     // Get current battle data from contract
-    const [currentRound, damageOnYodhaOne, damageOnYodhaTwo, yodhaOneNFTId, yodhaTwoNFTId] = await Promise.all([
+    const [currentRound, damageOnYodhaOne, damageOnYodhaTwo] = await Promise.all([
       publicClient.readContract({
         address: arenaAddress as `0x${string}`,
         abi: KurukshetraAbi,
@@ -344,7 +356,7 @@ async function executeNextRound(arenaAddress: string): Promise<boolean> {
     // The contract expects: keccak256(abi.encodePacked(_yodhaOneMove, _yodhaTwoMove))
     // followed by MessageHashUtils.toEthSignedMessageHash()
     
-    const { encodePacked, keccak256, toHex } = await import('viem');
+    const { encodePacked, keccak256 } = await import('viem');
     
     // Encode the moves as the contract expects: abi.encodePacked(uint8, uint8)
     const encodedMoves = encodePacked(['uint8', 'uint8'], [yodhaOneMove, yodhaTwoMove]);
@@ -399,7 +411,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const results: { [key: string]: any } = {};
+    const results: { [key: string]: GameMasterResult } = {};
 
     for (const arenaAddress of arenaAddresses) {
       console.log(`Game Master: Processing ${action} for arena ${arenaAddress}`);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useChainId } from 'wagmi';
-import { yodhaNFTAbi, chainsToTSender } from '../constants';
+import { chainsToTSender } from '../constants';
 
 export type RankCategory = 'UNRANKED' | 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM';
 
@@ -38,34 +38,6 @@ export interface LeaderboardData {
   GOLD: LeaderboardYodha[];
   PLATINUM: LeaderboardYodha[];
 }
-
-// Helper functions
-const parseTokenURI = async (uri: string) => {
-  try {
-    if (uri.startsWith('data:application/json;base64,')) {
-      const jsonString = atob(uri.replace('data:application/json;base64,', ''));
-      return JSON.parse(jsonString);
-    } else if (uri.startsWith('http')) {
-      const response = await fetch(uri);
-      return await response.json();
-    }
-    return null;
-  } catch (error) {
-    console.error('Error parsing token URI:', error);
-    return null;
-  }
-};
-
-const rankingToString = (ranking: number): RankCategory => {
-  switch (ranking) {
-    case 0: return 'UNRANKED';
-    case 1: return 'BRONZE';
-    case 2: return 'SILVER';
-    case 3: return 'GOLD';
-    case 4: return 'PLATINUM';
-    default: return 'UNRANKED';
-  }
-};
 
 export function useLeaderboard() {
   const chainId = useChainId();

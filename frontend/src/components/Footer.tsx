@@ -1,9 +1,8 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import { FaGithub } from "react-icons/fa";
 
 const Footer = () => {
-  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <footer className="arcade-footer-grey">
@@ -36,8 +35,6 @@ const Footer = () => {
           >
             Videos
           </a>
-        </div>
-        <div className="footer-team">
           <a
             href="/meettheteam"
             className="footer-link-text"

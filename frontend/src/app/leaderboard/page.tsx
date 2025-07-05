@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount, useChainId } from 'wagmi';
+import { useAccount} from 'wagmi';
 import Image from 'next/image';
+import Link from 'next/link';
 import './leaderboard-glass.css';
 import { useLeaderboard, type RankCategory, type LeaderboardYodha } from '../../hooks/useLeaderboard';
 import { formatEther } from 'viem';
@@ -22,7 +23,6 @@ interface EnhancedYodha extends LeaderboardYodha {
 
 export default function LeaderboardPage() {
   const { isConnected } = useAccount();
-  const chainId = useChainId();
   const [activeRank, setActiveRank] = useState<RankCategory>('PLATINUM');
   const [isMounted, setIsMounted] = useState(false);
   const [enhancedYodhas, setEnhancedYodhas] = useState<{[key: string]: EnhancedYodha[]}>({
@@ -472,7 +472,7 @@ export default function LeaderboardPage() {
 
         {/* Back to Home */}
         <div className="text-center mt-12">
-          <a 
+          <Link 
             href="/"
             className="inline-block arcade-button px-6 py-3 text-xs tracking-wide"
             style={{
@@ -481,7 +481,7 @@ export default function LeaderboardPage() {
             }}
           >
             GO BACK
-          </a>
+          </Link>
         </div>
       </div>
     </div>
