@@ -9,7 +9,7 @@ import { KurukshetraAbi } from '../../../constants';
 // Game Master's private key from environment
 const GAME_MASTER_PRIVATE_KEY = process.env.NEXT_PUBLIC_GAME_MASTER_PRIVATE_KEY as `0x${string}`;
 
-if (!GAME_MASTER_PRIVATE_KEY) {
+if (!GAME_MASTER_PRIVATE_KEY || !/^0x[0-9a-fA-F]{64}$/.test(GAME_MASTER_PRIVATE_KEY)) {
   console.error('NEXT_PUBLIC_GAME_MASTER_PRIVATE_KEY not found in environment variables');
 }
 
