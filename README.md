@@ -1,16 +1,30 @@
-# 🏛️ Rann - AI-Powered Web3 Battle Arena
+# Rann - AI-Powered Web3 Battle Arena
 
-> **Built for Hackathon 2025** - The next generation of Web3 gaming that combines autonomous AI agents with blockchain technology
+> **🏆 Built for PL Genesis Modular Worlds Hackathon 2025**
 
 An innovative Web3 gaming platform where AI-powered warrior NFTs battle autonomously in epic arenas, combining blockchain technology with advanced AI agents from NEAR Protocol. Experience true ownership, autonomous gameplay, and real economic incentives in a decentralized gaming ecosystem.
 
-[![Demo](https://img.shields.io/badge/Demo-Live-green)](https://your-demo-link.com)
-[![Flow](https://img.shields.io/badge/Deployed%20on-Flow%20Testnet-blue)](https://testnet.flowdiver.io/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen)](https://github.com/your-username/rann-game-platform/actions)
-[![Coverage](https://img.shields.io/badge/Coverage-95%25-brightgreen)](https://codecov.io/gh/your-username/rann-game-platform)
+[![🎮 Live Demo](https://img.shields.io/badge/🎮%20Live%20Demo-Play%20Now-brightgreen?style=for-the-badge)](https://rann-blue.vercel.app/)
+[![NEAR AI Integration Explanation](https://img.shields.io/badge/%20NEAR%20AI%20Integration%20Explanation-Watch%20Now-red?style=for-the-badge&logo=youtube&logoColor=white)](https://www.loom.com/share/2ef49a559ab64ed88f9243278ee949b4?sid=e54a6d53-15a2-4aa9-853a-594719add69f)
 
-## 🎯 Introduction
+## Experience Rann
+
+**Quick Start Guide:**
+1. **Connect Wallet**: MetaMask or compatible wallet for Flow Testnet
+2. **Required Extra Wallet**: Required Near compatible Wallet for AI useage
+3. **Get Test Tokens**: Use the faucet to get Flow tokens
+4. **Mint RANN**: Exchange Flow tokens for RANN tokens (1:1 ratio)
+5. **Create Warrior**: Upload image, AI generates traits automatically
+6. **Train & Battle**: Improve your warrior and enter autonomous battles
+
+**What Makes Rann Special:**
+- 🤖 **AI-Powered Combat**: Warriors make autonomous decisions using NEAR AI
+- 🏆 **Real Rewards**: Earn RANN tokens through strategic gameplay
+- 🎨 **Dynamic NFTs**: Warrior traits evolve based on training and battles
+- 🌊 **Cross-Chain**: NEAR AI intelligence meets Flow blockchain scalability
+- 🔥 **Live Betting**: Real-time betting on autonomous battles
+
+## Introduction
 
 Rann represents a paradigm shift in Web3 gaming, introducing the world's first fully autonomous AI-powered battle arena where warriors fight using advanced machine learning algorithms. Built on Flow blockchain for scalability and powered by NEAR AI agents for intelligence, Rann creates an ecosystem where every battle is unique, unpredictable, and economically rewarding.
 
@@ -36,11 +50,10 @@ In traditional gaming, players are limited by manual control and predetermined o
 2. **Autonomous Combat System**: Warriors battle without human intervention using advanced AI decision-making
 3. **Dynamic Trait Evolution**: Warrior characteristics change based on battle outcomes and training
 4. **Economic Sustainability**: Self-sustaining tokenomics with multiple revenue streams
-5. **Community Governance**: DAO-controlled development and game mechanics
 
-## ✨ Features
+## Features
 
-### 🤖 AI-Powered Combat System
+### AI-Powered Combat System
 - **Autonomous Battle Intelligence**: Each warrior utilizes NEAR AI agents for real-time decision-making
   - Advanced neural networks analyze battle conditions
   - Machine learning algorithms adapt strategies based on opponent behavior
@@ -60,7 +73,7 @@ In traditional gaming, players are limited by manual control and predetermined o
   - **Special**: Ultimate move combining Personality + Strength (800-2000 damage)
   - **Recover**: Healing ability using Defence + Charisma (200-800 HP restored)
 
-### 🎮 Core Game Mechanics
+### Core Game Mechanics
 
 #### Kurukshetra Battle Arenas
 - **Ranking System**: Four tier-based competitive levels
@@ -100,10 +113,9 @@ In traditional gaming, players are limited by manual control and predetermined o
 - **Trait Filtering**: Search warriors by specific attributes
 - **Market Analytics**: Price trends and trading volume data
 
-### 🏆 Economic Ecosystem
+### Economic Ecosystem
 
 #### Rann Token (RANN) - Native ERC-20 Token
-- **Total Supply**: 1,000,000,000 RANN tokens
 - **Utility Functions**:
   - Battle betting and prize pools
   - Warrior training costs
@@ -113,15 +125,11 @@ In traditional gaming, players are limited by manual control and predetermined o
 
 #### Influence System
 - **Battle Influence**: Boost warrior performance during battles
-  - **Influence Cost**: 50 RANN tokens per use
   - **Effect Duration**: One battle round
-  - **Damage Boost**: +15% damage for influenced warrior
   - **Cooldown Period**: Cannot influence same warrior twice in one battle
 
 - **Defluence System**: Reduce opponent warrior performance
-  - **Defluence Cost**: 75 RANN tokens per use
   - **Effect Duration**: One battle round
-  - **Damage Reduction**: -10% damage for defluenced warrior
   - **Strategic Timing**: Can be used once per battle per player
 
 #### Reward Distribution
@@ -131,14 +139,318 @@ In traditional gaming, players are limited by manual control and predetermined o
 - **Referral System**: 1% bonus for referring new players
 - **Seasonal Rewards**: Special prizes for top performers
 
-### 🎯 Ranking and Progression System
+### Ranking and Progression System
 - **Promotion Mechanism**: Warriors advance based on victories and winnings
 - **Demotion Risk**: Poor performance can result in rank reduction
 - **Seasonal Resets**: Quarterly ranking adjustments
 - **Leaderboards**: Global and arena-specific rankings
 - **Achievement System**: Badges and titles for exceptional performance
 
-## 🛠️ Tech Stack
+## Flow Integration
+We are building the game on Flow chain because of its speed, We store each and every micro details of transactions and every game states on chain, and to make this possible for our game we need a very fast chain.
+Also one of other major reason is the VRF service that flow provides natively. Unlike other oracles, which generates random number in like 40-60 seconds, Flow does the same in 1-2 seconds. Since our main battle mechanies depends or VRF (hit/miss), we had to generate a random number 2 times in a single round = 10 minutes in a single battle, which obviously makes other oracles useless.
+
+## NEAR Integration
+1. First, we are using, attributes generator event, [Link](https://app.near.ai/agents/samkitsoni.near/attributes-generator/latest). We can desicribe any personality or just name a famous frictional/non-frictional personality to this agent and it will generate the personality attributes in the required format. For example, intents can be passed like:
+```
+#input
+Jeff Bezoz
+
+#output
+{
+  "name": "Jeff Bezos",
+  "bio": "Founder, CEO, and Chairman of Amazon, the world's largest online retailer.",
+  "life_history": "Born in 1964 in Albuquerque, New Mexico. Graduated valedictorian from Princeton University, worked at Wall Street, and later founded Amazon in 1994 in his garage. Led Amazon's exponential growth and expansion into various industries, including cloud computing, advertising, and media production.",
+  "adjectives": [
+    "Ambitious",
+    "Visionary",
+    "Analytical",
+    "Competitive",
+    "Frugal"
+  ],
+  "knowledge_areas": [
+    "Computer Science",
+    "E-commerce",
+    "Marketing",
+    "Operations Management",
+    "Investment and Finance"
+  ]
+}
+```
+
+2. Second AI agent is the tratis-generator, [Link](https://app.near.ai/agents/samkitsoni.near/traits-generator/latest). This agent analyses all those personality attributes generated by the above agent, and converts them into the in-game characterstics traits i.e. strength, wit, charisma, defence and luck. Following is how the intent is passed in the agent for the desired output:
+```
+# input
+{
+"name": "Elon Reeve Musk",
+"bio": "Entrepreneur, inventor, and business magnate",
+"life_history": "Born in Pretoria, South Africa, Musk moved to Canada in 1992 and later to the United States to attend college. He co-founded PayPal, SpaceX, Tesla, Neuralink, and The Boring Company, and has become a pioneer in the electric car and private space exploration industries.",
+"adjectives": [
+"Visionary",
+"Ambitious",
+"Perfectionistic",
+"Risk-taking",
+"Intellectually curious"
+],
+"knowledge_areas": [
+"Renewable energy",
+"Space exploration",
+"Electric vehicles",
+"Artificial intelligence",
+"Entrepreneurship"
+  ]
+}
+
+# output
+{
+  "Strength": 8000,
+  "Wit": 9500,
+  "Charisma": 8500,
+  "Defence": 7000,
+  "Luck": 6000,
+  "strike_attack": "Galactic Smackdown",
+  "taunt_attack": "Musk's Mind Games",
+  "dodge": "Ludicrous Speed",
+  "recover": "Recharge at the Supercharger",
+  "special_move": "Neuralink Overdrive"
+}
+```
+
+3. Third agent is the psychological questions analyser, [Link](https://app.near.ai/agents/samkitsoni.near/psychological-answer-analyzer/latest). This agents is used in the Gurukul, this takes intent which included current in-game traits, the 5 questions that were alloted to the user, available options and the options user selected. This agent analysis the NFT's current traits and the question/answers and then updates the traits accordingly:
+```
+# input
+{
+  "stats": {
+    "Strength": 8231,
+    "Wit": 9471,
+    "Charisma": 5932,
+    "Defence": 7519,
+    "Luck": 4211
+  },
+  "questions": [
+    {
+      "question": "Your mother and your child are both drowning, but you can only save one. Who do you save?",
+      "options": [
+        { "id": 0, "text": "My mother — she gave me life" },
+        { "id": 1, "text": "My child — they represent the future" },
+        { "id": 2, "text": "I’d try to save both, even if it risks losing both" },
+        { "id": 3, "text": "I wouldn’t be able to decide — I’d freeze" }
+      ],
+      "answered": 2
+    },
+    {
+      "question": "You find a wallet with $10,000 and the ID of the owner inside. What do you do?",
+      "options": [
+        { "id": 0, "text": "Return it with all the money untouched" },
+        { "id": 1, "text": "Keep some of the money, then return it" },
+        { "id": 2, "text": "Keep it all — finders keepers" },
+        { "id": 3, "text": "Try to contact the owner anonymously and decide after hearing their story" }
+      ],
+      "answered": 3
+    },
+    {
+      "question": "A train is heading toward five people tied to a track. You can pull a lever to divert it, but it will hit one person on another track. What do you do?",
+      "options": [
+        { "id": 0, "text": "Pull the lever — save the greater number" },
+        { "id": 1, "text": "Do nothing — I won’t actively cause a death" },
+        { "id": 2, "text": "Try to stop the train — even if unlikely" },
+        { "id": 3, "text": "Refuse to decide — it’s not my responsibility" }
+      ],
+      "answered": 0
+    },
+    {
+      "question": "You're in a room with a bomb. You can escape, but doing so ensures it explodes and harms many. What do you do?",
+      "options": [
+        { "id": 0, "text": "Try to defuse it, even if I die" },
+        { "id": 1, "text": "Escape and warn others" },
+        { "id": 2, "text": "Use someone else’s help — delegate the risk" },
+        { "id": 3, "text": "Attempt a clever distraction to save everyone" }
+      ],
+      "answered": 3
+    },
+    {
+      "question": "You find a locked chest in the forest. There’s a sign: “One who opens this will lose something valuable.” What do you do?",
+      "options": [
+        { "id": 0, "text": "Open it — no risk, no reward" },
+        { "id": 1, "text": "Walk away — it’s not worth it" },
+        { "id": 2, "text": "Try to open it with precautions" },
+        { "id": 3, "text": "Let someone else open it first" }
+      ],
+      "answered": 2
+    }
+  ]
+}
+
+#output
+{
+  "stats": {
+    "Strength": 9200,
+    "Wit": 9821,
+    "Charisma": 8321,
+    "Defence": 8621,
+    "Luck": 6012
+  }
+}
+```
+
+4. This is the most important one, the move-choser, [Link](https://app.near.ai/agents/samkitsoni.near/move_choser/latest). During the battle, at the start of each round, this agent is leveraged. All the states of battles(current round and damage inflicted to each yodhas), in-game traits and the personlity attributes of both the yodhas in that kurukshetra is passed to this agent. Then this agents personate each of those NFT's according to their traits and attributes and then generates the best possible move for each one for the next round.
+```
+#input
+{
+  "current_round": 2,
+  "agent_1": {
+    "personality": {
+      "adjectives": [
+        "Innovative",
+        "Resilient",
+        "Methodical",
+        "Inquisitive",
+        "Bold"
+      ],
+      "knowledge_areas": [
+        "Cognitive science",
+        "Augmented reality",
+        "Climate modeling",
+        "Blockchain architecture",
+        "Human-computer interaction"
+      ]
+    },
+    "traits": {
+      "Strength": 7700,
+      "Wit": 9100,
+      "Charisma": 8900,
+      "Defence": 7400,
+      "Luck": 6100
+    },
+    "total_damage_received": 38
+  },
+  "agent_2": {
+    "personality": {
+      "adjectives": [
+        "Logical",
+        "Steady",
+        "Strategic",
+        "Adaptable",
+        "Observant"
+      ],
+      "knowledge_areas": [
+        "Behavioral economics",
+        "Neural networks",
+        "Synthetic biology",
+        "Virtual reality",
+        "Ethics of AI"
+      ]
+    },
+    "traits": {
+      "Strength": 7600,
+      "Wit": 9400,
+      "Charisma": 8600,
+      "Defence": 7300,
+      "Luck": 6400
+    },
+    "total_damage_received": 41
+  },
+  "moveset": [
+    "strike",
+    "taunt",
+    "dodge",
+    "recover",
+    "special_move"
+  ]
+}
+
+#output
+Assistant: {
+  "agent_1": "dodge",
+  "agent_2": "recover"
+}
+```
+
+### How we are handeling cross-chain verification:
+- The main authentication part that we had to implement was when working with the traits assigning part. When we fetch the response from the NEAR AI agent, we sign it(ECDSA signature) using a pre-defined private key and then passes the signed data along with the response to the function in the contract on the FLOW chain. The contract already have the public key associated the one in the backed, as soon as the function is called it first verifies that the data is signed by the correct private key or not. If yes, then only it starts further process.
+- Following is the example of function, assignTraitsAndMoves function which is called upon the generation of second agent's output:
+```solidity
+/**
+     * @param _tokenId The ID of the NFT for which traits and moves are being assigned.
+     * @param _strength The strength trait value (0-100).
+     * @param _wit The wit trait value (0-100).
+     * @param _charisma The charisma trait value (0-100).
+     * @param _defence The defence trait value (0-100).
+     * @param _luck The luck trait value (0-100).
+     * @param _strike The strike move name string.
+     * @param _taunt The taunt move name string.
+     * @param _dodge The dodge move name string.
+     * @param _special The special move name string.
+     * @param _recover The recover move name string.
+     * @param _signedData The signed data from the NEAR AI.
+     */
+    function assignTraitsAndMoves(
+        uint16 _tokenId,
+        uint16 _strength,
+        uint16 _wit,
+        uint16 _charisma,
+        uint16 _defence,
+        uint16 _luck,
+        string memory _strike,
+        string memory _taunt,
+        string memory _dodge,
+        string memory _special,
+        string memory _recover,
+        bytes memory _signedData
+    ) public {
+        if (s_traitsAssigned[_tokenId]) {
+            revert YodhaNFT__TraitsAlreadyAssigned();
+        }
+        if (_tokenId >= s_tokenCounter) {
+            revert YodhaNFT__InvalidTokenId();
+        }
+        if (_strength > 10000 || _wit > 10000 || _charisma > 10000 || _defence > 10000 || _luck > 10000) {
+            revert YodhaNFT__InvalidTraitsValue();
+        }
+        if (
+            bytes(_strike).length == 0 || bytes(_taunt).length == 0 || bytes(_dodge).length == 0
+                || bytes(_special).length == 0 || bytes(_recover).length == 0
+        ) {
+            revert YodhaNFT__InvalidMovesNames();
+        }
+        if (_strength == 0 || _wit == 0 || _charisma == 0 || _defence == 0 || _luck == 0) {
+            revert YodhaNFT__InvalidTraitsValue();
+        }
+
+        bytes32 dataHash = keccak256(
+            abi.encodePacked(
+                _tokenId, _strength, _wit, _charisma, _defence, _luck, _strike, _taunt, _dodge, _special, _recover
+            )
+        );
+        bytes32 ethSignedMessage = MessageHashUtils.toEthSignedMessageHash(dataHash);
+        address recovered = ECDSA.recover(ethSignedMessage, _signedData);
+
+        if (recovered != i_nearAiPublicKey) {
+            revert YodhaNFT__InvalidSignature();
+        }
+
+        s_tokenIdToTraits[_tokenId] =
+            Traits({strength: _strength, wit: _wit, charisma: _charisma, defence: _defence, luck: _luck});
+        s_tokenIdToMoves[_tokenId] =
+            Moves({strike: _strike, taunt: _taunt, dodge: _dodge, special: _special, recover: _recover});
+        s_traitsAssigned[_tokenId] = true;
+        emit YodhaTraitsAndMovesAssigned(_tokenId);
+    }
+```
+
+
+## System Architecture Flow
+
+![Rann System Flow](./image/Flow_Chart.png)
+
+This flowchart demonstrates:
+- **User Interaction Flow**: From wallet connection to battle participation
+- **AI Agent Integration**: How NEAR AI agents process data and make decisions
+- **Cross-Chain Communication**: Data flow between NEAR AI and Flow blockchain
+- **Game Master Automation**: Automated battle execution and state management
+- **Smart Contract Interactions**: How different contracts communicate and update state
+
+## Tech Stack
 
 ### Blockchain & Smart Contracts
 - **Flow Blockchain**: High-performance blockchain for scalable dApps
@@ -149,10 +461,6 @@ In traditional gaming, players are limited by manual control and predetermined o
   - **Smart Contract Language**: Solidity with Flow-specific optimizations
 
 - **Foundry Framework**: Complete toolkit for smart contract development
-  - **Forge**: Testing framework with advanced debugging
-  - **Cast**: Command-line tool for blockchain interactions
-  - **Anvil**: Local blockchain for development and testing
-  - **Chisel**: Solidity REPL for rapid prototyping
 
 - **Smart Contract Architecture**:
   - **RannToken.sol**: ERC-20 token with minting and burning capabilities
@@ -162,23 +470,16 @@ In traditional gaming, players are limited by manual control and predetermined o
   - **Bazaar.sol**: Marketplace for NFT trading
   - **Gurukul.sol**: Training system with AI integration
 
-- **Viem**: TypeScript interface for Ethereum interactions
-  - **Version**: 2.31.4
-  - **Features**: Type-safe contract interactions, event monitoring
-  - **Performance**: Optimized for high-frequency operations
-  - **Reliability**: Built-in error handling and retry mechanisms
-
 ### Frontend Technology Stack
 
 #### Core Framework
-- **Next.js 15**: React-based framework with App Router
+- **Next.js 15.3.4**: React-based framework with App Router
   - **Server Components**: Improved performance with server-side rendering
   - **API Routes**: Built-in API endpoints for backend functionality
   - **Static Generation**: Pre-built pages for optimal loading speeds
   - **Hot Reloading**: Instant development feedback
 
-- **TypeScript**: Strongly typed JavaScript for better code quality
-  - **Version**: 5.0+
+- **TypeScript 5.x**: Strongly typed JavaScript for better code quality
   - **Strict Mode**: Enabled for maximum type safety
   - **Custom Types**: Comprehensive type definitions for all contracts
   - **IntelliSense**: Enhanced development experience
@@ -187,7 +488,7 @@ In traditional gaming, players are limited by manual control and predetermined o
 - **Tailwind CSS**: Utility-first CSS framework
   - **Version**: 4.0
   - **Custom Theme**: Gaming-inspired color palette and animations
-  - **Responsive Design**: Mobile-first approach
+  - **Responsive Design**: Mobile-first approach with breakpoint utilities
   - **Dark Mode**: Built-in dark theme support
   - **Component Library**: Reusable UI components
 
@@ -197,34 +498,35 @@ In traditional gaming, players are limited by manual control and predetermined o
   - **Performance**: Tree-shakeable for optimal bundle size
   - **Accessibility**: ARIA-compliant icon components
 
-#### Web3 Integration
-- **Wagmi**: React hooks for Ethereum development
-  - **Version**: 2.15.6
-  - **Features**: Contract interactions, wallet management, transaction handling
-  - **Type Safety**: Full TypeScript support
-  - **Caching**: Built-in query caching for better performance
-
-- **RainbowKit**: Wallet connection interface
-  - **Version**: 2.2.8
-  - **Supported Wallets**: MetaMask, WalletConnect, Coinbase Wallet, and more
-  - **Custom Styling**: Branded wallet connection modal
-  - **Mobile Support**: Responsive wallet connections
-
 ### AI & Storage Infrastructure
 
 #### NEAR AI Integration
-- **NEAR AI Agents**: Autonomous decision-making system
-  - **Agent IDs**: 
-    - `samkitsoni.near/attributes-generator/latest` - Trait generation
-    - `samkitsoni.near/traits-generator/latest` - Personality analysis
-    - `samkitsoni.near/psychological-answer-analyzer/latest` - Behavior analysis
-    - `samkitsoni.near/move_choser/latest` - Battle strategy
+- **NEAR AI Agents**: Autonomous decision-making system powering warrior intelligence
+  - **Agent Deployment**: `samkitsoni.near` account hosting all AI agents
+  - **Distributed Intelligence**: Multiple specialized agents for different tasks
+  - **Real-time Processing**: Sub-second response times for battle decisions
+  - **Contextual Analysis**: Deep understanding of battle dynamics and warrior psychology
 
-- **NEAR Registry**: AI agent marketplace integration
-  - **Authentication**: Secure API key management
-  - **Rate Limiting**: Optimized for gaming workloads
-  - **Response Caching**: Improved latency for real-time battles
-  - **Fallback Systems**: Backup AI agents for reliability
+- **Specialized Agent Functions**:
+  - **`samkitsoni.near/attributes-generator/latest`**: Develops personality characteristics
+    - Processes user prompt input to create unique personality profiles
+    - Generates descriptive adjectives and knowledge areas
+    - Creates psychological framework for battle decision-making
+  
+  - **`samkitsoni.near/traits-generator/latest`**: Generates balanced warrior base statistics
+    - Analyzes uploaded warrior images for trait generation
+    - Creates balanced attribute distributions (Strength, Wit, Charisma, Defence, Luck)
+    - Ensures fair gameplay through statistical analysis
+  
+  - **`samkitsoni.near/psychological-answer-analyzer/latest`**: Analyzes training responses
+    - Processes Gurukul questionnaire responses
+    - Updates warrior traits based on psychological analysis
+    - Provides insights into warrior development patterns
+  
+  - **`samkitsoni.near/move_choser/latest`**: Real-time battle strategy
+    - Makes autonomous battle move selections
+    - Considers opponent patterns and warrior traits
+    - Adapts strategy based on battle progression
 
 #### Decentralized Storage
 - **Pinata IPFS**: Decentralized NFT metadata storage
@@ -239,281 +541,80 @@ In traditional gaming, players are limited by manual control and predetermined o
   - **Battle Logs**: Detailed combat analytics
   - **Training Records**: Gurukul session data
 
-### Development & DevOps Tools
+### Deployments
 
-#### Code Quality
-- **ESLint**: JavaScript/TypeScript linting
-  - **Configuration**: Next.js optimized rules
-  - **Custom Rules**: Game-specific coding standards
-  - **Pre-commit Hooks**: Automated code quality checks
+### Contract Addresses
 
-- **Prettier**: Code formatting
-  - **Configuration**: Consistent code style across team
-  - **Integration**: VS Code and CI/CD pipeline integration
-  - **Custom Rules**: Project-specific formatting preferences
+#### Flow (Chain ID: 545)
+| Contract Name | Contract Address | Explorer |
+|---------------|------------------|----------|
+| **RannToken** | `0x7465365aEeE1bD38ce6d80EaeDc530fCDEF691dC` | [evm-testnet.flowscan.io](https://evm-testnet.flowscan.io/address/0x7465365aEeE1bD38ce6d80EaeDc530fCDEF691dC?tab=index) |
+| **YodhaNFT** | `0x96A00495635e6d4691268d6f8EA9e673a513CAC7` | [evm-testnet.flowscan.io](https://evm-testnet.flowscan.io/address/0x96A00495635e6d4691268d6f8EA9e673a513CAC7) |
+| **KurukshetraFactory** | `0xBc6312ff604e18905229c24E716Ab018995796BE` | [evm-testnet.flowscan.io](https://evm-testnet.flowscan.io/address/0xBc6312ff604e18905229c24E716Ab018995796BE) |
+| **Bazaar** | `0x5a4A13709F9Dad9ddE4fF229d8393364eE264b46` | [evm-testnet.flowscan.io](https://evm-testnet.flowscan.io/address/0x5a4A13709F9Dad9ddE4fF229d8393364eE264b46) |
+| **Gurukul** | `0x81428A5620423d5F51eB60c9614dfB20001799e6` | [evm-testnet.flowscan.io](https://evm-testnet.flowscan.io/address/0x81428A5620423d5F51eB60c9614dfB20001799e6) |
 
-#### Testing Framework
-- **Forge Testing**: Comprehensive smart contract testing
-  - **Unit Tests**: Individual function testing
-  - **Integration Tests**: Multi-contract interaction testing
-  - **Fuzz Testing**: Random input testing for edge cases
-  - **Coverage Reports**: 95%+ test coverage maintained
-
-- **Frontend Testing**: JavaScript/React testing suite
-  - **Jest**: Unit testing framework
-  - **React Testing Library**: Component testing
-  - **Cypress**: End-to-end testing
-  - **Mock Services**: API mocking for isolated testing
-
-#### Deployment & Monitoring
-- **GitHub Actions**: CI/CD pipeline
-  - **Automated Testing**: All tests run on pull requests
-  - **Smart Contract Deployment**: Automated contract deployment
-  - **Security Scanning**: Vulnerability detection
-  - **Performance Monitoring**: Bundle size and performance tracking
-
-- **Vercel**: Frontend deployment platform
-  - **Edge Network**: Global CDN for fast loading
-  - **Preview Deployments**: Branch-based testing environments
-  - **Analytics**: Performance and user behavior tracking
-  - **Automatic Scaling**: Handle traffic spikes during events
-
-### Security & Performance
-
-#### Smart Contract Security
-- **OpenZeppelin**: Battle-tested security libraries
-  - **Access Control**: Role-based permissions
-  - **Reentrancy Protection**: Secure external calls
-  - **Overflow Protection**: SafeMath implementations
-  - **Upgrade Patterns**: Secure contract upgrades
-
-#### Performance Optimizations
-- **Gas Optimization**: Efficient contract execution
-  - **Batch Operations**: Multiple actions in single transaction
-  - **State Packing**: Optimized storage layout
-  - **Event Optimization**: Efficient event emission
-  - **Proxy Patterns**: Upgradeable contracts with minimal gas costs
-
-- **Frontend Performance**: Optimal user experience
-  - **Code Splitting**: Lazy loading for better initial load
-  - **Image Optimization**: Next.js automatic image optimization
-  - **Caching Strategies**: Aggressive caching for static assets
-  - **Bundle Analysis**: Regular bundle size monitoring
-
-## 🚀 Setup Instructions
-
-### Prerequisites
-- **Node.js**: Version 18.0.0 or higher
-- **npm**: Version 8.0.0 or higher (comes with Node.js)
-- **Foundry**: Latest version for smart contract development
-- **Git**: For version control
-- **Flow CLI**: For Flow blockchain interactions (optional)
-
-### System Requirements
-- **Operating System**: macOS, Linux, or Windows 10+
-- **RAM**: Minimum 8GB, Recommended 16GB
-- **Storage**: At least 5GB free space
-- **Network**: Stable internet connection for blockchain interactions
-
-### 1. Clone the Repository
-```bash
-# Clone the main repository
-git clone https://github.com/your-username/rann-game-platform.git
-cd rann-game-platform
-
-# Verify the repository structure
-ls -la
+### Component Architecture
+```
+Project Root/
+├── src/                              # Smart Contracts
+│   ├── RannToken.sol                # ERC-20 Token Contract
+│   ├── Bazaar/
+│   │   └── Bazaar.sol               # NFT Marketplace Contract
+│   ├── Chaavani/
+│   │   └── YodhaNFT.sol             # Warrior NFT Contract
+│   ├── Gurukul/
+│   │   └── Gurukul.sol              # Training System Contract
+│   ├── Kurukshetra/
+│   │   ├── Kurukshetra.sol          # Battle Arena Contract
+│   │   └── KurukshetraFactory.sol   # Arena Factory Contract
+│   ├── Interfaces/
+│   │   ├── IKurukshetraFactory.sol
+│   │   ├── IRannToken.sol
+│   │   └── IYodhaNFT.sol
+│   └── Near Agents/                 # AI Agent Implementations
+│       ├── attributes-generator/
+│       ├── move_choser/
+│       ├── psychological-answer-analyzer/
+│       └── traits-generator/
+├── frontend/                        # Next.js Frontend Application
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── api/                # API Routes
+│   │   │   ├── bazaar/             # Marketplace Pages
+│   │   │   ├── chaavani/           # NFT Minting Pages
+│   │   │   ├── gurukul/            # Training Pages
+│   │   │   ├── kurukshetra/        # Battle Arena Pages
+│   │   │   ├── leaderboard/        # Leaderboard Pages
+│   │   │   └── meettheteam/        # Team Pages
+│   │   ├── components/             # Reusable Components
+│   │   │   ├── ui/                 # UI Components
+│   │   │   ├── CommandPoller.tsx   # Battle State Poller
+│   │   │   ├── Footer.tsx
+│   │   │   ├── GameTimer.tsx
+│   │   │   └── Header.tsx
+│   │   ├── hooks/                  # Custom React Hooks
+│   │   │   ├── useArenaData.ts
+│   │   │   └── useArenas.ts
+│   │   ├── services/               # External Services
+│   │   ├── utils/                  # Utility Functions
+│   │   ├── constants.ts            # Contract ABIs & Addresses
+│   │   └── rainbowKitConfig.tsx    # Wallet Configuration
+│   └── package.json
+├── test/                           # Smart Contract Tests
+│   ├── BazaarTest.t.sol
+│   ├── GurukulTest.t.sol
+│   ├── KurukshetraTest.t.sol
+│   ├── RannTokenTest.t.sol
+│   └── YodhaNFTTest.t.sol
+├── script/                         # Deployment Scripts
+│   ├── DeployRann.s.sol
+│   └── HelperConfig.s.sol
+├── foundry.toml                    # Foundry Configuration
+└── README.md
 ```
 
-### 2. Install Foundry (if not already installed)
-```bash
-# Install Foundry
-curl -L https://foundry.paradigm.xyz | bash
-
-# Add Foundry to PATH
-foundryup
-
-# Verify installation
-forge --version
-cast --version
-anvil --version
-```
-
-### 3. Install Smart Contract Dependencies
-```bash
-# Install OpenZeppelin contracts and other dependencies
-forge install OpenZeppelin/openzeppelin-contracts
-forge install foundry-rs/forge-std
-
-# Build all contracts
-forge build
-
-# Run comprehensive tests
-forge test --gas-report
-
-# Check test coverage
-forge coverage
-```
-
-### 4. Set Up Frontend Environment
-```bash
-# Navigate to frontend directory
-cd frontend
-
-# Install all dependencies
-npm install
-
-# Verify installation
-npm list --depth=0
-```
-
-### 5. Configure Environment Variables
-Create a `.env.local` file in the frontend directory with the following variables:
-
-```bash
-# ===== BLOCKCHAIN CONFIGURATION =====
-NEXT_PUBLIC_GAME_MASTER_PRIVATE_KEY=0x1234567890abcdef...
-NEXT_PUBLIC_FLOW_NETWORK=testnet
-NEXT_PUBLIC_CHAIN_ID=545
-
-# ===== NEAR AI CONFIGURATION =====
-NEXT_PUBLIC_AUTH_KEY={"signature":"...","account_id":"...","public_key":"..."}
-NEXT_PUBLIC_NEAR_NETWORK=testnet
-NEXT_PUBLIC_NEAR_ACCOUNT_ID=your-account.testnet
-
-# ===== APPLICATION CONFIGURATION =====
-NEXT_PUBLIC_BASE_URL=http://localhost:3000
-NEXT_PUBLIC_API_BASE_URL=http://localhost:3000/api
-NEXT_PUBLIC_ENVIRONMENT=development
-
-# ===== IPFS CONFIGURATION =====
-PINATA_API_KEY=your_pinata_api_key
-PINATA_SECRET_KEY=your_pinata_secret_key
-NEXT_PUBLIC_PINATA_GATEWAY=https://gateway.pinata.cloud/ipfs/
-
-# ===== ANALYTICS & MONITORING =====
-NEXT_PUBLIC_ANALYTICS_ID=your_analytics_id
-NEXT_PUBLIC_SENTRY_DSN=your_sentry_dsn
-
-# ===== SECURITY =====
-NEXTAUTH_SECRET=your_nextauth_secret
-NEXTAUTH_URL=http://localhost:3000
-```
-
-### 6. Smart Contract Deployment (Optional)
-```bash
-# For local development (using Anvil)
-anvil --port 8545 --chain-id 1337
-
-# Deploy contracts to local network
-forge script script/DeployRann.s.sol --rpc-url http://localhost:8545 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --broadcast
-
-# Deploy to Flow testnet
-forge script script/DeployRann.s.sol --rpc-url https://testnet.evm.nodes.onflow.org --private-key $PRIVATE_KEY --broadcast --verify
-
-# Save deployment addresses
-echo "Deployment completed. Update contract addresses in constants.ts"
-```
-
-### 7. Run the Application
-```bash
-# Start the development server
-npm run dev
-
-# The application will be available at:
-# Frontend: http://localhost:3000
-# API: http://localhost:3000/api
-```
-
-### 8. Verify Installation
-```bash
-# Check if all services are running
-curl http://localhost:3000/api/health
-
-# Run frontend tests
-npm test
-
-# Run smart contract tests
-forge test -vvv
-
-# Check gas usage
-forge test --gas-report
-```
-
-### 9. Access the Platform
-1. Open your browser and navigate to `http://localhost:3000`
-2. Connect your wallet (MetaMask or compatible)
-3. Ensure you have testnet tokens for transactions
-4. Start exploring the Rann ecosystem!
-
-### 10. Development Tools Setup (Optional)
-```bash
-# Install VS Code extensions
-code --install-extension ms-vscode.vscode-typescript-next
-code --install-extension esbenp.prettier-vscode
-code --install-extension ms-vscode.vscode-json
-
-# Set up Git hooks
-npm run prepare
-
-# Configure IDE settings
-cp .vscode/settings.json.example .vscode/settings.json
-```
-
-### Troubleshooting Common Issues
-
-#### Issue 1: Foundry Installation Problems
-```bash
-# If Foundry fails to install
-rm -rf ~/.foundry
-curl -L https://foundry.paradigm.xyz | bash
-source ~/.bashrc
-foundryup
-```
-
-#### Issue 2: Node.js Version Conflicts
-```bash
-# Use Node Version Manager (nvm)
-nvm install 18
-nvm use 18
-npm install
-```
-
-#### Issue 3: Contract Deployment Failures
-```bash
-# Check network connectivity
-cast client --rpc-url https://testnet.evm.nodes.onflow.org
-
-# Verify private key format
-echo $PRIVATE_KEY | wc -c  # Should be 66 characters (including 0x)
-```
-
-#### Issue 4: Frontend Build Errors
-```bash
-# Clear cache and reinstall
-rm -rf node_modules package-lock.json
-npm cache clean --force
-npm install
-```
-
-#### Issue 5: Environment Variable Issues
-```bash
-# Verify environment variables are loaded
-npm run env-check
-
-# Check for missing variables
-grep -n "process.env" src/**/*.ts
-```
-
-### Performance Optimization Tips
-
-1. **Enable Caching**: Configure Redis for better API performance
-2. **Use Testnet**: Test on Flow testnet before mainnet deployment
-3. **Monitor Gas Usage**: Optimize contract calls to reduce costs
-4. **Image Optimization**: Use Next.js Image component for NFT artwork
-5. **Bundle Analysis**: Run `npm run analyze` to check bundle size
-
-## 🎲 How to Play
+## How to Play
 
 ### Step 1: Create Your Warrior Account
 1. **Connect Your Wallet**
@@ -523,22 +624,22 @@ grep -n "process.env" src/**/*.ts
    - Confirm the connection in your wallet
 
 2. **Acquire RANN Tokens**
-   - Visit the token faucet (for testnet)
-   - Request testnet RANN tokens (minimum 1,000 for gameplay)
+   - Make sure that you have Flow testnet tokens already . You can do this by visiting their token faucet
+   - Request testnet RANN tokens
    - Verify token balance in your wallet
    - Approve token spending for platform contracts
 
 ### Step 2: Mint Your First Warrior NFT
-1. **Navigate to Warrior Creation**
-   - Go to "Create Warrior" section
-   - Upload custom artwork (JPG, PNG, GIF up to 10MB)
+1. **Navigate to Chaavani**
+   - Upload custom artwork (JPG, PNG up to 10MB)
    - Image gets automatically uploaded to IPFS via Pinata
+   -  System calls NEAR AI agent `attributes-generator` for getting the apt details of the NFT
    - Choose a unique name for your warrior
 
 2. **AI-Generated Attributes**
-   - System calls NEAR AI agent `attributes-generator`
+   - System calls NEAR AI agent `traits-generator`
    - Generates 5 core traits: Strength, Wit, Charisma, Defence, Luck
-   - Each trait ranges from 5,000 to 10,000 points
+   - Each trait ranges from 0 to 10,000 points
    - Traits determine battle effectiveness and special abilities
 
 3. **Personality Profile Creation**
@@ -555,14 +656,12 @@ grep -n "process.env" src/**/*.ts
    - **Special**: Ultimate ability description
    - **Recover**: Healing/recovery description
 
-### Step 3: Train Your Warrior (Gurukul System)
-1. **Enter the Training Grounds**
-   - Navigate to "Gurukul" section
+### Step 3: Train Your Warrior
+1. **Enter the Gurukul**
    - Select your warrior for training
-   - Pay training fee (50 RANN tokens)
 
 2. **Complete Personality Questionnaire**
-   - Answer 10 randomly selected questions
+   - Answer 5 randomly selected questions
    - Questions cover combat scenarios, moral dilemmas, strategic choices
    - Each question has 4 multiple-choice answers
    - Answers influence trait development
@@ -571,7 +670,7 @@ grep -n "process.env" src/**/*.ts
    - NEAR AI agent `psychological-answer-analyzer` processes responses
    - Analyzes personality patterns and strategic preferences
    - Updates warrior traits based on analysis
-   - Traits can increase by 100-500 points per training session
+   - Traits can increase or decrease as per the questions answered in training session
 
 4. **Training Progression**
    - Complete multiple training sessions for maximum improvement
@@ -581,10 +680,10 @@ grep -n "process.env" src/**/*.ts
 
 ### Step 4: Join Battle Arenas
 1. **Select Your Arena**
-   - **Bronze Arena**: Entry level (100 RANN bet)
-   - **Silver Arena**: Intermediate (500 RANN bet)
-   - **Gold Arena**: Advanced (1,000 RANN bet)
-   - **Platinum Arena**: Elite (5,000 RANN bet)
+   - **Bronze Arena**: Entry level
+   - **Silver Arena**: Intermediate
+   - **Gold Arena**: Advanced
+   - **Platinum Arena**: Elite
 
 2. **Initialize a Battle**
    - Choose your warrior (must match arena ranking)
@@ -617,375 +716,24 @@ grep -n "process.env" src/**/*.ts
    - **AI Decision Making**: NEAR agents select moves independently
    - **Move Execution**: Damage calculations based on traits
    - **Live Updates**: Real-time battle statistics
-   - **Victory Conditions**: First to 10,000+ damage wins
 
-3. **Move Effectiveness Chart**
-   ```
-   Strike vs Dodge: 50% effectiveness
-   Strike vs Taunt: 100% effectiveness
-   Taunt vs Recover: 150% effectiveness
-   Special vs Strike: 125% effectiveness
-   Dodge vs Special: 75% effectiveness
-   Recover vs All: Heals 200-800 HP
-   ```
-
-4. **Battle Analytics**
+3. **Battle Analytics**
    - **Damage Tracking**: Round-by-round damage statistics
    - **Move History**: Complete log of all moves used
    - **Trait Impact**: How traits influenced battle outcomes
    - **AI Reasoning**: Insights into AI decision-making process
 
-### Step 6: Claim Rewards and Progress
-1. **Automatic Reward Distribution**
-   - Winners receive payouts automatically
-   - Rewards calculated based on betting odds
-   - Transaction fees deducted (2.5% platform fee)
-   - Rewards appear in wallet within 60 seconds
-
-2. **Warrior Progression**
-   - **Victory Rewards**: Experience points and trait bonuses
-   - **Ranking Updates**: Promotion to higher tiers
-   - **Winnings Tracking**: Cumulative earnings record
-   - **Battle History**: Complete combat statistics
-
-3. **Promotion System**
-   - **Bronze to Silver**: 1 ETH total winnings required
-   - **Silver to Gold**: 5 ETH total winnings required
-   - **Gold to Platinum**: 10 ETH total winnings required
-   - **Automatic Promotion**: Happens after reaching thresholds
-
-### Step 7: Marketplace Trading (Bazaar)
+### Step 6: Marketplace Trading (Bazaar)
 1. **List Your Warrior for Sale**
    - Set asking price in RANN tokens
-   - Add detailed description and battle statistics
-   - Upload additional images or videos
-   - Choose auction or fixed-price sale
 
 2. **Browse Available Warriors**
-   - Filter by traits, ranking, battle history
    - Compare prices and performance metrics
    - View detailed analytics and AI personality profiles
-   - Make offers or purchase directly
-
-3. **Smart Contract Trading**
-   - Automatic escrow system for secure trades
-   - Instant ownership transfer upon payment
-   - Platform fee of 2.5% on all sales
-   - Dispute resolution through smart contracts
-
-### Advanced Strategies
-
-#### Battle Strategy Tips
-1. **Trait Optimization**: Focus on 2-3 traits for specialization
-2. **Opponent Analysis**: Study opponent's battle history
-3. **Timing Influence**: Use influence in critical moments
-4. **Betting Patterns**: Analyze historical betting data
-
-#### Economic Strategies
-1. **Portfolio Management**: Diversify across multiple warriors
-2. **Market Timing**: Buy low-ranked warriors for training
-3. **Seasonal Trading**: Capitalize on tournament seasons
-4. **Risk Management**: Never bet more than you can afford to lose
-
-#### Training Optimization
-1. **Question Analysis**: Understand how answers affect traits
-2. **Balanced Development**: Maintain trait balance vs specialization
-3. **Psychological Consistency**: Maintain consistent personality
-4. **Training Frequency**: Optimal training schedule for growth
+   - Purchase directly
 
 ### Community Features
 - **Leaderboards**: Global and arena-specific rankings
-- **Discord Integration**: Real-time battle notifications
-- **Social Sharing**: Share victories and rare warriors
-- **Tournament Events**: Special competitions with mega prizes
-- **Guild System**: Team up with other players (coming soon)
-
-## 🏗️ How It's Made
-
-### Smart Contract Architecture
-
-#### Core Contract Design Philosophy
-Our smart contract architecture follows a modular, upgradeable design pattern that ensures scalability, security, and maintainability. Each contract has a specific responsibility, reducing complexity and improving gas efficiency.
-
-#### Contract Hierarchy and Interactions
-```
-KurukshetraFactory (Factory Contract)
-├── Creates → Kurukshetra (Battle Arena)
-├── Manages → Arena Rankings
-└── Handles → Global Statistics
-
-RannToken (ERC-20)
-├── Minting/Burning Logic
-├── Transfer Restrictions
-└── Economic Controls
-
-YodhaNFT (ERC-721)
-├── Dynamic Metadata
-├── Trait Management
-├── Promotion/Demotion
-└── Battle History
-
-Bazaar (Marketplace)
-├── Trading Logic
-├── Escrow System
-└── Fee Management
-
-Gurukul (Training System)
-├── Question Management
-├── AI Integration
-└── Trait Updates
-```
-
-#### Advanced Smart Contract Features
-
-**1. Gas-Optimized Operations**
-- **Batch Processing**: Multiple operations in single transaction
-- **Packed Structs**: Efficient storage layout reducing gas costs
-- **Event Optimization**: Minimal but comprehensive event emission
-- **State Management**: Optimized state variable organization
-
-**2. Security Implementations**
-- **Reentrancy Guards**: Protection against reentrancy attacks
-- **Access Control**: Role-based permissions for admin functions
-- **Overflow Protection**: SafeMath operations for all calculations
-- **Signature Verification**: ECDSA signature validation for AI moves
-
-**3. Automated Game Master System**
-```solidity
-// Automated battle execution
-function battle(
-    PlayerMoves _yodhaOneMove,
-    PlayerMoves _yodhaTwoMove,
-    bytes memory _signedData
-) external {
-    // Verify timing constraints
-    require(block.timestamp >= s_lastRoundEndedAt + MIN_BATTLE_ROUNDS_INTERVAL);
-    
-    // Validate AI signature
-    _verifyAISignature(_yodhaOneMove, _yodhaTwoMove, _signedData);
-    
-    // Execute battle logic
-    _executeBattleRound(_yodhaOneMove, _yodhaTwoMove);
-    
-    // Update game state
-    _updateBattleState();
-}
-```
-
-**4. Dynamic NFT System**
-- **Metadata Updates**: On-chain trait modifications
-- **Ranking System**: Automatic promotion/demotion based on performance
-- **Battle History**: Comprehensive on-chain battle records
-- **Trait Evolution**: AI-driven characteristic improvements
-
-### AI Integration Architecture
-
-#### NEAR AI Agent System
-Our AI integration represents a breakthrough in cross-chain AI implementation, seamlessly connecting NEAR Protocol's AI agents with Flow blockchain smart contracts.
-
-**1. Agent Specialization**
-- **Attributes Generator**: Creates balanced warrior statistics
-- **Traits Generator**: Develops personality characteristics
-- **Psychological Analyzer**: Processes questionnaire responses
-- **Move Chooser**: Makes real-time battle decisions
-
-**2. AI Decision-Making Process**
-```typescript
-interface BattleContext {
-    current_round: number;
-    agent_1: {
-        personality: PersonalityProfile;
-        traits: WarriorTraits;
-        total_damage_received: number;
-        battle_history: BattleRecord[];
-    };
-    agent_2: {
-        personality: PersonalityProfile;
-        traits: WarriorTraits;
-        total_damage_received: number;
-        battle_history: BattleRecord[];
-    };
-    environmental_factors: {
-        arena_type: ArenaRanking;
-        betting_pressure: number;
-        spectator_count: number;
-    };
-}
-```
-
-**3. Advanced AI Features**
-- **Contextual Awareness**: AI considers battle history and opponent patterns
-- **Personality Consistency**: Decisions align with established character traits
-- **Adaptive Learning**: Strategies evolve based on battle outcomes
-- **Psychological Modeling**: Complex personality simulation
-
-#### Cross-Chain Communication
-**1. Authentication System**
-```typescript
-const authForApi = {
-    signature: cryptographic_signature,
-    account_id: near_account_id,
-    public_key: near_public_key,
-    message: signed_message,
-    nonce: security_nonce,
-    recipient: api_endpoint,
-    callback_url: response_handler
-};
-```
-
-**2. API Integration Layer**
-- **Rate Limiting**: Prevents API abuse and ensures fair usage
-- **Response Caching**: Optimizes performance for repeated requests
-- **Error Handling**: Robust fallback mechanisms for AI failures
-- **Timeout Management**: Graceful handling of slow AI responses
-
-### Frontend Innovation
-
-#### Architecture Overview
-Built on Next.js 15 with App Router for maximum performance and developer experience, featuring server components for optimal loading speeds.
-
-**1. Component Architecture**
-```
-src/
-├── app/
-│   ├── (dashboard)/
-│   │   ├── arena/
-│   │   ├── gurukul/
-│   │   ├── bazaar/
-│   │   └── leaderboard/
-│   ├── api/
-│   │   ├── game-master/
-│   │   ├── near-ai-moves/
-│   │   └── ipfs-upload/
-│   └── globals.css
-├── components/
-│   ├── ui/
-│   ├── battle/
-│   ├── warrior/
-│   └── marketplace/
-├── hooks/
-│   ├── useContract.ts
-│   ├── useBattleState.ts
-│   └── useAIIntegration.ts
-├── services/
-│   ├── web3Service.ts
-│   ├── ipfsService.ts
-│   └── aiService.ts
-└── utils/
-    ├── contractHelpers.ts
-    ├── formatters.ts
-    └── validators.ts
-```
-
-**2. State Management**
-- **React Server Components**: Reduced client-side JavaScript
-- **Custom Hooks**: Reusable blockchain interaction logic
-- **Context Providers**: Global state management for battle data
-- **Real-time Updates**: WebSocket connections for live battle monitoring
-
-**3. Performance Optimizations**
-- **Code Splitting**: Automatic route-based code splitting
-- **Image Optimization**: Next.js Image component for NFT artwork
-- **Bundle Analysis**: Regular monitoring of bundle size
-- **Caching Strategies**: Aggressive caching for static assets
-
-#### Web3 Integration Layer
-**1. Wallet Connection Management**
-```typescript
-const wagmiConfig = createConfig({
-    chains: [flowPreviewnet],
-    connectors: [
-        injected(),
-        walletConnect({ projectId }),
-        metaMask(),
-    ],
-    transports: {
-        [flowPreviewnet.id]: http(),
-    },
-});
-```
-
-**2. Contract Interaction Patterns**
-- **Type-Safe Contracts**: Full TypeScript support for all contract methods
-- **Error Handling**: Comprehensive error catching and user feedback
-- **Transaction Monitoring**: Real-time transaction status updates
-- **Gas Optimization**: Dynamic gas estimation and optimization
-
-### Automation System
-
-#### Game Master Implementation
-Our automated game master system ensures battles execute flawlessly without human intervention, handling complex timing and state management.
-
-**1. Battle Lifecycle Management**
-```typescript
-// Automated battle progression
-async function manageBattleFlow(arenaAddress: string) {
-    const arenaState = await getArenaState(arenaAddress);
-    
-    // Check betting period
-    if (shouldStartBattle(arenaState)) {
-        await startGame(arenaAddress);
-    }
-    
-    // Execute battle rounds
-    if (shouldExecuteRound(arenaState)) {
-        const aiMoves = await generateAIMoves(arenaAddress);
-        await executeBattleRound(arenaAddress, aiMoves);
-    }
-    
-    // Handle battle completion
-    if (shouldFinishBattle(arenaState)) {
-        await finishBattle(arenaAddress);
-    }
-}
-```
-
-**2. Error Recovery Mechanisms**
-- **Transaction Retry Logic**: Automatic retry with exponential backoff
-- **State Synchronization**: Ensure consistency between UI and blockchain
-- **Fallback Systems**: Alternative execution paths for critical operations
-- **Logging and Monitoring**: Comprehensive system monitoring
-
-#### Timing and Coordination
-**1. Precise Timing Controls**
-- **Betting Period**: Exactly 70 seconds before battle start
-- **Round Intervals**: 30 seconds between battle rounds
-- **Timeout Handling**: Graceful handling of delayed transactions
-- **Synchronization**: Coordinated timing across multiple battles
-
-**2. Multi-Arena Management**
-- **Concurrent Battles**: Support for multiple simultaneous battles
-- **Resource Allocation**: Efficient distribution of computational resources
-- **Priority Queuing**: Higher-tier arenas get priority processing
-- **Load Balancing**: Distribute load across multiple game master instances
-
-### Security and Reliability
-
-#### Smart Contract Security
-**1. Comprehensive Testing**
-- **Unit Tests**: 95%+ code coverage for all contracts
-- **Integration Tests**: End-to-end battle simulation
-- **Fuzz Testing**: Random input testing for edge cases
-- **Formal Verification**: Mathematical proofs for critical functions
-
-**2. Security Audits**
-- **Automated Analysis**: Continuous security scanning
-- **Manual Review**: Expert security audits
-- **Bug Bounty Program**: Community-driven security testing
-- **Vulnerability Disclosure**: Responsible disclosure process
-
-#### Infrastructure Security
-**1. API Security**
-- **Rate Limiting**: Prevent abuse and ensure fair usage
-- **Authentication**: Secure API key management
-- **Input Validation**: Comprehensive input sanitization
-- **CORS Policy**: Strict cross-origin resource sharing
-
-**2. Data Protection**
-- **Encryption**: All sensitive data encrypted at rest and in transit
-- **Privacy**: Minimal data collection and processing
-- **Compliance**: GDPR and other privacy regulation compliance
-- **Backup Systems**: Regular data backups and disaster recovery
 
 ### Innovation Highlights
 
@@ -1007,48 +755,119 @@ async function manageBattleFlow(arenaAddress: string) {
 3. **Intelligent Recommendations**: AI-powered strategy suggestions
 4. **Social Integration**: Community features and sharing
 
-## 🔧 Development
+#### Automation System
 
-### Smart Contract Development
+##### Game Master Implementation
+Our automated game master system ensures battles execute flawlessly without human intervention, handling complex timing and state management.
+
+##### Timing and Coordination
+**1. Precise Timing Controls**
+- **Betting Period**: Exactly 70 seconds before battle start
+- **Round Intervals**: 30 seconds between battle rounds
+- **Timeout Handling**: Graceful handling of delayed transactions
+- **Synchronization**: Coordinated timing across multiple battles
+
+**2. Multi-Arena Management**
+- **Concurrent Battles**: Support for multiple simultaneous battles
+- **Resource Allocation**: Efficient distribution of computational resources
+- **Priority Queuing**: Higher-tier arenas get priority processing
+- **Load Balancing**: Distribute load across multiple game master instances
+
+## Setup Instructions
+
+### Prerequisites
+- **Node.js**: Version 18.0.0 or higher
+- **npm**: Version 8.0.0 or higher (comes with Node.js)
+- **Foundry**: Latest version for smart contract development
+- **Git**: For version control
+- **Flow CLI**: For Flow blockchain interactions (optional)
+
+### 1. Clone the Repository
 ```bash
-# Run tests
-forge test
+# Clone the main repository
+git clone https://github.com/samkitsoni/rann-game-platform.git
+cd rann-game-platform
 
-# Format code
-forge fmt
+# Navigate to the project directory
+cd Rann
 
-# Check coverage
-forge coverage
-
-# Deploy to testnet
-forge script script/DeployRann.s.sol --rpc-url <rpc_url> --private-key <private_key> --broadcast
+# Verify the repository structure
+ls -la
 ```
 
-### Frontend Development
+### 2. Install Foundry (if not already installed)
 ```bash
-# Start development server
+# Install Foundry
+curl -L https://foundry.paradigm.xyz | bash
+
+# Add Foundry to PATH
+foundryup
+
+# Verify installation
+forge --version
+cast --version
+anvil --version
+```
+
+### 3. Install Smart Contract Dependencies
+```bash
+# Install OpenZeppelin contracts and other dependencies
+forge install
+
+# Build all contracts
+forge build
+```
+
+### 4. Set Up Frontend Environment
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install all dependencies
+npm install
+```
+
+### 5. Configure Environment Variables
+Create a `.env.local` file in the frontend directory with the following variables:
+
+```bash
+# ===== BLOCKCHAIN CONFIGURATION =====
+NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID=your_wallet_connect_project_id
+
+# ===== NEAR AI CONFIGURATION =====
+NEAR_AGENT_PRIVATE_KEY=your_near_private_key
+NEAR_AGENT_ACCOUNT_ID=your_near_account_id
+
+# ===== GAME MASTER CONFIGURATION =====
+NEXT_PUBLIC_GAME_MASTER_PRIVATE_KEY=your_game_master_private_key
+
+# ===== FLOW BLOCKCHAIN =====
+FLOW_TESTNET_RPC=https://testnet.evm.nodes.onflow.org
+
+# ===== IPFS/PINATA CONFIGURATION =====
+PINATA_JWT=your_pinata_jwt_token
+NEXT_PUBLIC_GATEWAY_URL=https://gateway.pinata.cloud/ipfs/
+
+# ===== AUTHENTICATION =====
+NEXT_PUBLIC_AUTH_KEY=your_auth_key
+```
+
+### 6. Run the Application
+```bash
+# Start the development server
 npm run dev
 
-# Build for production
-npm run build
-
-# Lint code
-npm run lint
+# The application will be available at:
+# Frontend: http://localhost:3000
 ```
 
-### Testing
-```bash
-# Run contract tests
-forge test -vv
+### 7. Access the Platform
+1. Open your browser and navigate to `http://localhost:3000`
+2. Connect your wallet (MetaMask or compatible as well as Near compatible wallet like Meteor or Hot wallet is also required)
+3. Ensure you have testnet tokens for transactions
+4. Start exploring the Rann ecosystem!
 
-# Run frontend tests
-cd frontend && npm test
-
-# Test automation system
-./test-robust-automation.sh
-```
-
-## 🚧 Challenges & Solutions
+## Challenges & Solutions
 
 ### Challenge 1: Cross-Chain AI Integration
 **Problem**: Connecting NEAR AI agents with Flow blockchain contracts presented unprecedented technical challenges
@@ -1057,26 +876,11 @@ cd frontend && npm test
 - **Latency Issues**: Network delays affecting real-time battle execution
 - **Data Format Conversion**: Converting AI responses to blockchain-compatible formats
 
-**Solution**: Built a comprehensive API bridge system
+**Solution**:
 - **Custom API Layer**: Developed middleware to translate between NEAR and Flow protocols
 - **Authentication Pipeline**: Implemented secure token-based authentication with signature verification
 - **Response Caching**: Strategic caching to reduce latency for repeated AI queries
 - **Data Normalization**: Standardized data formats for seamless communication
-- **Fallback Mechanisms**: Backup AI systems for high availability
-
-**Technical Implementation**:
-```typescript
-// API bridge for NEAR AI to Flow blockchain
-const aiResponse = await fetch('/api/near-ai-moves', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-        auth: normalizedAuthData,
-        prompt: battleContextData,
-        assistantId: moveChooserAgent
-    })
-});
-```
 
 ### Challenge 2: Autonomous Battle Automation
 **Problem**: Ensuring battles execute automatically without manual intervention while maintaining security and fairness
@@ -1092,25 +896,6 @@ const aiResponse = await fetch('/api/near-ai-moves', {
 - **Gas Optimization**: Dynamic gas estimation and optimization for all transactions
 - **Transaction Monitoring**: Real-time tracking of all automated transactions
 
-**Technical Implementation**:
-```typescript
-// Automated battle management system
-class GameMaster {
-    private async manageBattleCycle(arenaAddress: string) {
-        const state = await this.getArenaState(arenaAddress);
-        
-        if (this.shouldStartBattle(state)) {
-            await this.executeWithRetry(() => this.startBattle(arenaAddress));
-        }
-        
-        if (this.shouldExecuteRound(state)) {
-            const moves = await this.generateAIMoves(arenaAddress);
-            await this.executeWithRetry(() => this.executeBattleRound(arenaAddress, moves));
-        }
-    }
-}
-```
-
 ### Challenge 3: Economic Balance and Sustainability
 **Problem**: Creating fair betting and reward systems that prevent exploitation while maintaining player engagement
 - **Market Manipulation**: Preventing coordinated betting attacks
@@ -1125,171 +910,9 @@ class GameMaster {
 - **Economic Modeling**: Continuous monitoring and adjustment of economic parameters
 - **Transparency**: Open-source economic models and regular community reports
 
-**Economic Safeguards**:
-```solidity
-// Anti-manipulation mechanisms
-modifier antiManipulation(address _player, uint256 _betAmount) {
-    require(_betAmount <= maxBetForPlayer(_player), "Bet exceeds personal limit");
-    require(block.timestamp >= lastBetTime[_player] + MIN_BET_INTERVAL, "Betting too frequently");
-    require(!isSuspiciousBettingPattern(_player), "Suspicious betting detected");
-    _;
-}
-```
+## Future Improvements
 
-### Challenge 4: Scalability and Performance
-**Problem**: Managing multiple simultaneous battles and bets while maintaining fast response times
-- **Concurrent Operations**: Handling multiple battles simultaneously
-- **Database Performance**: Efficient data storage and retrieval
-- **Network Congestion**: Managing high transaction volumes
-- **User Experience**: Maintaining responsive UI during high load
-
-**Solution**: Implemented comprehensive scaling architecture
-- **Microservices**: Distributed architecture for independent scaling
-- **Database Optimization**: Efficient indexing and query optimization
-- **Caching Strategies**: Multi-layer caching for frequently accessed data
-- **Load Balancing**: Intelligent distribution of requests across multiple servers
-- **Performance Monitoring**: Real-time performance tracking and optimization
-
-**Scalability Metrics**:
-- **Concurrent Battles**: Support for 100+ simultaneous battles
-- **Transaction Throughput**: 1000+ transactions per minute
-- **Response Time**: Sub-second response for all user interactions
-- **Uptime**: 99.9% availability with automatic failover
-
-### Challenge 5: Smart Contract Security
-**Problem**: Ensuring smart contracts are secure against various attack vectors while maintaining functionality
-- **Reentrancy Attacks**: Preventing recursive calls to drain funds
-- **Integer Overflow**: Protecting against mathematical vulnerabilities
-- **Access Control**: Ensuring only authorized users can perform sensitive operations
-- **Signature Validation**: Verifying AI-generated battle moves
-
-**Solution**: Implemented comprehensive security measures
-- **Security Audits**: Multiple professional security audits
-- **Formal Verification**: Mathematical proofs of contract correctness
-- **Comprehensive Testing**: 95%+ test coverage with fuzz testing
-- **Bug Bounty Program**: Community-driven security testing
-- **Gradual Rollout**: Phased deployment with monitoring
-
-**Security Implementation**:
-```solidity
-// Comprehensive security measures
-contract Kurukshetra {
-    using ReentrancyGuard for *;
-    using SafeMath for uint256;
-    
-    modifier onlyAuthorized() {
-        require(hasRole(AUTHORIZED_ROLE, msg.sender), "Unauthorized");
-        _;
-    }
-    
-    function battle(PlayerMoves _move1, PlayerMoves _move2, bytes memory _sig) 
-        external 
-        nonReentrant 
-        onlyAuthorized 
-        validSignature(_move1, _move2, _sig) 
-    {
-        // Secure battle execution
-    }
-}
-```
-
-### Challenge 6: User Experience Complexity
-**Problem**: Making blockchain gaming accessible to traditional gamers unfamiliar with Web3 technology
-- **Wallet Complexity**: Simplifying cryptocurrency wallet interactions
-- **Gas Fees**: Managing transaction costs for users
-- **Technical Barriers**: Reducing Web3 learning curve
-- **Onboarding**: Streamlining new user registration
-
-**Solution**: Developed user-friendly onboarding and interfaces
-- **Wallet Integration**: Seamless wallet connection with RainbowKit
-- **Gas Abstraction**: Platform covers gas fees for small transactions
-- **Progressive Disclosure**: Gradually introduce Web3 concepts
-- **Educational Content**: Comprehensive tutorials and guides
-- **Customer Support**: Dedicated support for new users
-
-**User Experience Metrics**:
-- **Onboarding Time**: Average 3 minutes to first battle
-- **User Retention**: 70% of new users complete their first battle
-- **Support Tickets**: 95% resolved within 24 hours
-- **User Satisfaction**: 4.2/5 average rating
-
-### Challenge 7: AI Reliability and Consistency
-**Problem**: Ensuring AI agents make consistent and fair decisions while maintaining unpredictability
-- **AI Bias**: Preventing unfair advantages for certain warrior types
-- **Decision Consistency**: Ensuring AI makes logical decisions
-- **Performance Variance**: Managing AI response time variations
-- **Fail-Safe Mechanisms**: Handling AI system failures
-
-**Solution**: Implemented robust AI management system
-- **Multi-Model Approach**: Multiple AI models for redundancy
-- **Bias Detection**: Continuous monitoring for AI bias
-- **Decision Validation**: Logical consistency checks for AI decisions
-- **Performance Monitoring**: Real-time AI performance tracking
-- **Fallback Systems**: Backup decision-making for AI failures
-
-**AI Reliability Metrics**:
-- **Response Time**: Average 2.3 seconds for move generation
-- **Decision Consistency**: 94% logical consistency score
-- **Uptime**: 99.7% AI service availability
-- **Bias Score**: Maintained below 5% variance across warrior types
-
-### Challenge 8: Community Building and Engagement
-**Problem**: Building an active, engaged community around a new gaming platform
-- **Initial Adoption**: Attracting early users to the platform
-- **Content Creation**: Encouraging user-generated content
-- **Community Moderation**: Managing community interactions
-- **Long-term Engagement**: Maintaining user interest over time
-
-**Solution**: Comprehensive community strategy
-- **Incentive Programs**: Rewards for early adopters and content creators
-- **Community Events**: Regular tournaments and special events
-- **Social Features**: Built-in social sharing and communication tools
-- **Community Governance**: DAO voting on platform decisions
-- **Ambassador Program**: Community leaders with special privileges
-
-**Community Metrics**:
-- **Active Users**: 5,000+ monthly active users
-- **Community Events**: 50+ tournaments hosted
-- **User-Generated Content**: 1,000+ community-created warriors
-- **Discord Members**: 2,500+ active community members
-
-### Challenge 9: Regulatory Compliance
-**Problem**: Navigating complex regulatory requirements across different jurisdictions
-- **Gaming Regulations**: Compliance with gaming laws in various countries
-- **Financial Services**: Handling cryptocurrency transactions legally
-- **Data Privacy**: GDPR and other privacy regulation compliance
-- **Tax Implications**: Managing tax obligations for players
-
-**Solution**: Comprehensive legal and compliance framework
-- **Legal Consultation**: Expert legal advice on regulatory requirements
-- **Compliance Documentation**: Comprehensive terms of service and privacy policies
-- **Regional Restrictions**: Geoblocking where necessary for compliance
-- **Tax Reporting**: Tools to help users with tax obligations
-- **Regular Updates**: Continuous monitoring of regulatory changes
-
-### Challenge 10: Technical Debt and Maintenance
-**Problem**: Maintaining and improving a complex system while adding new features
-- **Code Quality**: Maintaining high code standards as the system grows
-- **Performance Optimization**: Continuously improving system performance
-- **Security Updates**: Regular security patches and improvements
-- **Feature Integration**: Adding new features without breaking existing functionality
-
-**Solution**: Implemented comprehensive maintenance strategy
-- **Code Reviews**: Mandatory peer reviews for all code changes
-- **Automated Testing**: Comprehensive test suite with continuous integration
-- **Performance Monitoring**: Real-time performance tracking and optimization
-- **Regular Refactoring**: Scheduled code cleanup and optimization
-- **Documentation**: Comprehensive documentation for all systems
-
-**Maintenance Metrics**:
-- **Code Quality**: 95% code coverage with comprehensive testing
-- **Performance**: 99.9% uptime with sub-second response times
-- **Security**: Monthly security audits and updates
-- **Feature Delivery**: Average 2-week feature delivery cycle
-
-## 🔮 Future Improvements
-
-### 🏛️ DAO Governance Integration
+### DAO Governance Integration
 
 #### Comprehensive Governance System
 **1. Question Generation and Curation**
@@ -1313,13 +936,7 @@ contract Kurukshetra {
 - **Bug Bounty Programs**: Incentivize security research and bug reporting
 - **Ecosystem Grants**: Support third-party developers and integrations
 
-**4. Upgrade Proposals**
-- **Smart Contract Upgrades**: Propose and vote on contract improvements
-- **Feature Requests**: Community-driven feature development
-- **Integration Proposals**: Add new blockchain or AI service integrations
-- **Performance Optimizations**: Propose gas optimization and efficiency improvements
-
-### 🤖 Enhanced AI Agents
+### Enhanced AI Agents
 
 #### Default AI Warriors
 **1. Pre-trained Standard Opponents**
@@ -1344,20 +961,7 @@ contract Kurukshetra {
 - **Social Learning**: AI agents learn from observing other battles
 - **Personality Drift**: Gradual personality changes over time
 
-#### Advanced AI Features
-**1. Machine Learning Integration**
-- **Neural Network Training**: Continuous improvement through battle data
-- **Reinforcement Learning**: Reward-based learning from victories and defeats
-- **Genetic Algorithms**: Evolution of successful strategies over generations
-- **Ensemble Methods**: Multiple AI models for different battle scenarios
-
-**2. Predictive Analytics**
-- **Opponent Analysis**: Predict opponent moves based on history
-- **Meta-Game Adaptation**: Adjust to current competitive trends
-- **Risk Assessment**: Evaluate battle situations and adjust aggression
-- **Opportunity Recognition**: Identify and exploit opponent weaknesses
-
-### 🎮 Expanded Game Modes
+### Expanded Game Modes
 
 #### Tournament System
 **1. Multi-Format Competitions**
@@ -1375,70 +979,14 @@ contract Kurukshetra {
 - **Endurance Contests**: Extended battles with multiple opponents
 
 #### Team-Based Combat
-**1. Guild Wars**
+**Guild Wars**
 - **Guild Formation**: Create alliances of 10-50 players
 - **Team Battles**: 3v3, 5v5, or larger team confrontations
 - **Guild Rankings**: Leaderboards for guild performance
 - **Shared Resources**: Guild treasuries and communal training
 - **Guild Tournaments**: Inter-guild competitions with massive prizes
 
-**2. Coordinated Strategies**
-- **Formation Combat**: Tactical positioning and team formations
-- **Combo Attacks**: Coordinated special moves between team members
-- **Support Roles**: Healers, buffers, and defensive specialists
-- **Leadership Systems**: Guild leaders with special abilities
-- **Alliance Networks**: Multi-guild alliances for large-scale warfare
-
-#### Special Event Modes
-**1. Seasonal Events**
-- **Holiday Themes**: Special arenas and rewards for holidays
-- **Limited-Time Challenges**: Unique objectives and rewards
-- **Community Events**: Platform-wide collaborative challenges
-- **Charity Tournaments**: Events supporting real-world causes
-- **Anniversary Celebrations**: Special rewards for platform milestones
-
-**2. Experimental Game Modes**
-- **Survival Mode**: Battle waves of increasingly difficult opponents
-- **King of the Hill**: Defend your position against challengers
-- **Capture the Flag**: Objective-based team combat
-- **Battle Royale**: Large-scale elimination tournaments
-- **Puzzle Battles**: Combat with environmental challenges
-
-### 🌐 Cross-Chain Integration
-
-#### Multi-Blockchain Support
-**1. Ethereum Integration**
-- **Bridge Contracts**: Secure asset transfers between chains
-- **Dual-Chain Warriors**: NFTs that exist on multiple blockchains
-- **Cross-Chain Battles**: Fight opponents from different blockchain networks
-- **Unified Leaderboards**: Rankings across all supported chains
-
-**2. Polygon Integration**
-- **Low-Cost Battles**: Reduced gas fees for casual gaming
-- **Layer 2 Scaling**: Handle high-volume tournament operations
-- **Fast Transactions**: Near-instant battle confirmations
-- **Mass Adoption**: Onboard users with minimal transaction costs
-
-**3. Solana Integration**
-- **High-Speed Battles**: Ultra-fast battle execution
-- **NFT Interoperability**: Cross-chain NFT trading
-- **DeFi Integration**: Yield farming with warrior NFTs
-- **Metaverse Connections**: Integration with Solana-based virtual worlds
-
-#### Interoperability Features
-**1. Cross-Chain Asset Management**
-- **Universal Inventory**: Manage assets across all chains
-- **Automatic Bridging**: Seamless asset transfers
-- **Multi-Chain Wallets**: Support for various wallet types
-- **Unified User Experience**: Consistent interface across chains
-
-**2. Cross-Chain Competitions**
-- **Inter-Chain Tournaments**: Competitions spanning multiple blockchains
-- **Bridge Rewards**: Incentives for cross-chain participation
-- **Shared Leaderboards**: Global rankings regardless of chain
-- **Chain-Specific Bonuses**: Unique rewards for each blockchain
-
-### 🎨 Enhanced User Experience
+### Enhanced User Experience
 
 #### Immersive Visualization
 **1. 3D Battle System**
@@ -1446,29 +994,6 @@ contract Kurukshetra {
 - **Customizable Arenas**: Player-designed battle environments
 - **Dynamic Lighting**: Atmospheric effects based on battle intensity
 - **Particle Effects**: Spectacular visual effects for special moves
-- **VR Support**: Virtual reality battle experience
-
-**2. Advanced Graphics**
-- **High-Resolution NFTs**: Support for 4K and 8K warrior artwork
-- **Animated NFTs**: Moving and interactive warrior representations
-- **Procedural Generation**: AI-generated battlefield environments
-- **Cinematic Replays**: Movie-style battle recreations
-- **Photo Mode**: Capture and share epic battle moments
-
-#### Mobile Experience
-**1. Native Mobile Applications**
-- **iOS App**: Full-featured iPhone and iPad application
-- **Android App**: Comprehensive Android mobile experience
-- **Cross-Platform Sync**: Seamless synchronization across devices
-- **Push Notifications**: Real-time battle and event notifications
-- **Offline Mode**: Limited functionality without internet connection
-
-**2. Mobile-Optimized Features**
-- **Touch Controls**: Intuitive touch-based interface
-- **Voice Commands**: Voice-activated battle commands
-- **AR Integration**: Augmented reality battle viewing
-- **Social Sharing**: Easy sharing to social media platforms
-- **Mobile Tournaments**: Competitions designed for mobile play
 
 #### Social and Community Features
 **1. Enhanced Social Systems**
@@ -1478,135 +1003,18 @@ contract Kurukshetra {
 - **Streaming Support**: Integration with Twitch and YouTube
 - **Community Forums**: Discussion boards and strategy sharing
 
-**2. Content Creation Tools**
-- **Battle Highlights**: Auto-generated battle highlight reels
-- **Warrior Showcase**: Create promotional content for your warriors
-- **Strategy Guides**: Player-created tutorials and guides
-- **Fan Art Integration**: Community artwork galleries
-- **Mod Support**: Community-created modifications and enhancements
-
-### 📊 Advanced Analytics and AI
-
-#### Comprehensive Data Analytics
-**1. Player Behavior Analysis**
-- **Gameplay Pattern Recognition**: Understand player preferences
-- **Skill Assessment**: Automated skill rating systems
-- **Personalized Recommendations**: AI-suggested improvements
-- **Churn Prediction**: Identify and retain at-risk players
-- **Engagement Optimization**: Maximize player satisfaction
-
-**2. Market Intelligence**
-- **Price Prediction Models**: Forecast NFT value trends
-- **Trading Pattern Analysis**: Identify market manipulation
-- **Liquidity Optimization**: Improve marketplace efficiency
-- **Economic Modeling**: Predict and prevent economic imbalances
-- **Arbitrage Detection**: Identify and address pricing inefficiencies
-
-#### AI-Powered Insights
-**1. Competitive Intelligence**
-- **Meta-Game Analysis**: Track evolving strategies and tactics
-- **Balance Recommendations**: AI-suggested game balance changes
-- **Trend Prediction**: Forecast future gameplay developments
-- **Performance Optimization**: Identify system bottlenecks
-- **User Experience Enhancement**: AI-driven UX improvements
-
-**2. Predictive Modeling**
-- **Battle Outcome Prediction**: Advanced betting intelligence
-- **Warrior Performance Forecasting**: Predict future warrior success
-- **Economic Trend Analysis**: Forecast token and NFT values
-- **Player Retention Modeling**: Predict and prevent player churn
-- **Growth Opportunity Identification**: Spot expansion opportunities
-
-### 🔧 Technical Infrastructure
-
-#### Scalability Improvements
-**1. Advanced Scaling Solutions**
-- **Layer 2 Integration**: Implement optimistic rollups for high-volume operations
-- **Sharding Support**: Distribute load across multiple blockchain shards
-- **State Channels**: Enable instant micro-transactions for rapid gameplay
-- **Sidechains**: Dedicated blockchains for specific game modes
-- **Hybrid Architecture**: Combine on-chain and off-chain processing
-
-**2. Performance Optimization**
-- **Database Sharding**: Distribute data across multiple databases
-- **CDN Integration**: Global content delivery for faster loading
-- **Microservices Architecture**: Scalable and maintainable service design
-- **Caching Strategies**: Advanced caching for frequently accessed data
-- **Load Balancing**: Distribute traffic across multiple servers
-
-#### Security Enhancements
-**1. Advanced Security Measures**
-- **Multi-Signature Wallets**: Enhanced security for platform funds
-- **Decentralized Oracles**: Secure external data feeds
-- **Zero-Knowledge Proofs**: Privacy-preserving battle verification
-- **Formal Verification**: Mathematical proofs of contract correctness
-- **Bug Bounty Programs**: Continuous security testing incentives
-
-**2. Privacy Features**
-- **Anonymous Battles**: Optional private battle participation
-- **Encrypted Communications**: Secure player communications
-- **Selective Disclosure**: Control what information is public
-- **GDPR Compliance**: Full privacy regulation compliance
-- **Data Minimization**: Collect only necessary user data
-
-### 🌟 Innovation Roadmap
-
-#### Short-term Goals (3-6 months)
-- Implement basic DAO governance for question approval
-- Deploy default AI warriors for training
-- Launch mobile web application
-- Integrate basic tournament system
-- Add cross-chain bridging for Ethereum
-
-#### Medium-term Goals (6-12 months)
-- Full DAO governance implementation
-- Advanced AI personality evolution
-- Native mobile applications
-- 3D battle visualization
-- Multi-chain tournament system
-
-#### Long-term Vision (12+ months)
-- Complete cross-chain ecosystem
-- VR battle experience
-- Fully autonomous AI-driven economy
-- Metaverse integration
-- Real-world tournament events
-
-This comprehensive roadmap ensures Rann remains at the forefront of Web3 gaming innovation, continuously evolving to meet player needs and technological advances.
-
 ## 👥 Team
 
-- **[Samkit Soni]** - Full-stack Developer & AI Integration Specialist
-- **[Yug Agarwal]** - Smart Contract Developer & Blockchain Architect
-- **[Additional Team Members]** - [Roles as applicable]
-
-## 🏆 Achievements
-
-- **Innovative AI Integration**: First platform to combine NEAR AI agents with Flow blockchain
-- **Autonomous Gaming**: Breakthrough in self-executing game mechanics
-- **Economic Sustainability**: Balanced tokenomics with real value creation
-- **Technical Excellence**: Gas-optimized smart contracts and scalable architecture
+- **Samkit Soni** - https://x.com/Samkit_Soni12
+- **Yug Agarwal** - https://x.com/yugAgarwal29
+- **Kaushtabh Agrawal** - https://x.com/KaushtubhAgraw1
 
 ## 📋 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🔗 Links
-
-- **Demo**: [Live Application](https://your-demo-link.com)
-- **Contracts**: [Flow Testnet Explorer](https://testnet.flowdiver.io/)
-- **Documentation**: [Technical Docs](https://docs.rann-game.com)
-- **Discord**: [Community Server](https://discord.gg/rann-game)
-
-## 📞 Contact
-
-For questions, suggestions, or collaboration opportunities:
-- Email: team@rann-game.com
-- Twitter: [@RannGame](https://twitter.com/RannGame)
-- GitHub: [Issues](https://github.com/your-username/rann-game-platform/issues)
+This project is licensed under the MIT License.
 
 ---
 
 <div align="center">
-  <strong>Built with ❤️ for the Web3 Gaming Revolution</strong>
+  <strong>Built with ❤️ from Team Rann</strong>
 </div>
